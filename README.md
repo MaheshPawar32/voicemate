@@ -1,0 +1,49 @@
+# VoiceMate – Voice Control & Phone Finder
+
+**Your phone listens. Your phone responds.**
+
+VoiceMate is an Android-only, offline-first phone utility built with Flutter and Kotlin.
+
+> Status: Initial scaffold and product documentation. Native audio detection, background monitoring, and offline speech recognition are not implemented yet.
+
+## Product principles
+- Android application ID: `com.dev.voicemate`
+- Flutter UI + Kotlin Android services.
+- VelocityX/VxStore for the agreed state approach; Hive for local settings.
+- No login, backend, cloud database, or analytics.
+- Audio processing stays on-device; raw microphone recordings are never persisted.
+- Background microphone monitoring starts only after explicit user action and uses a visible foreground-service notification.
+- AdMob only. Ads never interrupt monitoring, alerts, onboarding, or permission flows.
+- Core utility must work without internet.
+
+## Planned features
+Smart Phone Finder, Clap Detection, Whistle Detection, Offline Voice Commands, optional Screen Lock shortcut, Alert Studio, Sound Library, Monitoring Centre, History, Battery & Performance, Privacy Centre.
+
+## Repository guide
+- `docs/PRODUCT_SPEC.md` – requirements and screen inventory
+- `docs/UI_SPEC.md` – visual direction and screen design
+- `docs/ARCHITECTURE.md` – Flutter/Kotlin boundaries
+- `docs/ROADMAP.md` – phased implementation
+- `docs/PRIVACY_AND_PLAY_COMPLIANCE.md` – privacy and release checklist
+- `lib/` – Flutter source
+
+## Setup
+Install Flutter stable and the Android SDK, then run:
+
+```bash
+flutter pub get
+flutter analyze
+flutter test
+flutter run
+```
+
+If Android scaffolding is absent, generate it with:
+
+```bash
+flutter create --platforms=android --org com.dev voicemate
+```
+
+Verify the generated application ID is exactly `com.dev.voicemate`.
+
+## Engineering rules
+Inspect before editing. Implement one vertical slice at a time. Keep algorithms outside widgets. Use snake_case for persisted fields. Keep one microphone capture owner. Never start microphone monitoring secretly. Report tests honestly; do not claim unimplemented features work.
