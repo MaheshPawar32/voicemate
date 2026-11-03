@@ -27,7 +27,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _save(String key, bool value) async {
     await _box.put(key, value);
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {
+      switch (key) {
+        case 'sound_enabled':
+          _sound = value;
+        case 'vibration_enabled':
+          _vibration = value;
+        case 'flashlight_enabled':
+          _flash = value;
+      }
+    });
   }
 
   @override
