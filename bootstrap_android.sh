@@ -95,18 +95,18 @@ for name in ("build.gradle.kts", "build.gradle"):
     # Add JUnit 4 so the native Kotlin detector unit tests compile.
     if "junit:junit" not in text:
         if name.endswith(".kts"):
-            dependency = '    testImplementation("junit:junit:4.13.2")\\n'
+            dependency = '    testImplementation("junit:junit:4.13.2")\n'
         else:
-            dependency = "    testImplementation 'junit:junit:4.13.2'\\n"
-        if re.search(r'dependencies\\s*\\{', text):
+            dependency = "    testImplementation 'junit:junit:4.13.2'\n"
+        if re.search(r'dependencies\s*\{', text):
             text = re.sub(
-                r'(dependencies\\s*\\{)',
-                lambda match: match.group(1) + "\\n" + dependency,
+                r'(dependencies\s*\{)',
+                lambda match: match.group(1) + "\n" + dependency,
                 text,
                 count=1,
             )
         else:
-            text += "\\ndependencies {\\n" + dependency + "}\\n"
+            text += "\ndependencies {\n" + dependency + "}\n"
         path.write_text(text)
     break
 else:
