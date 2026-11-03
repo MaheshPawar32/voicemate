@@ -1,0 +1,29 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+
+# Android / Gradle
+.gradle/
+local.properties
+android/key.properties
+android/app/debug
+android/app/profile
+android/app/release
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Signing secrets
+*.jks
+*.keystore
+.env
+.env.*
