@@ -145,6 +145,11 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         stopClapTest()
+        pendingPermissionResult?.error(
+            "activity_destroyed",
+            "The app was closed before microphone permission was resolved.",
+            null,
+        )
         pendingPermissionResult = null
         super.onDestroy()
     }
