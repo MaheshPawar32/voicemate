@@ -28,7 +28,18 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
 
   Future<void> _start() async {
     if (_isBusy || _isRunning) return;
-    setState(() { _isBusy = true; _error = null; });
+    setState(() {
+      _isBusy = true;
+      _isRunning = false;
+      _error = null;
+      _latest = const ClapTestEvent(
+        rms: 0,
+        peak: 0,
+        noiseFloor: 0,
+        clapCount: 0,
+        isClap: false,
+      );
+    });
     try {
       final granted = await _service.requestMicrophonePermission();
       if (!granted) {
@@ -46,10 +57,18 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
         if (!mounted) return;
         setState(() { _error = error.toString(); _isRunning = false; });
       });
-      await _service.start();
       if (mounted) setState(() => _isRunning = true);
+      await _service.start();
     } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+      await _subscription?.cancel();
+      _subscription = null;
+      await _service.stop();
+      if (mounted) {
+        setState(() {
+          _isRunning = false;
+          _error = error.toString();
+        });
+      }
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
