@@ -6,13 +6,14 @@
 - [ ] Verify application ID `com.dev.voicemate`.
 
 ## Phase 1 – Flutter foundation
-- [ ] Premium theme and design tokens.
-- [ ] Onboarding and local completion state.
-- [ ] Home dashboard/navigation.
-- [ ] Settings screen.
-- [ ] Hive models/adapters and migration strategy.
+- [x] Premium dark theme and design tokens (starter theme committed).
+- [x] Three-page onboarding with local completion state.
+- [x] Home dashboard and four-tab navigation shell.
+- [x] Settings screen with Hive-persisted alert preferences.
+- [ ] Typed Hive models/adapters and migration strategy.
 - [ ] Permission education screens; no microphone service yet.
-- [ ] Format, analyze, test and run on a device.
+- [ ] Generate Android platform scaffold and verify application ID.
+- [ ] Run format, analyze, widget tests and a physical-device smoke test.
 
 Exit: navigation works, preferences persist, tests and analysis pass.
 
