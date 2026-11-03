@@ -36,7 +36,7 @@ class VoiceMateApp extends StatelessWidget {
           elevation: 0,
           centerTitle: false,
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: card,
           elevation: 0,
           shape: RoundedRectangleBorder(
