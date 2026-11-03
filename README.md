@@ -4,7 +4,7 @@
 
 VoiceMate is an Android-only, offline-first phone utility built with Flutter and Kotlin.
 
-> Status: Initial scaffold and product documentation. Native audio detection, background monitoring, and offline speech recognition are not implemented yet.
+> Status: Flutter UI foundation and an early foreground-only clap-test prototype are committed. The production background finder, validated clap/whistle detection, and offline speech recognition are not implemented yet.
 
 ## Product principles
 - Android application ID: `com.dev.voicemate`
