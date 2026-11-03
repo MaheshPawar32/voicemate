@@ -87,17 +87,23 @@ internal class AudioCaptureManager {
                         }
                         readCount == 0 -> Thread.yield()
                         readCount < 0 -> {
-                            isReading = false
-                            onError("Microphone capture stopped unexpectedly (code $readCount).")
+                            if (isReading) {
+                                isReading = false
+                                onError("Microphone capture stopped unexpectedly (code $readCount).")
+                            }
                         }
                     }
                 }
             } catch (error: SecurityException) {
-                isReading = false
-                onError(error.message ?: "Microphone permission is no longer available.")
+                if (isReading) {
+                    isReading = false
+                    onError(error.message ?: "Microphone permission is no longer available.")
+                }
             } catch (error: Exception) {
-                isReading = false
-                onError(error.message ?: "Unexpected microphone capture error.")
+                if (isReading) {
+                    isReading = false
+                    onError(error.message ?: "Unexpected microphone capture error.")
+                }
             }
         }, "VoiceMateClapCapture").apply {
             priority = Thread.NORM_PRIORITY
