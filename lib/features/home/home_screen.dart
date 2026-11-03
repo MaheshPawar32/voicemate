@@ -16,10 +16,6 @@ class HomeScreen extends StatelessWidget {
             const Expanded(
               child: Text('VoiceMate', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800)),
             ),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.notifications_none_rounded),
-            ),
           ]),
           const SizedBox(height: 20),
           Row(children: [
@@ -75,11 +71,11 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               FilledButton.icon(
-                onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Background finder is not implemented yet.')),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const ClapTestScreen()),
                 ),
-                icon: const Icon(Icons.play_arrow_rounded),
-                label: const Text('Set up finder'),
+                icon: const Icon(Icons.hearing_rounded),
+                label: const Text('Try clap detection'),
                 style: FilledButton.styleFrom(
                   backgroundColor: VoiceMateApp.cyan,
                   foregroundColor: const Color(0xFF06111D),
