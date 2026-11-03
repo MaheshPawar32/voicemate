@@ -91,6 +91,23 @@ for name in ("build.gradle.kts", "build.gradle"):
     path.write_text(text)
     if not re.search(r'targetSdk\s*=\s*36|targetSdkVersion\s+36', text):
         raise SystemExit(f"Could not set target SDK 36 in {path}")
+
+    # Add JUnit 4 so the native Kotlin detector unit tests compile.
+    if "junit:junit" not in text:
+        if name.endswith(".kts"):
+            dependency = '    testImplementation("junit:junit:4.13.2")\\n'
+        else:
+            dependency = "    testImplementation 'junit:junit:4.13.2'\\n"
+        if re.search(r'dependencies\\s*\\{', text):
+            text = re.sub(
+                r'(dependencies\\s*\\{)',
+                lambda match: match.group(1) + "\\n" + dependency,
+                text,
+                count=1,
+            )
+        else:
+            text += "\\ndependencies {\\n" + dependency + "}\\n"
+        path.write_text(text)
     break
 else:
     raise SystemExit("Could not find Android app Gradle configuration.")
