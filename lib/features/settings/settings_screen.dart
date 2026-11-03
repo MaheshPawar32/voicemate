@@ -32,10 +32,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       switch (key) {
         case 'sound_enabled':
           _sound = value;
+          break;
         case 'vibration_enabled':
           _vibration = value;
+          break;
         case 'flashlight_enabled':
           _flash = value;
+          break;
       }
     });
   }
