@@ -37,13 +37,14 @@ flutter test
 flutter run
 ```
 
-If Android scaffolding is absent, generate it with:
+The repository contains Kotlin source for the visible clap-test prototype, but not Flutter-generated Gradle files or the Android manifest yet. Generate the official Android scaffold and merge the native files with:
 
 ```bash
-flutter create --platforms=android --org com.dev voicemate
+chmod +x bootstrap_android.sh
+./bootstrap_android.sh
 ```
 
-Verify the generated application ID is exactly `com.dev.voicemate`.
+The script uses your installed Flutter SDK, keeps the existing Dart/Kotlin source, adds the microphone permission, and generates the Android wrapper. Verify the application ID is exactly `com.dev.voicemate` before running.
 
 ## Engineering rules
 Inspect before editing. Implement one vertical slice at a time. Keep algorithms outside widgets. Use snake_case for persisted fields. Keep one microphone capture owner. Never start microphone monitoring secretly. Report tests honestly; do not claim unimplemented features work.
