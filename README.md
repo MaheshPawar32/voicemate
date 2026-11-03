@@ -9,7 +9,7 @@ VoiceMate is an Android-only, offline-first phone utility built with Flutter and
 ## Product principles
 - Android application ID: `com.dev.voicemate`
 - Flutter UI + Kotlin Android services.
-- VelocityX/VxStore for the agreed state approach; Hive for local settings.
+- Hive for local settings. VelocityX/VxStore integration remains planned; the current screens use Flutter Material 3.
 - No login, backend, cloud database, or analytics.
 - Audio processing stays on-device; raw microphone recordings are never persisted.
 - Background microphone monitoring starts only after explicit user action and uses a visible foreground-service notification.
