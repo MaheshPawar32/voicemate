@@ -51,6 +51,12 @@ cp "$WORK_DIR/generated/.metadata" "$ROOT/.metadata"
 mkdir -p "$ROOT/android/app/src/main/kotlin/com/dev/voicemate"
 cp -R "$WORK_DIR/native/com/dev/voicemate/." "$ROOT/android/app/src/main/kotlin/com/dev/voicemate/"
 
+ANDROID_TEST_SOURCE="$ROOT/android_test_src"
+if [[ -d "$ANDROID_TEST_SOURCE" ]]; then
+  mkdir -p "$ROOT/android/app/src/test/kotlin/com/dev/voicemate"
+  cp -R "$ANDROID_TEST_SOURCE/." "$ROOT/android/app/src/test/kotlin/com/dev/voicemate/"
+fi
+
 MANIFEST="$ROOT/android/app/src/main/AndroidManifest.xml"
 if [[ ! -f "$MANIFEST" ]]; then
   echo "Flutter did not generate AndroidManifest.xml." >&2
