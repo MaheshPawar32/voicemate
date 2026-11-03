@@ -53,7 +53,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             const Spacer(),
             Container(
               width: 190, height: 190,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: VoiceMateApp.cyan.withOpacity(.07), border: Border.all(color: VoiceMateApp.cyan.withOpacity(.22))),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: VoiceMateApp.cyan.withValues(alpha: .07), border: Border.all(color: VoiceMateApp.cyan.withValues(alpha: .22))),
               child: Icon(item.icon, size: 88, color: VoiceMateApp.cyan),
             ),
             const SizedBox(height: 38),
@@ -67,7 +67,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               duration: const Duration(milliseconds: 180),
               margin: const EdgeInsets.symmetric(horizontal: 4),
               width: i == _page ? 24 : 7, height: 7,
-              decoration: BoxDecoration(color: i == _page ? VoiceMateApp.cyan : VoiceMateApp.muted.withOpacity(.35), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: i == _page ? VoiceMateApp.cyan : VoiceMateApp.muted.withValues(alpha: .35), borderRadius: BorderRadius.circular(10)),
             ))),
             const SizedBox(height: 22),
             FilledButton(
