@@ -9,41 +9,31 @@
 
 ## Store listing fields
 
-### App name (23/30 characters)
-`VoiceMate: Phone Finder`
+### App name for the current prototype (24/30 characters)
+`VoiceMate: Clap Detection`
 
-### Short description (69 characters)
-`Find your phone nearby with clap, whistle and offline voice controls.`
+Once the complete finder engine is implemented and validated, the product name can be changed to `VoiceMate: Phone Finder`.
 
-### Full description – draft for the completed release
+### Short description for the current prototype
+`Test on-device clap detection with a simple, privacy-conscious interface.`
 
-Misplaced your phone nearby? VoiceMate is designed to help you find it with sound-triggered alerts and simple offline controls.
+### Full description – current prototype
 
-**FIND YOUR PHONE**
-- Clap detection: use a supported clap pattern to trigger a finder alert.
-- Whistle detection: activate an alert with a supported whistle.
-- Offline voice commands: use supported commands processed on your device.
+VoiceMate is an early clap-detection prototype for Android.
 
-**MAKE IT YOURS**
-- Choose an alert sound and adjust alert preferences.
-- Use vibration and flashlight alerts on supported devices.
-- Review recent finder events locally.
-
-**PRIVACY-FOCUSED DESIGN**
-- No account or sign-up required.
-- Microphone access is requested when you choose a microphone feature.
+- Start a microphone test only when you tap Start.
+- View live microphone signal levels and the experimental clap count.
+- Stop the test at any time. Capture also stops when the app leaves the active screen.
 - Audio is analysed on your device and is not saved as a recording by VoiceMate.
-- Active background monitoring, when available, is shown by an ongoing Android notification with a Stop action.
-- Core finder features are designed to work offline. Advertising requires an internet connection.
+- No account or sign-up is required.
 
-**IMPORTANT**
-Detection depends on your phone microphone, Android version, device settings, phone placement and surrounding noise. VoiceMate cannot find a device that is powered off, outside microphone range, or unable to capture sound. Availability of individual features depends on the app version and supported device capabilities.
+This is a foreground diagnostic, not yet a background phone finder. Whistle detection, offline voice commands, finder alert playback, and persistent background monitoring are not available in this version. Detection accuracy is experimental and depends on your phone and surroundings.
 
-**Release gate:** This full description is for the intended completed app. Do not use it until clap/whistle detection, offline voice commands, alerts, local history and background monitoring are implemented, tested and supported by the actual release. For the present prototype, describe it honestly as an early foreground clap-detection test app.
+Do not use the planned full-product description until each advertised feature is present and validated in the released build.
 
 ### Category and tags
-- Category: `Tools`
-- Tags: choose only available tags that accurately describe the shipped app.
+- Category: `Tools` (a general Android-device utility).
+- Tags: Play Console allows up to five. Select only the suggested/search tags that are plainly relevant to the current build; look for available labels related to device utilities and sound/audio detection. Do not choose music-player, whistle-finder, offline-voice, productivity or privacy tags unless the exact feature is shipped and the matching tag exists. The exact selectable tag catalogue is shown inside Play Console; it is not a fixed list in this document.
 
 ### Contact details
 - Support email (required): `REPLACE_WITH_SUPPORT_EMAIL`
