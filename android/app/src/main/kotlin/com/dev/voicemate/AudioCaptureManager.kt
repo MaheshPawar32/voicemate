@@ -61,28 +61,43 @@ internal class AudioCaptureManager {
         val samples = ShortArray(FRAME_SAMPLES)
 
         worker = Thread({
-            var frameIndex = 0
-            while (isReading) {
-                val readCount = audioRecord.read(samples, 0, samples.size)
-                if (readCount > 0) {
-                    val result = detector.process(samples, readCount, SystemClock.elapsedRealtime())
-                    frameIndex += 1
-                    if (frameIndex % 5 == 0 || result.clapDetected) {
-                        onMetrics(Metrics(
-                            rms = result.rms,
-                            peak = result.peak,
-                            noiseFloorRms = result.noiseFloorRms,
-                            isClap = result.clapDetected,
-                            clapCount = result.clapCount,
-                        ))
+            try {
+                var frameIndex = 0
+                while (isReading) {
+                    val readCount = audioRecord.read(samples, 0, samples.size)
+                    when {
+                        readCount > 0 -> {
+                            val result = detector.process(
+                                samples,
+                                readCount,
+                                SystemClock.elapsedRealtime(),
+                            )
+                            frameIndex += 1
+                            if (frameIndex % 5 == 0 || result.clapDetected) {
+                                onMetrics(
+                                    Metrics(
+                                        rms = result.rms,
+                                        peak = result.peak,
+                                        noiseFloorRms = result.noiseFloorRms,
+                                        isClap = result.clapDetected,
+                                        clapCount = result.clapCount,
+                                    ),
+                                )
+                            }
+                        }
+                        readCount == 0 -> Thread.yield()
+                        readCount < 0 -> {
+                            isReading = false
+                            onError("Microphone capture stopped unexpectedly (code $readCount).")
+                        }
                     }
-                } else if (readCount == AudioRecord.ERROR_DEAD_OBJECT ||
-                    readCount == AudioRecord.ERROR_INVALID_OPERATION ||
-                    readCount == AudioRecord.ERROR_BAD_VALUE
-                ) {
-                    isReading = false
-                    onError("Microphone capture stopped unexpectedly (code $readCount).")
                 }
+            } catch (error: SecurityException) {
+                isReading = false
+                onError(error.message ?: "Microphone permission is no longer available.")
+            } catch (error: Exception) {
+                isReading = false
+                onError(error.message ?: "Unexpected microphone capture error.")
             }
         }, "VoiceMateClapCapture").apply {
             priority = Thread.NORM_PRIORITY
@@ -100,9 +115,10 @@ internal class AudioCaptureManager {
             // It may already have stopped because of a platform error.
         }
 
-        if (Thread.currentThread() !== worker) {
+        val activeWorker = worker
+        if (Thread.currentThread() !== activeWorker) {
             try {
-                worker?.join(700)
+                activeWorker?.join(1_000)
             } catch (_: InterruptedException) {
                 Thread.currentThread().interrupt()
             }
