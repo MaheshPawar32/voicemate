@@ -95,7 +95,7 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
               decoration: BoxDecoration(
                 color: VoiceMateApp.surface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: VoiceMateApp.cyan.withOpacity(.18)),
+                border: Border.all(color: VoiceMateApp.cyan.withValues(alpha: .18)),
               ),
               child: const Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Icon(Icons.privacy_tip_outlined, color: VoiceMateApp.cyan),
@@ -112,10 +112,10 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
               width: 154, height: 154,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _latest.isClap ? VoiceMateApp.cyan.withOpacity(.2) : VoiceMateApp.cyan.withOpacity(.06),
-                border: Border.all(color: VoiceMateApp.cyan.withOpacity(_isRunning ? .8 : .25), width: _isRunning ? 2 : 1),
+                color: _latest.isClap ? VoiceMateApp.cyan.withValues(alpha: .2) : VoiceMateApp.cyan.withValues(alpha: .06),
+                border: Border.all(color: VoiceMateApp.cyan.withValues(alpha: _isRunning ? .8 : .25), width: _isRunning ? 2 : 1),
                 boxShadow: _latest.isClap ? [
-                  BoxShadow(color: VoiceMateApp.cyan.withOpacity(.22), blurRadius: 32, spreadRadius: 3),
+                  BoxShadow(color: VoiceMateApp.cyan.withValues(alpha: .22), blurRadius: 32, spreadRadius: 3),
                 ] : null,
               ),
               child: Icon(_latest.isClap ? Icons.waving_hand_rounded : Icons.hearing_rounded, size: 66, color: VoiceMateApp.cyan),
