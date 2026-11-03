@@ -12,11 +12,10 @@ class HomeScreen extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
         children: [
-          Row(children: [
-            const Expanded(
-              child: Text('VoiceMate', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800)),
-            ),
-          ]),
+          const Text(
+            'VoiceMate',
+            style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 20),
           Row(children: [
             const Expanded(
