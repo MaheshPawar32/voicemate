@@ -1,0 +1,47 @@
+name: VoiceMate Flutter checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  flutter-and-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android scaffold and resolve packages
+        run: |
+          chmod +x bootstrap_android.sh
+          ./bootstrap_android.sh
+
+      - name: Analyze Dart
+        run: flutter analyze
+
+      - name: Run Flutter tests
+        run: flutter test
+
+      - name: Run native Kotlin unit tests
+        working-directory: android
+        run: ./gradlew test
+
+      - name: Build debug APK
+        run: flutter build apk --debug
