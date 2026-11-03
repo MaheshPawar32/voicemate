@@ -7,7 +7,7 @@ import kotlin.math.sqrt
  * Tune with real-device measurements before using this in a release feature.
  */
 internal class ClapDetector(
-    private val absoluteRmsFloor: Double = 1_500.0,
+    private val absoluteRmsFloor: Double = 1_000.0,
     private val absolutePeakFloor: Double = 5_000.0,
     private val rmsMultiplier: Double = 3.5,
     private val peakMultiplier: Double = 8.0,
