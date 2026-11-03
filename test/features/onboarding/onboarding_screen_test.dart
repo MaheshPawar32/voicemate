@@ -11,14 +11,14 @@ void main() {
       ),
     );
 
-    expect(find.text('Find your phone'), findsOneWidget);
+    expect(find.text('Test clap detection'), findsOneWidget);
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
-    expect(find.text('Control with your voice'), findsOneWidget);
+    expect(find.text('Simple, offline-first'), findsOneWidget);
 
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
-    expect(find.text('Your privacy matters'), findsOneWidget);
+    expect(find.text('Microphone privacy'), findsOneWidget);
 
     await tester.tap(find.text('Get started'));
     expect(completed, isTrue);
