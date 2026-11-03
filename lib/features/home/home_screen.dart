@@ -47,7 +47,7 @@ class HomeScreen extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(26),
-              border: Border.all(color: VoiceMateApp.cyan.withOpacity(.25)),
+              border: Border.all(color: VoiceMateApp.cyan.withValues(alpha: .25)),
             ),
             child: Column(children: [
               Container(
@@ -55,8 +55,8 @@ class HomeScreen extends StatelessWidget {
                 height: 112,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: VoiceMateApp.cyan.withOpacity(.09),
-                  border: Border.all(color: VoiceMateApp.cyan.withOpacity(.35), width: 1.5),
+                  color: VoiceMateApp.cyan.withValues(alpha: .09),
+                  border: Border.all(color: VoiceMateApp.cyan.withValues(alpha: .35), width: 1.5),
                 ),
                 child: const Icon(Icons.graphic_eq_rounded, size: 58, color: VoiceMateApp.cyan),
               ),
