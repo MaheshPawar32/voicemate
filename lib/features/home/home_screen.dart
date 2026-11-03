@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/voicemate_app.dart';
+import '../clap_detection/clap_test_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -77,15 +78,16 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _ToolCard extends StatelessWidget {
-  const _ToolCard({required this.icon, required this.title, required this.detail});
+  const _ToolCard({required this.icon, required this.title, required this.detail, this.onTap});
   final IconData icon;
   final String title;
   final String detail;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => SizedBox(
     width: (MediaQuery.sizeOf(context).width - 52) / 2,
-    child: Card(child: Padding(
+    child: Card(child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(20), child: Padding(
       padding: const EdgeInsets.all(15),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Icon(icon, color: VoiceMateApp.cyan, size: 28),
@@ -94,6 +96,6 @@ class _ToolCard extends StatelessWidget {
         const SizedBox(height: 4),
         Text(detail, style: const TextStyle(color: VoiceMateApp.muted, fontSize: 12)),
       ]),
-    )),
+    ))),
   );
 }
