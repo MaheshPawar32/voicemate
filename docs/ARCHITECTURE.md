@@ -64,3 +64,15 @@ Start only after explicit user action and permission. Declare microphone foregro
 
 ## Privacy and ads
 Hive stores preferences and event metadata only. Audio buffers remain transient. Ads are isolated from monitoring lifecycle and are never required for offline operation.
+
+
+## Foreground clap-test prototype
+
+The repository includes an early diagnostic-only microphone path:
+- Flutter screen: `ClapTestScreen`
+- Dart bridge: `ClapTestService`
+- Native channel: `com.dev.voicemate/audio_test/methods` and `com.dev.voicemate/audio_test/events`
+- Kotlin capture owner: `AudioCaptureManager`
+- Pure signal detector: `ClapDetector`
+
+This is not the production monitoring service. It starts only after a visible user tap and runtime microphone permission, runs only while the Android Activity remains resumed, and stops on Activity pause or screen disposal. Only numeric RMS/peak/noise-floor/count metadata crosses the bridge. Raw PCM remains in memory and is not written to storage. The thresholds are provisional and require physical-device validation.
