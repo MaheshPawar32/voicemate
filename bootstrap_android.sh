@@ -8,9 +8,21 @@ if ! command -v flutter >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "Python 3 is required to patch the generated Gradle target SDK." >&2
+  exit 1
+fi
+
 NATIVE_SOURCE="$ROOT/android/app/src/main/kotlin/com/dev/voicemate"
 if [[ ! -f "$NATIVE_SOURCE/MainActivity.kt" ]]; then
   echo "Native VoiceMate Kotlin sources were not found at: $NATIVE_SOURCE" >&2
+  exit 1
+fi
+
+ICON_SOURCE="$ROOT/assets/branding/voicemate_icon_512.png"
+if [[ ! -f "$ICON_SOURCE" ]]; then
+  echo "VoiceMate icon is missing: $ICON_SOURCE" >&2
+  echo "Extract the Play Store artwork pack into the repository root first." >&2
   exit 1
 fi
 
@@ -48,10 +60,35 @@ fi
 sed -i.bak 's/android:label="voicemate"/android:label="VoiceMate"/' "$MANIFEST"
 rm -f "$MANIFEST.bak"
 
+# Google Play requires new apps to target Android 16 / API 36 or higher
+# for submissions from 31 August 2026. Make this explicit in generated Gradle.
+python3 - "$ROOT/android/app" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+app_dir = Path(sys.argv[1])
+for name in ("build.gradle.kts", "build.gradle"):
+    path = app_dir / name
+    if not path.exists():
+        continue
+    text = path.read_text()
+    text = re.sub(r'targetSdk\s*=\s*flutter\.targetSdkVersion', 'targetSdk = 36', text)
+    text = re.sub(r'targetSdkVersion\s+flutter\.targetSdkVersion', 'targetSdkVersion 36', text)
+    path.write_text(text)
+    if not re.search(r'targetSdk\s*=\s*36|targetSdkVersion\s+36', text):
+        raise SystemExit(f"Could not set target SDK 36 in {path}")
+    break
+else:
+    raise SystemExit("Could not find Android app Gradle configuration.")
+PY
+
 cd "$ROOT"
 flutter pub get
+dart run flutter_launcher_icons
 
 echo
-echo "Android project scaffold generated."
+echo "Android project scaffold and VoiceMate launcher icon generated."
 echo "Application ID expected: com.dev.voicemate"
+echo "Target SDK configured: 36"
 echo "Next run: flutter analyze && flutter test && flutter run"
