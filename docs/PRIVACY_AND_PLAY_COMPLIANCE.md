@@ -39,10 +39,13 @@ Use official Google Mobile Ads Flutter SDK and test units in development. Integr
 DevicePolicyManager is only a user-enabled screen-lock shortcut. Explain activation/deactivation. Never claim voice unlock or bypass PIN, pattern, password or biometrics. Do not use Accessibility to simulate secure unlock.
 
 ## Release checklist
-- [ ] Current target API and foreground service declarations.
+- [ ] Target Android 16 / API 36 or higher for new app submissions from 31 August 2026.
+- [ ] Accurate microphone declaration and foreground service type/permissions where applicable.
+- [ ] Replace the support-email placeholder in `privacy_policy.html`.
+- [ ] Host the policy at a public HTTPS URL and link it from the app and Play Console.
 - [ ] Microphone disclosure before permission request.
 - [ ] Public accurate privacy policy.
-- [ ] Data safety includes SDK data handling.
+- [ ] Data safety includes SDK data handling (the Google Mobile Ads SDK automatically collects/shares IP address, app interactions, diagnostics and device/account identifiers; confirm the actual SDK version/configuration).
 - [ ] UMP consent tested in relevant regions.
 - [ ] Ad placements reviewed against current policy.
 - [ ] Content rating and permissions declarations complete.
