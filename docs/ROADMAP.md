@@ -2,7 +2,7 @@
 
 ## Phase 0 – Repository setup
 - [x] Dedicated repository and product/UI/architecture/privacy documentation.
-- [ ] Generate/validate Android Flutter project.
+- [ ] Generate/validate Android Flutter project using `bootstrap_android.sh`.
 - [ ] Verify application ID `com.dev.voicemate`.
 
 ## Phase 1 – Flutter foundation
@@ -18,9 +18,9 @@
 Exit: navigation works, preferences persist, tests and analysis pass.
 
 ## Early clap feasibility spike (parallel)
-- [ ] Minimal Kotlin AudioRecord prototype, explicitly started in visible test mode.
-- [ ] Log numeric signal metrics only; do not save recordings.
-- [ ] Test clap versus speech, music, TV, fans, traffic and silence.
+- [x] Add Kotlin AudioRecord prototype source, started only by the visible clap-test screen.
+- [x] Bridge numeric signal metrics only; no audio samples or recordings are saved by the prototype.
+- [ ] Test clap versus speech, music, TV, fans, traffic and silence on physical devices.
 - [ ] Measure false positives, missed detections, CPU and battery on real phones.
 - [ ] Document Android background feasibility before promising always-on monitoring.
 
