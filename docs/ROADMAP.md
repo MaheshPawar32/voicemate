@@ -43,7 +43,10 @@ Exit: navigation works, preferences persist, tests and analysis pass.
 - [ ] Metadata-only History.
 - [ ] Monitoring Centre and battery guidance.
 - [ ] Optional DevicePolicyManager screen-lock shortcut.
-- [ ] Bundled Privacy Policy and offline Help.
+- [x] Draft Privacy Policy HTML and Play Store listing checklist committed.
+- [ ] Host policy publicly and add in-app policy link.
+- [ ] Actual Play Store screenshots from release build.
+- [ ] Offline Help.
 
 ## Phase 5 – AdMob
 - [ ] Official Google Mobile Ads Flutter SDK and UMP consent.
