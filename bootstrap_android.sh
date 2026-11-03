@@ -48,16 +48,6 @@ fi
 sed -i.bak 's/android:label="voicemate"/android:label="VoiceMate"/' "$MANIFEST"
 rm -f "$MANIFEST.bak"
 
-APP_GRADLE_KTS="$ROOT/android/app/build.gradle.kts"
-APP_GRADLE="$ROOT/android/app/build.gradle"
-if [[ -f "$APP_GRADLE_KTS" ]]; then
-  sed -i.bak 's/minSdk = flutter.minSdkVersion/minSdk = 23/' "$APP_GRADLE_KTS"
-  rm -f "$APP_GRADLE_KTS.bak"
-elif [[ -f "$APP_GRADLE" ]]; then
-  sed -i.bak 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/' "$APP_GRADLE"
-  rm -f "$APP_GRADLE.bak"
-fi
-
 cd "$ROOT"
 flutter pub get
 
