@@ -58,15 +58,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 18),
         _section('PRIVACY & DATA'),
         ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.lock_outline, color: VoiceMateApp.cyan), title: const Text('Privacy and permissions'), subtitle: const Text('Review how VoiceMate uses device permissions'), onTap: () => _info(context, 'Privacy', 'VoiceMate is designed to process detection audio on your device. Microphone permission will be requested only when you enable a listening feature.')),
-        ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.delete_outline, color: VoiceMateApp.cyan), title: const Text('Clear local history'), subtitle: const Text('Remove saved detection event metadata'), onTap: () async {
-          await _box.delete('history_events');
-          if (context.mounted) _info(context, 'History cleared', 'Local history data has been cleared.');
-        }),
+        const ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(Icons.history_rounded, color: VoiceMateApp.cyan),
+          title: Text('History coming soon'),
+          subtitle: Text('Detection history will be added with the finder engine.'),
+        ),
         const SizedBox(height: 18),
         _section('ABOUT'),
         const ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.info_outline, color: VoiceMateApp.cyan), title: Text('VoiceMate'), subtitle: Text('Version 0.1.0 · Android')),
         const SizedBox(height: 18),
-        const Text('Some preferences are saved locally. Finder monitoring and native audio controls are not active in this foundation build.', style: TextStyle(color: VoiceMateApp.muted, fontSize: 12, height: 1.5)),
+        const Text('Preferences are saved locally. Background monitoring, whistle detection and alert playback are not implemented in this prototype; the alert switches currently save your choices.', style: TextStyle(color: VoiceMateApp.muted, fontSize: 12, height: 1.5)),
       ]),
     );
   }
