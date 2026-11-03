@@ -25,6 +25,7 @@ Smart Phone Finder, Clap Detection, Whistle Detection, Offline Voice Commands, o
 - `docs/ARCHITECTURE.md` – Flutter/Kotlin boundaries
 - `docs/ROADMAP.md` – phased implementation
 - `docs/PRIVACY_AND_PLAY_COMPLIANCE.md` – privacy and release checklist
+- `docs/CLAP_TESTING_GUIDE.md` – generate Android scaffold and test the visible clap prototype
 - `lib/` – Flutter source
 
 ## Setup
