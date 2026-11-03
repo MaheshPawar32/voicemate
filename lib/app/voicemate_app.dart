@@ -109,7 +109,7 @@ class _VoiceMateShellState extends State<VoiceMateShell> {
       body: IndexedStack(index: _selectedIndex, children: pages),
       bottomNavigationBar: NavigationBar(
         backgroundColor: VoiceMateApp.surface,
-        indicatorColor: VoiceMateApp.cyan.withOpacity(.14),
+        indicatorColor: VoiceMateApp.cyan.withValues(alpha: .14),
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) => setState(() => _selectedIndex = index),
         destinations: const [
