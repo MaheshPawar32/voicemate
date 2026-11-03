@@ -131,7 +131,7 @@ class _DiscoverScreen extends StatelessWidget {
     title: 'Discover',
     subtitle: 'Explore the tools available in VoiceMate.',
     icon: Icons.explore_outlined,
-    message: 'Clap and whistle detection are coming in the audio engine phase.',
+    message: 'The clap test is available as a foreground diagnostic. Whistle detection and background monitoring are planned for later.'
   );
 }
 
