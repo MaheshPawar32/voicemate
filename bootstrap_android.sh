@@ -20,10 +20,17 @@ if [[ ! -f "$NATIVE_SOURCE/MainActivity.kt" ]]; then
 fi
 
 ICON_SOURCE="$ROOT/assets/branding/voicemate_icon_512.png"
-if [[ ! -f "$ICON_SOURCE" ]]; then
-  echo "VoiceMate icon is missing: $ICON_SOURCE" >&2
-  echo "Extract the Play Store artwork pack into the repository root first." >&2
+GENERATE_ICON=false
+if [[ -f "$ROOT/android/gradlew" || -f "$ROOT/android/gradlew.bat" ]]; then
+  echo "Android scaffolding already exists. Refusing to delete or regenerate it." >&2
+  echo "To rebuild, use flutter clean; do not rerun this bootstrap script." >&2
   exit 1
+fi
+if [[ -f "$ICON_SOURCE" ]]; then
+  GENERATE_ICON=true
+else
+  echo "Icon source not found. Android will keep the default Flutter icon."
+  echo "Extract the artwork pack and run: dart run flutter_launcher_icons"
 fi
 
 WORK_DIR="$(mktemp -d)"
@@ -85,7 +92,9 @@ PY
 
 cd "$ROOT"
 flutter pub get
-dart run flutter_launcher_icons
+if [[ "$GENERATE_ICON" == true ]]; then
+  dart run flutter_launcher_icons
+fi
 
 echo
 echo "Android project scaffold and VoiceMate launcher icon generated."
