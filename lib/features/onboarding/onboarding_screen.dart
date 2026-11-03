@@ -17,21 +17,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   static const _items = [
     _OnboardingItem(
       icon: Icons.phone_android_rounded,
-      title: 'Find your phone',
-      description: 'Use a clap or whistle to trigger an alert and locate your misplaced phone.',
-      label: 'SMART FINDER',
+      title: 'Test clap detection',
+      description: 'Try the microphone-based clap detector in a visible foreground test. More finder features are in development.',
+      label: 'CLAP TEST',
     ),
     _OnboardingItem(
       icon: Icons.graphic_eq_rounded,
-      title: 'Control with your voice',
-      description: 'Use supported voice commands with an offline engine. No cloud recognition is planned.',
-      label: 'OFFLINE VOICE',
+      title: 'Simple, offline-first',
+      description: 'Your preferences stay on this device. Offline voice commands are planned for a future version.',
+      label: 'ON-DEVICE DESIGN',
     ),
     _OnboardingItem(
       icon: Icons.shield_outlined,
-      title: 'Your privacy matters',
-      description: 'Monitoring starts only when you turn it on. A visible notification lets you stop it anytime.',
-      label: 'PRIVATE BY DESIGN',
+      title: 'Microphone privacy',
+      description: 'Microphone access is requested only when you start the clap test. Capture stops when you stop the test or leave the screen.',
+      label: 'VISIBLE TEST ONLY',
     ),
   ];
 
