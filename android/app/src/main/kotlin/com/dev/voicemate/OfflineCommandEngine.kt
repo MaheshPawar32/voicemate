@@ -22,6 +22,19 @@ internal class OfflineCommandEngine(modelDirectory: File) : AutoCloseable {
             "stop monitoring",
             "[unk]"
         ]"""
+
+        internal fun intentForTranscript(transcript: String): String? {
+            val text = transcript.lowercase()
+                .replace(Regex("[^a-z0-9 ]"), " ")
+                .trim()
+                .replace(Regex("\\s+"), " ")
+            return when (text) {
+                "find my phone", "where are you", "hello voice mate" -> "find_phone"
+                "lock my phone", "lock this phone" -> "lock_phone"
+                "stop listening", "stop monitoring" -> "stop_monitoring"
+                else -> null
+            }
+        }
     }
 
     private val model = Model(modelDirectory.absolutePath)
@@ -38,19 +51,6 @@ internal class OfflineCommandEngine(modelDirectory: File) : AutoCloseable {
 
         val json = JSONObject(recognizer.result)
         return intentForTranscript(json.optString("text", ""))
-    }
-
-    internal fun intentForTranscript(transcript: String): String? {
-        val text = transcript.lowercase()
-            .replace(Regex("[^a-z0-9 ]"), " ")
-            .trim()
-            .replace(Regex("\\s+"), " ")
-        return when (text) {
-            "find my phone", "where are you", "hello voice mate" -> "find_phone"
-            "lock my phone", "lock this phone" -> "lock_phone"
-            "stop listening", "stop monitoring" -> "stop_monitoring"
-            else -> null
-        }
     }
 
     override fun close() {
