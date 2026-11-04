@@ -99,16 +99,24 @@ for permission in permissions:
         if match:
             text = text[:match.end()] + "\n    " + tag + text[match.end():]
         else:
-            root = re.search(r'<manifest\\b[^>]*>', text)
+            root = re.search(r'<manifest\b[^>]*>', text)
             if not root:
                 raise SystemExit("Android manifest root element was not found.")
             text = text[:root.end()] + "\n    " + tag + text[root.end():]
 
-camera_feature = """    <uses-feature
+camera_features = """    <uses-feature
         android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.flash"
         android:required="false" />"""
 if "android.hardware.camera" not in text:
-    text = text.replace("</manifest>", camera_feature + "\\n</manifest>", 1)
+    text = text.replace("</manifest>", camera_features + "\n</manifest>", 1)
+elif "android.hardware.camera.flash" not in text:
+    text = text.replace("</manifest>", """    <uses-feature
+        android:name="android.hardware.camera.flash"
+        android:required="false" />
+</manifest>""", 1)
 
 service_tag = """        <service
             android:name=".VoiceMonitoringService"
