@@ -72,6 +72,11 @@ class MainActivity : FlutterActivity() {
                 "requestNotificationPermission" -> requestNotificationPermission(result)
                 "getPermissionStatus" -> result.success(getPermissionStatus())
                 "openAppSettings" -> openAppSettings(result)
+                "getLockAdminStatus" -> result.success(
+                    DeviceLockManager(this).isAdminActive(),
+                )
+                "requestLockAdminActivation" -> requestLockAdminActivation(result)
+                "lockDeviceNow" -> lockDeviceNow(result)
                 "startMonitoring" -> startMonitoring(call.arguments as? Map<*, *>, result)
                 "previewAlert" -> previewAlert(call.arguments as? Map<*, *>, result)
                 "stopAlertPreview" -> {
@@ -158,6 +163,48 @@ class MainActivity : FlutterActivity() {
                 grantResults[0] == PackageManager.PERMISSION_GRANTED
             pendingNotificationResult?.success(granted)
             pendingNotificationResult = null
+        }
+    }
+
+    private fun requestLockAdminActivation(result: MethodChannel.Result) {
+        if (!activityResumed) {
+            result.error(
+                "activity_not_visible",
+                "Open VoiceMate before activating the screen-lock permission.",
+                null,
+            )
+            return
+        }
+        try {
+            DeviceLockManager(this).requestAdminActivation(this)
+            result.success(null)
+        } catch (error: Exception) {
+            result.error(
+                "device_admin_activation_failed",
+                error.message ?: "Could not open Android Device Admin activation.",
+                null,
+            )
+        }
+    }
+
+    private fun lockDeviceNow(result: MethodChannel.Result) {
+        try {
+            val locked = DeviceLockManager(this).lockNow()
+            if (locked) {
+                result.success(true)
+            } else {
+                result.error(
+                    "device_admin_not_active",
+                    "Activate VoiceMate's lock-only Device Admin permission first.",
+                    null,
+                )
+            }
+        } catch (error: Exception) {
+            result.error(
+                "device_lock_failed",
+                error.message ?: "Android could not lock this device.",
+                null,
+            )
         }
     }
 
