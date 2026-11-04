@@ -151,15 +151,21 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.tune_rounded,
-                  color: VoiceMateApp.cyan),
-                title: const Text('Advertising privacy choices'),
-                subtitle: const Text(
-                  'Manage Google consent choices when required'),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () => _manageAdPrivacy(context),
+              AnimatedBuilder(
+                animation: AdMobService.instance,
+                builder: (context, _) =>
+                    AdMobService.instance.privacyOptionsRequired
+                        ? ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.tune_rounded,
+                              color: VoiceMateApp.cyan),
+                            title: const Text('Advertising privacy choices'),
+                            subtitle: const Text(
+                              'Review or change Google consent choices'),
+                            trailing: const Icon(Icons.chevron_right_rounded),
+                            onTap: () => _manageAdPrivacy(context),
+                          )
+                        : const SizedBox.shrink(),
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
