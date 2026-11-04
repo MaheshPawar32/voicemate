@@ -21,11 +21,13 @@ class MainActivity : FlutterActivity() {
         private const val MONITORING_EVENTS_CHANNEL =
             "com.dev.voicemate/monitoring/events"
         private const val REQUEST_MICROPHONE = 7401
+        private const val REQUEST_NOTIFICATIONS = 7402
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private var testEventSink: EventChannel.EventSink? = null
     private var pendingPermissionResult: MethodChannel.Result? = null
+    private var pendingNotificationResult: MethodChannel.Result? = null
     private var captureManager: AudioCaptureManager? = null
     private var activityResumed = false
 
@@ -61,6 +63,7 @@ class MainActivity : FlutterActivity() {
             MONITORING_METHODS_CHANNEL,
         ).setMethodCallHandler { call, result ->
             when (call.method) {
+                "requestNotificationPermission" -> requestNotificationPermission(result)
                 "startMonitoring" -> startMonitoring(result)
                 "stopMonitoring" -> {
                     stopService(Intent(this, VoiceMonitoringService::class.java))
@@ -116,7 +119,35 @@ class MainActivity : FlutterActivity() {
                 grantResults[0] == PackageManager.PERMISSION_GRANTED
             pendingPermissionResult?.success(granted)
             pendingPermissionResult = null
+        } else if (requestCode == REQUEST_NOTIFICATIONS) {
+            val granted = grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            pendingNotificationResult?.success(granted)
+            pendingNotificationResult = null
         }
+    }
+
+    private fun requestNotificationPermission(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT < 33 ||
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            result.success(true)
+            return
+        }
+        if (pendingNotificationResult != null) {
+            result.error(
+                "permission_in_progress",
+                "A notification permission request is already active.",
+                null,
+            )
+            return
+        }
+        pendingNotificationResult = result
+        requestPermissions(
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+            REQUEST_NOTIFICATIONS,
+        )
     }
 
     private fun startMonitoring(result: MethodChannel.Result) {
@@ -254,6 +285,12 @@ class MainActivity : FlutterActivity() {
             null,
         )
         pendingPermissionResult = null
+        pendingNotificationResult?.error(
+            "activity_destroyed",
+            "The app was closed before notification permission was resolved.",
+            null,
+        )
+        pendingNotificationResult = null
         super.onDestroy()
     }
 }
