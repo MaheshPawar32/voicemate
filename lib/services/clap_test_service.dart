@@ -11,13 +11,18 @@ class ClapTestException implements Exception {
 class ClapTestEvent {
   const ClapTestEvent({
     required this.rms, required this.peak, required this.noiseFloor,
-    required this.clapCount, required this.isClap, this.error, this.stopped = false,
+    required this.clapCount, required this.isClap,
+    this.isWhistle = false, this.whistleCount = 0,
+    this.whistleFrequencyHz = 0, this.error, this.stopped = false,
   });
   final double rms;
   final double peak;
   final double noiseFloor;
   final int clapCount;
   final bool isClap;
+  final bool isWhistle;
+  final int whistleCount;
+  final int whistleFrequencyHz;
   final String? error;
   final bool stopped;
 
@@ -29,6 +34,10 @@ class ClapTestEvent {
       noiseFloor: (map['noise_floor'] as num?)?.toDouble() ?? 0,
       clapCount: (map['clap_count'] as num?)?.toInt() ?? 0,
       isClap: map['is_clap'] == true || type == 'clap',
+      isWhistle: map['is_whistle'] == true,
+      whistleCount: (map['whistle_count'] as num?)?.toInt() ?? 0,
+      whistleFrequencyHz:
+          (map['whistle_frequency_hz'] as num?)?.toInt() ?? 0,
       error: type == 'error' ? map['message'] as String? : null,
       stopped: type == 'stopped',
     );
