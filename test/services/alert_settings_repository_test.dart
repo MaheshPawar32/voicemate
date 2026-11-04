@@ -1,13 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:voicemate/services/alert_settings_repository.dart';
 
 void main() {
+  late Directory tempDirectory;
   late Box<dynamic> box;
   late AlertSettingsRepository repository;
 
   setUp(() async {
-    Hive.init(null);
+    tempDirectory = await Directory.systemTemp.createTemp('voicemate_alerts_');
+    Hive.init(tempDirectory.path);
     box = await Hive.openBox<dynamic>('alert_preferences_test');
     repository = AlertSettingsRepository(box);
   });
@@ -15,6 +19,7 @@ void main() {
   tearDown(() async {
     await box.close();
     await Hive.deleteFromDisk();
+    await tempDirectory.delete(recursive: true);
   });
 
   test('loads safe defaults', () {
