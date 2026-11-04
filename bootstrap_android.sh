@@ -107,7 +107,36 @@ for name in ("build.gradle.kts", "build.gradle"):
             )
         else:
             text += "\ndependencies {\n" + dependency + "}\n"
-        path.write_text(text)
+        # Keep release signing credentials outside the repository. CI or a local
+    # developer supplies android/key.properties and android/app/*.jks.
+    if name.endswith(".kts"):
+        prelude = """val keystoreProperties = java.util.Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
+}
+
+"""
+        signing_block = """    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
+        }
+    }
+
+"""
+        text = text.replace("android {", prelude + "android {", 1)
+        text = text.replace("android {", "android {\n" + signing_block, 1)
+        debug_signing = 'signingConfig = signingConfigs.getByName("debug")'
+        release_signing = 'signingConfig = if (keystorePropertiesFile.exists()) signingConfigs.getByName("release") else signingConfigs.getByName("debug")'
+        if debug_signing not in text:
+            raise SystemExit("Flutter Gradle template did not contain the expected debug release-signing placeholder.")
+        text = text.replace(debug_signing, release_signing, 1)
+    path.write_text(text)
     break
 else:
     raise SystemExit("Could not find Android app Gradle configuration.")
