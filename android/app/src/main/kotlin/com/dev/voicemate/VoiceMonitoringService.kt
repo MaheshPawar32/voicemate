@@ -35,6 +35,7 @@ internal class VoiceMonitoringService : Service() {
 
     private var captureManager: AudioCaptureManager? = null
     private var alertManager: FinderAlertManager? = null
+    private var alertConfig = FinderAlertConfig()
 
     override fun onCreate() {
         super.onCreate()
@@ -48,7 +49,10 @@ internal class VoiceMonitoringService : Service() {
                 stopMonitoring()
                 stopSelf(startId)
             }
-            else -> startMonitoring()
+            else -> {
+                alertConfig = FinderAlertConfig.fromExtras(intent?.extras)
+                startMonitoring()
+            }
         }
         return START_NOT_STICKY
     }
@@ -68,6 +72,8 @@ internal class VoiceMonitoringService : Service() {
         }
 
         try {
+            alertManager?.release()
+            alertManager = FinderAlertManager(this, alertConfig)
             val notification = buildNotification()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 startForeground(
