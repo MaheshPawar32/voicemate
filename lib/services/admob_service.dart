@@ -65,12 +65,8 @@ class AdMobService extends ChangeNotifier {
         },
       );
 
-      // Consent update should not hold app startup indefinitely on poor networks.
-      try {
-        await updateComplete.future.timeout(const Duration(seconds: 12));
-      } on TimeoutException {
-        debugPrint('VoiceMate consent update timed out.');
-      }
+      // Startup does not await this service, so wait for UMP's callback rather
+      // than proceeding with stale consent if a required form takes longer.
 
       _canRequestAds =
           await ConsentInformation.instance.canRequestAds();
