@@ -59,10 +59,13 @@ class FinderMonitoringService {
   static const EventChannel _events =
       EventChannel('com.dev.voicemate/monitoring/events');
 
-  Stream<FinderMonitoringEvent> get events => _events
+  static final Stream<FinderMonitoringEvent> _sharedEvents = _events
       .receiveBroadcastStream()
       .map((value) => FinderMonitoringEvent.fromMap(
-          value as Map<dynamic, dynamic>));
+          value as Map<dynamic, dynamic>))
+      .asBroadcastStream();
+
+  Stream<FinderMonitoringEvent> get events => _sharedEvents;
 
   Future<bool> requestMicrophonePermission() async {
     try {
