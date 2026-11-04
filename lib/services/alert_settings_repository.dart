@@ -9,6 +9,8 @@ class AlertPreferences {
     this.volume = 80,
     this.durationSeconds = 5,
     this.repeatEnabled = true,
+    this.flashlightEnabled = false,
+    this.flashPattern = 'single',
   });
 
   final bool soundEnabled;
@@ -17,6 +19,8 @@ class AlertPreferences {
   final int volume;
   final int durationSeconds;
   final bool repeatEnabled;
+  final bool flashlightEnabled;
+  final String flashPattern;
 
   Map<String, Object> toPlatformMap() => {
     'sound_enabled': soundEnabled,
@@ -25,6 +29,8 @@ class AlertPreferences {
     'alert_volume': volume,
     'alert_duration_seconds': durationSeconds,
     'repeat_enabled': repeatEnabled,
+    'flashlight_enabled': flashlightEnabled,
+    'flash_pattern': flashPattern,
   };
 }
 
@@ -38,6 +44,14 @@ class AlertSettingsRepository {
   static const _volume = 'alert_volume';
   static const _duration = 'alert_duration_seconds';
   static const _repeat = 'alert_repeat_enabled';
+  static const _flashlightEnabled = 'alert_flashlight_enabled';
+  static const _flashPattern = 'alert_flash_pattern';
+
+  static const supportedFlashPatterns = <String, String>{
+    'single': 'Single pulses',
+    'double': 'Double pulses',
+    'sos': 'SOS pattern',
+  };
 
   static const supportedSounds = <String, String>{
     'classic_beep': 'Classic beep',
@@ -59,6 +73,11 @@ class AlertSettingsRepository {
       ((_box.get(_duration, defaultValue: 5) as num?)?.toInt() ?? 5)
         .clamp(1, 30).toInt(),
     repeatEnabled: _box.get(_repeat, defaultValue: true) == true,
+    flashlightEnabled: _box.get(_flashlightEnabled, defaultValue: false) == true,
+    flashPattern: supportedFlashPatterns.containsKey(
+      _box.get(_flashPattern, defaultValue: 'single'))
+        ? _box.get(_flashPattern, defaultValue: 'single') as String
+        : 'single',
   );
 
   Future<void> saveSoundEnabled(bool value) =>
@@ -74,6 +93,11 @@ class AlertSettingsRepository {
       _box.put(_duration, value.clamp(1, 30));
   Future<void> saveRepeatEnabled(bool value) =>
       _box.put(_repeat, value);
+  Future<void> saveFlashlightEnabled(bool value) =>
+      _box.put(_flashlightEnabled, value);
+  Future<void> saveFlashPattern(String value) =>
+      _box.put(_flashPattern, supportedFlashPatterns.containsKey(value)
+        ? value : 'single');
 
   Future<void> preview(AlertPreferences preferences) async {
     const channel = MethodChannel('com.dev.voicemate/monitoring/methods');
