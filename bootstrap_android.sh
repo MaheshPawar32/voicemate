@@ -110,10 +110,14 @@ for name in ("build.gradle.kts", "build.gradle"):
         # Keep release signing credentials outside the repository. CI or a local
     # developer supplies android/key.properties and android/app/*.jks.
     if name.endswith(".kts"):
-        prelude = """val keystoreProperties = java.util.Properties()
+        imports = """import java.io.FileInputStream
+import java.util.Properties
+
+"""
+        prelude = """val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 """
@@ -129,6 +133,7 @@ if (keystorePropertiesFile.exists()) {
     }
 
 """
+        text = imports + text
         text = text.replace("android {", prelude + "android {", 1)
         text = text.replace("android {", "android {\n" + signing_block, 1)
         debug_signing = 'signingConfig = signingConfigs.getByName("debug")'
