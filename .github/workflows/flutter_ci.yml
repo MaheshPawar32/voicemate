@@ -48,7 +48,7 @@ jobs:
         run: ./gradlew test
 
       - name: Build debug APK
-        run: flutter build apk --debug
+        run: flutter build apk --debug --dart-define=USE_NEXT_GEN_SDK=true
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -85,7 +85,7 @@ jobs:
 
       - name: Build installable release-test APK (temporary debug signing)
         if: steps.release-signing.outputs.configured != 'true'
-        run: flutter build apk --release
+        run: flutter build apk --release --dart-define=USE_NEXT_GEN_SDK=true
 
       - name: Verify release-test APK signature
         if: steps.release-signing.outputs.configured != 'true'
@@ -107,11 +107,11 @@ jobs:
 
       - name: Build universal release APK
         if: steps.release-signing.outputs.configured == 'true'
-        run: flutter build apk --release
+        run: flutter build apk --release --dart-define=USE_NEXT_GEN_SDK=true
 
       - name: Build release Android App Bundle
         if: steps.release-signing.outputs.configured == 'true'
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --dart-define=USE_NEXT_GEN_SDK=true
 
       - name: Verify release APK signature
         if: steps.release-signing.outputs.configured == 'true'
