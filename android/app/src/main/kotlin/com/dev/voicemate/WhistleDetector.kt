@@ -17,6 +17,23 @@ internal class WhistleDetector(
     private val minStableFrames: Int = 6,
     private val refractoryMs: Long = 2_500L,
 ) {
+    companion object {
+        fun forSensitivity(level: String): WhistleDetector = when (level) {
+            "low" -> WhistleDetector(
+                minRms = 750.0,
+                minProminence = 9.0,
+                minPeakPower = 2_000_000_000.0,
+                minStableFrames = 7,
+            )
+            "high" -> WhistleDetector(
+                minRms = 350.0,
+                minProminence = 5.0,
+                minPeakPower = 300_000_000.0,
+                minStableFrames = 5,
+            )
+            else -> WhistleDetector()
+        }
+    }
     data class FrameResult(
         val rms: Double,
         val frequencyHz: Int?,
