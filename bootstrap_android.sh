@@ -70,6 +70,40 @@ if ! grep -q 'android.permission.RECORD_AUDIO' "$MANIFEST"; then
   rm -f "$MANIFEST.bak"
 fi
 
+# Configure the explicit, user-started microphone foreground service.
+python3 - "$MANIFEST" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+manifest = Path(sys.argv[1])
+text = manifest.read_text()
+permissions = [
+    "android.permission.FOREGROUND_SERVICE",
+    "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+    "android.permission.VIBRATE",
+]
+for permission in permissions:
+    tag = f'<uses-permission android:name="{permission}" />'
+    if permission not in text:
+        match = re.search(r'<uses-permission[^>]*/>', text)
+        if match:
+            text = text[:match.end()] + "\n    " + tag + text[match.end():]
+        else:
+            root = re.search(r'<manifest\\b[^>]*>', text)
+            if not root:
+                raise SystemExit("Android manifest root element was not found.")
+            text = text[:root.end()] + "\n    " + tag + text[root.end():]
+
+service_tag = """        <service
+            android:name=".VoiceMonitoringService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />"""
+if ".VoiceMonitoringService" not in text:
+    text = text.replace("</application>", service_tag + "\n    </application>", 1)
+manifest.write_text(text)
+PY
+
 sed -i.bak 's/android:label="voicemate"/android:label="VoiceMate"/' "$MANIFEST"
 rm -f "$MANIFEST.bak"
 
