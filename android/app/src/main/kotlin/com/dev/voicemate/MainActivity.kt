@@ -27,14 +27,17 @@ class MainActivity : FlutterActivity() {
             "com.dev.voicemate/device/methods"
         private const val REQUEST_MICROPHONE = 7401
         private const val REQUEST_NOTIFICATIONS = 7402
+        private const val REQUEST_CAMERA = 7403
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private var testEventSink: EventChannel.EventSink? = null
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var pendingNotificationResult: MethodChannel.Result? = null
+    private var pendingCameraPermissionResult: MethodChannel.Result? = null
     private var captureManager: AudioCaptureManager? = null
     private var alertPreview: FinderAlertManager? = null
+    private var flashlightPreview: FlashlightManager? = null
     private var activityResumed = false
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -70,6 +73,7 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "requestNotificationPermission" -> requestNotificationPermission(result)
+                "requestCameraPermission" -> requestCameraPermission(result)
                 "getPermissionStatus" -> result.success(getPermissionStatus())
                 "openAppSettings" -> openAppSettings(result)
                 "getLockAdminStatus" -> result.success(
@@ -86,6 +90,8 @@ class MainActivity : FlutterActivity() {
                 "stopAlertPreview" -> {
                     alertPreview?.release()
                     alertPreview = null
+                    flashlightPreview?.stop()
+                    flashlightPreview = null
                     result.success(null)
                 }
                 "stopMonitoring" -> {
@@ -167,6 +173,11 @@ class MainActivity : FlutterActivity() {
                 grantResults[0] == PackageManager.PERMISSION_GRANTED
             pendingNotificationResult?.success(granted)
             pendingNotificationResult = null
+        } else if (requestCode == REQUEST_CAMERA) {
+            val granted = grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            pendingCameraPermissionResult?.success(granted)
+            pendingCameraPermissionResult = null
         }
     }
 
@@ -212,6 +223,26 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun requestCameraPermission(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+            checkSelfPermission(Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            result.success(true)
+            return
+        }
+        if (pendingCameraPermissionResult != null) {
+            result.error(
+                "permission_in_progress",
+                "A camera permission request is already active.",
+                null,
+            )
+            return
+        }
+        pendingCameraPermissionResult = result
+        requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA)
+    }
+
     private fun getPermissionStatus(): Map<String, Any> {
         val microphoneGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
             checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
@@ -222,11 +253,15 @@ class MainActivity : FlutterActivity() {
         val notificationsEnabled = Build.VERSION.SDK_INT < 24 ||
             (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
                 .areNotificationsEnabled()
+        val cameraGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+            checkSelfPermission(Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
 
         return mapOf(
             "microphone_granted" to microphoneGranted,
             "notification_permission_granted" to notificationPermissionGranted,
             "notifications_enabled" to notificationsEnabled,
+            "camera_granted" to cameraGranted,
             "api_level" to Build.VERSION.SDK_INT,
         )
     }
@@ -309,6 +344,8 @@ class MainActivity : FlutterActivity() {
                 putExtra("alert_volume", (arguments?.get("alert_volume") as? Number)?.toInt() ?: 80)
                 putExtra("alert_duration_seconds", (arguments?.get("alert_duration_seconds") as? Number)?.toInt() ?: 5)
                 putExtra("repeat_enabled", arguments?.get("repeat_enabled") as? Boolean ?: true)
+                putExtra("flashlight_enabled", arguments?.get("flashlight_enabled") as? Boolean ?: false)
+                putExtra("flash_pattern", arguments?.get("flash_pattern") as? String ?: "single")
                 putExtra("voice_enabled", arguments?.get("voice_enabled") as? Boolean ?: false)
                 putExtra(
                     "voice_lock_command_enabled",
@@ -381,6 +418,8 @@ class MainActivity : FlutterActivity() {
         }
         try {
             alertPreview?.release()
+            flashlightPreview?.stop()
+            flashlightPreview = null
             val bundle = Bundle().apply {
                 putBoolean("sound_enabled", arguments?.get("sound_enabled") as? Boolean ?: true)
                 putBoolean("vibration_enabled", arguments?.get("vibration_enabled") as? Boolean ?: true)
@@ -388,9 +427,23 @@ class MainActivity : FlutterActivity() {
                 putInt("alert_volume", (arguments?.get("alert_volume") as? Number)?.toInt() ?: 80)
                 putInt("alert_duration_seconds", (arguments?.get("alert_duration_seconds") as? Number)?.toInt() ?: 3)
                 putBoolean("repeat_enabled", arguments?.get("repeat_enabled") as? Boolean ?: false)
+                putBoolean("flashlight_enabled", arguments?.get("flashlight_enabled") as? Boolean ?: false)
+                putString("flash_pattern", arguments?.get("flash_pattern") as? String ?: "single")
             }
             alertPreview = FinderAlertManager(this, FinderAlertConfig.fromExtras(bundle))
             alertPreview?.play()
+            if (bundle.getBoolean("flashlight_enabled", false)) {
+                try {
+                    flashlightPreview = FlashlightManager(this)
+                    flashlightPreview?.pulse(bundle.getString("flash_pattern") ?: "single")
+                } catch (flashError: Exception) {
+                    MonitoringEventBus.emit(mapOf(
+                        "type" to "flashlight_unavailable",
+                        "message" to (flashError.message
+                            ?: "Android could not use the flashlight."),
+                    ))
+                }
+            }
             result.success(null)
         } catch (error: Exception) {
             alertPreview?.release()
@@ -495,6 +548,8 @@ class MainActivity : FlutterActivity() {
         stopClapTest()
         alertPreview?.release()
         alertPreview = null
+        flashlightPreview?.stop()
+        flashlightPreview = null
         pendingPermissionResult?.error(
             "activity_destroyed",
             "The app was closed before microphone permission was resolved.",
@@ -507,6 +562,12 @@ class MainActivity : FlutterActivity() {
             null,
         )
         pendingNotificationResult = null
+        pendingCameraPermissionResult?.error(
+            "activity_destroyed",
+            "The app was closed before camera permission was resolved.",
+            null,
+        )
+        pendingCameraPermissionResult = null
         super.onDestroy()
     }
 }
