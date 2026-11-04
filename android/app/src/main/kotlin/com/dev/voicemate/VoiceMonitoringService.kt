@@ -192,37 +192,3 @@ internal class VoiceMonitoringService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 }
 
-private class FinderAlertManager(service: Service) {
-    private val tone = ToneGenerator(AudioManager.STREAM_ALARM, 90)
-    private val vibrator =
-        service.getSystemService(Service.VIBRATOR_SERVICE) as? Vibrator
-    private var lastPlayedAt = 0L
-
-    fun play() {
-        val now = SystemClock.elapsedRealtime()
-        if (now - lastPlayedAt < 2_500L) return
-        lastPlayedAt = now
-        tone.startTone(ToneGenerator.TONE_PROP_BEEP, 1_000)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator?.vibrate(
-                VibrationEffect.createWaveform(
-                    longArrayOf(0, 220, 140, 220),
-                    -1,
-                ),
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator?.vibrate(longArrayOf(0, 220, 140, 220), -1)
-        }
-    }
-
-    fun stop() {
-        tone.stopTone()
-        vibrator?.cancel()
-    }
-
-    fun release() {
-        stop()
-        tone.release()
-    }
-}
