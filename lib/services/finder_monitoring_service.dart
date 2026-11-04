@@ -9,6 +9,7 @@ class FinderMonitoringEvent {
     this.message,
     this.command,
     this.reason,
+    this.quietHours = false,
     this.downloadedBytes = 0,
     this.totalBytes = 0,
     this.clapCount = 0,
@@ -24,6 +25,7 @@ class FinderMonitoringEvent {
   final String? message;
   final String? command;
   final String? reason;
+  final bool quietHours;
   final int downloadedBytes;
   final int totalBytes;
   final int clapCount;
@@ -40,6 +42,7 @@ class FinderMonitoringEvent {
         message: map['message'] as String?,
         command: map['command'] as String?,
         reason: map['reason'] as String?,
+        quietHours: map['quiet_hours'] == true,
         downloadedBytes: (map['downloaded_bytes'] as num?)?.toInt() ?? 0,
         totalBytes: (map['total_bytes'] as num?)?.toInt() ?? 0,
         clapCount: (map['clap_count'] as num?)?.toInt() ?? 0,
