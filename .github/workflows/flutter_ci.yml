@@ -43,9 +43,9 @@ jobs:
       - name: Run Flutter tests
         run: flutter test
 
-      - name: Run native Kotlin unit tests
+      - name: Run VoiceMate native Kotlin unit tests
         working-directory: android
-        run: ./gradlew test
+        run: ./gradlew :app:testDebugUnitTest
 
       - name: Build debug APK
         run: flutter build apk --debug --dart-define=USE_NEXT_GEN_SDK=true
