@@ -4,6 +4,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../app/voicemate_app.dart';
 import '../../services/history_repository.dart';
 import '../battery_centre/battery_centre_screen.dart';
+import '../alert_studio/alert_studio_screen.dart';
+import '../sound_library/sound_library_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -38,6 +40,35 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => const BatteryCentreScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              _section('FINDER ALERTS'),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.tune_rounded,
+                  color: VoiceMateApp.cyan),
+                title: const Text('Alert Studio'),
+                subtitle: const Text(
+                  'Configure volume, duration, repeat and vibration'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AlertStudioScreen(),
+                  ),
+                ),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.library_music_rounded,
+                  color: VoiceMateApp.cyan),
+                title: const Text('Sound Library'),
+                subtitle: const Text('Choose and preview built-in alert tones'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SoundLibraryScreen(),
                   ),
                 ),
               ),
@@ -78,7 +109,7 @@ class SettingsScreen extends StatelessWidget {
                   color: VoiceMateApp.surface,
                   borderRadius: BorderRadius.circular(16)),
                 child: const Text(
-                  'Available in this build: foreground clap-and-whistle monitoring, a persistent Android Stop notification, basic sound/vibration finder alerts, foreground diagnostics and local event history. Offline voice commands, voice screen lock, custom alert studio, sound library, flashlight controls, battery centre and AdMob/consent integration are still under development.',
+                  'Available in this build: foreground clap-and-whistle monitoring, a persistent Android Stop notification, configurable built-in sound/vibration alerts, foreground diagnostics, local event history and live battery readings. Offline voice commands, voice screen lock, flashlight controls, permissions centre and AdMob/consent integration are still under development.',
                   style: TextStyle(
                     color: VoiceMateApp.muted, fontSize: 12, height: 1.5)),
               ),
