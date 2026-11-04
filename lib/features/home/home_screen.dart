@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../app/voicemate_app.dart';
 import '../../services/finder_monitoring_service.dart';
 import '../../services/history_repository.dart';
+import '../../services/alert_settings_repository.dart';
 import '../clap_detection/clap_test_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final FinderMonitoringService _monitoring = FinderMonitoringService();
   late final HistoryRepository _history;
+  late final AlertSettingsRepository _alertSettings;
   StreamSubscription<FinderMonitoringEvent>? _subscription;
   bool _isMonitoring = false;
   bool _isBusy = false;
@@ -26,7 +28,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _history = HistoryRepository(Hive.box<dynamic>('voicemate_settings'));
+    final settingsBox = Hive.box<dynamic>('voicemate_settings');
+    _history = HistoryRepository(settingsBox);
+    _alertSettings = AlertSettingsRepository(settingsBox);
     _subscription = _monitoring.events.listen(_handleMonitoringEvent,
       onError: (Object error) {
         if (!mounted) return;
@@ -123,7 +127,9 @@ class _HomeScreenState extends State<HomeScreen> {
           throw const FinderMonitoringException(
             'Notification permission is required so the active-monitoring notification and its Stop action remain visible. Enable notifications for VoiceMate in Android settings.');
         }
-        await _monitoring.start();
+        await _monitoring.start(
+          alertSettings: _alertSettings.read().toPlatformMap(),
+        );
         if (mounted) {
           setState(() {
             _isMonitoring = true;
