@@ -78,6 +78,20 @@ class FinderMonitoringService {
     }
   }
 
+  Future<bool> requestCameraPermission() async {
+    try {
+      return await _methods.invokeMethod<bool>(
+            'requestCameraPermission') ??
+          false;
+    } on PlatformException catch (error) {
+      throw FinderMonitoringException(
+        error.message ?? 'Could not request camera permission.');
+    } on MissingPluginException {
+      throw const FinderMonitoringException(
+        'Android flashlight permission integration is not available.');
+    }
+  }
+
   Future<bool> requestNotificationPermission() async {
     try {
       return await _methods.invokeMethod<bool>(
