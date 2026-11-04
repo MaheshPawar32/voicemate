@@ -1,6 +1,7 @@
 package com.dev.voicemate
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -15,11 +16,15 @@ class MainActivity : FlutterActivity() {
     companion object {
         private const val METHODS_CHANNEL = "com.dev.voicemate/audio_test/methods"
         private const val EVENTS_CHANNEL = "com.dev.voicemate/audio_test/events"
+        private const val MONITORING_METHODS_CHANNEL =
+            "com.dev.voicemate/monitoring/methods"
+        private const val MONITORING_EVENTS_CHANNEL =
+            "com.dev.voicemate/monitoring/events"
         private const val REQUEST_MICROPHONE = 7401
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private var eventSink: EventChannel.EventSink? = null
+    private var testEventSink: EventChannel.EventSink? = null
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var captureManager: AudioCaptureManager? = null
     private var activityResumed = false
@@ -43,23 +48,57 @@ class MainActivity : FlutterActivity() {
         EventChannel(flutterEngine.dartExecutor.binaryMessenger, EVENTS_CHANNEL)
             .setStreamHandler(object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                    eventSink = events
+                    testEventSink = events
                 }
+
                 override fun onCancel(arguments: Any?) {
-                    eventSink = null
+                    testEventSink = null
                 }
             })
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            MONITORING_METHODS_CHANNEL,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "startMonitoring" -> startMonitoring(result)
+                "stopMonitoring" -> {
+                    stopService(Intent(this, VoiceMonitoringService::class.java))
+                    result.success(null)
+                }
+                "getMonitoringStatus" -> result.success(VoiceMonitoringService.isActive)
+                else -> result.notImplemented()
+            }
+        }
+
+        EventChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            MONITORING_EVENTS_CHANNEL,
+        ).setStreamHandler(object : EventChannel.StreamHandler {
+            override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                MonitoringEventBus.attach(events)
+            }
+
+            override fun onCancel(arguments: Any?) {
+                MonitoringEventBus.detach()
+            }
+        })
     }
 
     private fun requestMicrophonePermission(result: MethodChannel.Result) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
-            checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+            checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
         ) {
             result.success(true)
             return
         }
         if (pendingPermissionResult != null) {
-            result.error("permission_in_progress", "A microphone permission request is already active.", null)
+            result.error(
+                "permission_in_progress",
+                "A microphone permission request is already active.",
+                null,
+            )
             return
         }
         pendingPermissionResult = result
@@ -80,15 +119,70 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun startClapTest(result: MethodChannel.Result) {
+    private fun startMonitoring(result: MethodChannel.Result) {
         if (!activityResumed) {
-            result.error("activity_not_visible", "Open VoiceMate before starting the microphone test.", null)
+            result.error(
+                "activity_not_visible",
+                "Open VoiceMate before starting microphone monitoring.",
+                null,
+            )
+            return
+        }
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            result.error(
+                "permission_denied",
+                "Microphone permission is required before monitoring can start.",
+                null,
+            )
+            return
+        }
+        try {
+            val intent = Intent(this, VoiceMonitoringService::class.java).apply {
+                action = VoiceMonitoringService.ACTION_START
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            result.success(null)
+        } catch (error: Exception) {
+            result.error(
+                "monitoring_start_failed",
+                error.message ?: "Android could not start monitoring.",
+                null,
+            )
+        }
+    }
+
+    private fun startClapTest(result: MethodChannel.Result) {
+        if (VoiceMonitoringService.isActive) {
+            result.error(
+                "microphone_in_use",
+                "Stop background monitoring before starting the foreground diagnostic.",
+                null,
+            )
+            return
+        }
+        if (!activityResumed) {
+            result.error(
+                "activity_not_visible",
+                "Open VoiceMate before starting the microphone test.",
+                null,
+            )
             return
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-            checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
+            checkSelfPermission(Manifest.permission.RECORD_AUDIO) !=
+            PackageManager.PERMISSION_GRANTED
         ) {
-            result.error("permission_denied", "Microphone permission is required for this test.", null)
+            result.error(
+                "permission_denied",
+                "Microphone permission is required for this test.",
+                null,
+            )
             return
         }
         try {
@@ -101,7 +195,7 @@ class MainActivity : FlutterActivity() {
             manager.start(
                 onMetrics = { metrics ->
                     mainHandler.post {
-                        eventSink?.success(mapOf(
+                        testEventSink?.success(mapOf(
                             "type" to if (metrics.isClap) "clap" else "metrics",
                             "rms" to metrics.rms,
                             "peak" to metrics.peak,
@@ -114,7 +208,8 @@ class MainActivity : FlutterActivity() {
                 onError = { message ->
                     mainHandler.post {
                         stopClapTest()
-                        eventSink?.success(mapOf("type" to "error", "message" to message))
+                        testEventSink?.success(mapOf(
+                            "type" to "error", "message" to message))
                     }
                 },
             )
@@ -122,14 +217,18 @@ class MainActivity : FlutterActivity() {
         } catch (error: Exception) {
             captureManager?.stop()
             captureManager = null
-            result.error("audio_start_failed", error.message ?: "Could not start microphone capture.", null)
+            result.error(
+                "audio_start_failed",
+                error.message ?: "Could not start microphone capture.",
+                null,
+            )
         }
     }
 
     private fun stopClapTest() {
         captureManager?.stop()
         captureManager = null
-        eventSink?.success(mapOf("type" to "stopped"))
+        testEventSink?.success(mapOf("type" to "stopped"))
     }
 
     override fun onResume() {
