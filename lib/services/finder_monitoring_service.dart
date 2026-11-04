@@ -6,6 +6,10 @@ class FinderMonitoringEvent {
     required this.type,
     this.eventType,
     this.message,
+    this.command,
+    this.reason,
+    this.downloadedBytes = 0,
+    this.totalBytes = 0,
     this.clapCount = 0,
     this.whistleCount = 0,
     this.whistleFrequencyHz = 0,
@@ -17,6 +21,10 @@ class FinderMonitoringEvent {
   final String type;
   final String? eventType;
   final String? message;
+  final String? command;
+  final String? reason;
+  final int downloadedBytes;
+  final int totalBytes;
   final int clapCount;
   final int whistleCount;
   final int whistleFrequencyHz;
@@ -29,6 +37,10 @@ class FinderMonitoringEvent {
         type: map['type'] as String? ?? 'unknown',
         eventType: map['event_type'] as String?,
         message: map['message'] as String?,
+        command: map['command'] as String?,
+        reason: map['reason'] as String?,
+        downloadedBytes: (map['downloaded_bytes'] as num?)?.toInt() ?? 0,
+        totalBytes: (map['total_bytes'] as num?)?.toInt() ?? 0,
         clapCount: (map['clap_count'] as num?)?.toInt() ?? 0,
         whistleCount: (map['whistle_count'] as num?)?.toInt() ?? 0,
         whistleFrequencyHz:
@@ -39,7 +51,6 @@ class FinderMonitoringEvent {
       );
 }
 
-/// Bridge to the explicit, notification-backed Android microphone service.
 class FinderMonitoringService {
   static const MethodChannel _methods =
       MethodChannel('com.dev.voicemate/monitoring/methods');
@@ -81,9 +92,41 @@ class FinderMonitoringService {
     }
   }
 
-  Future<void> start({Map<String, Object?> alertSettings = const {}}) async {
+  Future<bool> isVoiceModelInstalled() async {
     try {
-      await _methods.invokeMethod<void>('startMonitoring', alertSettings);
+      return await _methods.invokeMethod<bool>('isVoiceModelInstalled') ?? false;
+    } on PlatformException catch (error) {
+      throw FinderMonitoringException(
+        error.message ?? 'Could not check the offline voice model.');
+    } on MissingPluginException {
+      throw const FinderMonitoringException(
+        'Android voice model integration is not available.');
+    }
+  }
+
+  Future<void> installVoiceModel() async {
+    try {
+      await _methods.invokeMethod<String>('installVoiceModel');
+    } on PlatformException catch (error) {
+      throw FinderMonitoringException(
+        error.message ?? 'Could not install the offline voice model.');
+    } on MissingPluginException {
+      throw const FinderMonitoringException(
+        'Android voice model integration is not available.');
+    }
+  }
+
+  Future<void> start({
+    Map<String, Object?> alertSettings = const {},
+    bool voiceEnabled = false,
+    bool voiceLockCommandEnabled = false,
+  }) async {
+    try {
+      await _methods.invokeMethod<void>('startMonitoring', {
+        ...alertSettings,
+        'voice_enabled': voiceEnabled,
+        'voice_lock_command_enabled': voiceLockCommandEnabled,
+      });
     } on PlatformException catch (error) {
       throw FinderMonitoringException(
         error.message ?? 'Could not start phone finder monitoring.');
