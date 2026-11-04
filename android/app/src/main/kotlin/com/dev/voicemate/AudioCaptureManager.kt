@@ -6,7 +6,12 @@ import android.media.MediaRecorder
 import android.os.SystemClock
 
 /** One AudioRecord owner for the visible, foreground-only clap test. */
-internal class AudioCaptureManager {
+internal class AudioCaptureManager(
+    private val clapEnabled: Boolean = true,
+    private val whistleEnabled: Boolean = true,
+    clapSensitivity: String = "normal",
+    whistleSensitivity: String = "normal",
+) {
     companion object {
         private const val SAMPLE_RATE = 16_000
         private const val FRAME_SAMPLES = 320 // 20 ms at 16 kHz.
@@ -65,8 +70,8 @@ internal class AudioCaptureManager {
 
         recorder = audioRecord
         isReading = true
-        val detector = ClapDetector()
-        val whistleDetector = WhistleDetector()
+        val detector = ClapDetector.forSensitivity(clapSensitivity)
+        val whistleDetector = WhistleDetector.forSensitivity(whistleSensitivity)
         var whistleCount = 0
         val samples = ShortArray(FRAME_SAMPLES)
 
@@ -77,16 +82,35 @@ internal class AudioCaptureManager {
                     val readCount = audioRecord.read(samples, 0, samples.size)
                     when {
                         readCount > 0 -> {
-                            val result = detector.process(
-                                samples,
-                                readCount,
-                                SystemClock.elapsedRealtime(),
-                            )
-                            val whistle = whistleDetector.process(
-                                samples,
-                                readCount,
-                                SystemClock.elapsedRealtime(),
-                            )
+                            val result = if (clapEnabled) {
+                                detector.process(
+                                    samples,
+                                    readCount,
+                                    SystemClock.elapsedRealtime(),
+                                )
+                            } else {
+                                ClapDetector.FrameResult(
+                                    rms = 0.0,
+                                    peak = 0,
+                                    noiseFloorRms = 0.0,
+                                    clapDetected = false,
+                                    clapCount = 0,
+                                )
+                            }
+                            val whistle = if (whistleEnabled) {
+                                whistleDetector.process(
+                                    samples,
+                                    readCount,
+                                    SystemClock.elapsedRealtime(),
+                                )
+                            } else {
+                                WhistleDetector.FrameResult(
+                                    rms = 0.0,
+                                    frequencyHz = null,
+                                    detected = false,
+                                    stableFrames = 0,
+                                )
+                            }
                             if (whistle.detected) whistleCount += 1
                             val voiceCommand = voiceEngine?.process(samples, readCount)
                             if (voiceCommand != null) onVoiceCommand?.invoke(voiceCommand)
