@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'monitoring_settings_repository.dart';
 
 class FinderMonitoringEvent {
   const FinderMonitoringEvent({
@@ -137,12 +138,14 @@ class FinderMonitoringService {
     Map<String, Object?> alertSettings = const {},
     bool voiceEnabled = false,
     bool voiceLockCommandEnabled = false,
+    MonitoringPreferences monitoringSettings = const MonitoringPreferences(),
   }) async {
     try {
       await _methods.invokeMethod<void>('startMonitoring', {
         ...alertSettings,
         'voice_enabled': voiceEnabled,
         'voice_lock_command_enabled': voiceLockCommandEnabled,
+        ...monitoringSettings.toPlatformMap(),
       });
     } on PlatformException catch (error) {
       throw FinderMonitoringException(
