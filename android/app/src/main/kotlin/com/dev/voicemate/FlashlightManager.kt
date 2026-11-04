@@ -12,7 +12,10 @@ import android.os.Looper
  * Torch-only flashlight control. It never opens a camera session or captures images.
  * Android may revoke torch availability when another app needs the camera.
  */
-internal class FlashlightManager(context: Context) {
+internal class FlashlightManager(
+    context: Context,
+    private val onUnavailable: (String) -> Unit = {},
+) {
     private val appContext = context.applicationContext
     private val cameraManager =
         appContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -37,7 +40,10 @@ internal class FlashlightManager(context: Context) {
             } catch (error: Exception) {
                 turnOff()
                 isRunning = false
-                throw error
+                onUnavailable(
+                    error.message ?: "Android made the flashlight unavailable.",
+                )
+                return
             }
             stepIndex += 1
             handler.postDelayed(this, step.second.toLong())
