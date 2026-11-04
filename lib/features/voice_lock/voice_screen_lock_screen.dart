@@ -40,10 +40,12 @@ class _VoiceScreenLockScreenState extends State<VoiceScreenLockScreen>
   Future<void> _refresh() async {
     try {
       final active = await _service.isAdminActive();
-      if (mounted) setState(() {
-        _adminActive = active;
-        _error = null;
-      });
+      if (mounted) {
+        setState(() {
+          _adminActive = active;
+          _error = null;
+        });
+      }
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
     }
