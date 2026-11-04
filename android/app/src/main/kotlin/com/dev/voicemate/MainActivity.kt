@@ -309,6 +309,11 @@ class MainActivity : FlutterActivity() {
                 putExtra("alert_volume", (arguments?.get("alert_volume") as? Number)?.toInt() ?: 80)
                 putExtra("alert_duration_seconds", (arguments?.get("alert_duration_seconds") as? Number)?.toInt() ?: 5)
                 putExtra("repeat_enabled", arguments?.get("repeat_enabled") as? Boolean ?: true)
+                putExtra("voice_enabled", arguments?.get("voice_enabled") as? Boolean ?: false)
+                putExtra(
+                    "voice_lock_command_enabled",
+                    arguments?.get("voice_lock_command_enabled") as? Boolean ?: false,
+                )
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(intent)
