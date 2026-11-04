@@ -61,7 +61,7 @@ class SettingsScreen extends StatelessWidget {
                   color: VoiceMateApp.surface,
                   borderRadius: BorderRadius.circular(16)),
                 child: const Text(
-                  'Background monitoring, whistle detection, offline voice commands and alert playback are not available in this build. The app does not present these as working controls.',
+                  'Available in this build: foreground clap-and-whistle monitoring, a persistent Android Stop notification, basic sound/vibration finder alerts, foreground diagnostics and local event history. Offline voice commands, voice screen lock, custom alert studio, sound library, flashlight controls, battery centre and AdMob/consent integration are still under development.',
                   style: TextStyle(
                     color: VoiceMateApp.muted, fontSize: 12, height: 1.5)),
               ),
