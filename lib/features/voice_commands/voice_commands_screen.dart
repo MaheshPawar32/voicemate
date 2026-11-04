@@ -64,7 +64,9 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
     if (!mounted) return;
     if (event.type == 'voice_model_progress') {
       final progress = event.totalBytes > 0
-          ? (event.downloadedBytes / event.totalBytes).clamp(0.0, 1.0)
+          ? (event.downloadedBytes / event.totalBytes)
+              .clamp(0.0, 1.0)
+              .toDouble()
           : null;
       setState(() => _downloadProgress = progress);
     } else if (event.type == 'voice_model_ready') {
