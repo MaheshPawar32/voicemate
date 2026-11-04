@@ -9,8 +9,8 @@ import android.os.SystemClock
 internal class AudioCaptureManager(
     private val clapEnabled: Boolean = true,
     private val whistleEnabled: Boolean = true,
-    clapSensitivity: String = "normal",
-    whistleSensitivity: String = "normal",
+    private val clapSensitivity: String = "normal",
+    private val whistleSensitivity: String = "normal",
 ) {
     companion object {
         private const val SAMPLE_RATE = 16_000
