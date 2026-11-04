@@ -41,7 +41,10 @@ internal class OfflineCommandEngine(modelDirectory: File) : AutoCloseable {
     }
 
     internal fun intentForTranscript(transcript: String): String? {
-        val text = transcript.lowercase().trim().replace(Regex("\\s+"), " ")
+        val text = transcript.lowercase()
+            .replace(Regex("[^a-z0-9 ]"), " ")
+            .trim()
+            .replace(Regex("\\s+"), " ")
         return when (text) {
             "find my phone", "where are you", "hello voice mate" -> "find_phone"
             "lock my phone", "lock this phone" -> "lock_phone"
