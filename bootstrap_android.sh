@@ -165,9 +165,17 @@ for name in ("build.gradle.kts", "build.gradle"):
     text = path.read_text()
     text = re.sub(r'targetSdk\s*=\s*flutter\.targetSdkVersion', 'targetSdk = 36', text)
     text = re.sub(r'targetSdkVersion\s+flutter\.targetSdkVersion', 'targetSdkVersion 36', text)
+    text = re.sub(r'minSdk\s*=\s*flutter\.minSdkVersion', 'minSdk = 24', text)
+    text = re.sub(r'minSdkVersion\s+flutter\.minSdkVersion', 'minSdkVersion 24', text)
+    text = re.sub(r'compileSdk\s*=\s*flutter\.compileSdkVersion', 'compileSdk = 36', text)
+    text = re.sub(r'compileSdkVersion\s+flutter\.compileSdkVersion', 'compileSdkVersion 36', text)
     path.write_text(text)
     if not re.search(r'targetSdk\s*=\s*36|targetSdkVersion\s+36', text):
         raise SystemExit(f"Could not set target SDK 36 in {path}")
+    if not re.search(r'minSdk\s*=\s*24|minSdkVersion\s+24', text):
+        raise SystemExit(f"Could not set minimum SDK 24 for GMA Next-Gen in {path}")
+    if not re.search(r'compileSdk\s*=\s*36|compileSdkVersion\s+36', text):
+        raise SystemExit(f"Could not set compile SDK 36 for GMA Next-Gen in {path}")
 
     if name.endswith(".kts") and 'manifestPlaceholders["admobAppId"]' not in text:
         placeholder = '        manifestPlaceholders["admobAppId"] = project.findProperty("admobAppId")?.toString() ?: "ca-app-pub-3940256099942544~3347511713"' + chr(10)
