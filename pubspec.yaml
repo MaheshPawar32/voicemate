@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   velocity_x: ^4.3.0
+  hive: ^2.2.3
   hive_flutter: ^1.1.0
 
 dev_dependencies:
