@@ -89,6 +89,7 @@ permissions = [
     "android.permission.FOREGROUND_SERVICE_MICROPHONE",
     "android.permission.VIBRATE",
     "android.permission.POST_NOTIFICATIONS",
+    "android.permission.INTERNET",
 ]
 for permission in permissions:
     tag = f'<uses-permission android:name="{permission}" />'
@@ -146,6 +147,20 @@ for name in ("build.gradle.kts", "build.gradle"):
     path.write_text(text)
     if not re.search(r'targetSdk\s*=\s*36|targetSdkVersion\s+36', text):
         raise SystemExit(f"Could not set target SDK 36 in {path}")
+
+    # Add Vosk for entirely on-device speech recognition. The speech model is
+    # downloaded once after user consent and remains in app-private storage.
+    if name.endswith(".kts") and "com.alphacephei:vosk-android" not in text:
+        dependency = '    implementation("com.alphacephei:vosk-android:0.3.75")\\n'
+        if re.search(r'dependencies\\s*\\{', text):
+            text = re.sub(
+                r'(dependencies\\s*\\{)',
+                lambda match: match.group(1) + "\\n" + dependency,
+                text,
+                count=1,
+            )
+        else:
+            raise SystemExit("Could not find the app dependencies block for Vosk.")
 
     # Add JUnit 4 so the native Kotlin detector unit tests compile.
     if "junit:junit" not in text:
