@@ -26,7 +26,7 @@ internal class ClapDetector(
             "high" -> ClapDetector(
                 absoluteRmsFloor = 700.0,
                 absolutePeakFloor = 3_500.0,
-                rmsMultiplier = 2.8,
+                rmsMultiplier = 2.5,
                 peakMultiplier = 6.5,
                 minCrestFactor = 1.9,
             )
