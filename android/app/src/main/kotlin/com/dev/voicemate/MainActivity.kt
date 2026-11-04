@@ -3,6 +3,9 @@ package com.dev.voicemate
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.app.NotificationManager
+import android.provider.Settings
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -67,6 +70,8 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "requestNotificationPermission" -> requestNotificationPermission(result)
+                "getPermissionStatus" -> result.success(getPermissionStatus())
+                "openAppSettings" -> openAppSettings(result)
                 "startMonitoring" -> startMonitoring(call.arguments as? Map<*, *>, result)
                 "previewAlert" -> previewAlert(call.arguments as? Map<*, *>, result)
                 "stopAlertPreview" -> {
@@ -156,12 +161,57 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun requestNotificationPermission(result: MethodChannel.Result) {
-        if (Build.VERSION.SDK_INT < 33 ||
+    private fun getPermissionStatus(): Map<String, Any> {
+        val microphoneGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+            checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
+        val notificationPermissionGranted = Build.VERSION.SDK_INT < 33 ||
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
             PackageManager.PERMISSION_GRANTED
+        val notificationsEnabled = Build.VERSION.SDK_INT < 24 ||
+            (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+                .areNotificationsEnabled()
+
+        return mapOf(
+            "microphone_granted" to microphoneGranted,
+            "notification_permission_granted" to notificationPermissionGranted,
+            "notifications_enabled" to notificationsEnabled,
+            "api_level" to Build.VERSION.SDK_INT,
+        )
+    }
+
+    private fun openAppSettings(result: MethodChannel.Result) {
+        try {
+            val intent = Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.parse("package:$packageName"),
+            )
+            startActivity(intent)
+            result.success(null)
+        } catch (error: Exception) {
+            result.error(
+                "settings_unavailable",
+                error.message ?: "Could not open Android app settings.",
+                null,
+            )
+        }
+    }
+
+    private fun requestNotificationPermission(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT < 33) {
+            result.success(
+                Build.VERSION.SDK_INT < 24 ||
+                    (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+                        .areNotificationsEnabled(),
+            )
+            return
+        }
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
         ) {
-            result.success(true)
+            val enabled = (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+                .areNotificationsEnabled()
+            result.success(enabled)
             return
         }
         if (pendingNotificationResult != null) {
