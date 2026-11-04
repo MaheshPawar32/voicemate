@@ -18,7 +18,7 @@ class AlertPreferences {
   final int durationSeconds;
   final bool repeatEnabled;
 
-  Map<String, Object> toPlatformMap({bool? preview}) => {
+  Map<String, Object> toPlatformMap() => {
     'sound_enabled': soundEnabled,
     'vibration_enabled': vibrationEnabled,
     'sound_id': soundId,
@@ -54,10 +54,10 @@ class AlertSettingsRepository {
         ? _box.get(_soundId, defaultValue: 'classic_beep') as String
         : 'classic_beep',
     volume: ((_box.get(_volume, defaultValue: 80) as num?)?.toInt() ?? 80)
-      .clamp(0, 100),
+      .clamp(0, 100).toInt(),
     durationSeconds:
       ((_box.get(_duration, defaultValue: 5) as num?)?.toInt() ?? 5)
-        .clamp(1, 30),
+        .clamp(1, 30).toInt(),
     repeatEnabled: _box.get(_repeat, defaultValue: true) == true,
   );
 
