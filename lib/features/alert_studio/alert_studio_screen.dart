@@ -178,7 +178,7 @@ class _AlertStudioScreenState extends State<AlertStudioScreen> {
           if (_preferences.flashlightEnabled) ...[
             const SizedBox(height: 4),
             DropdownButtonFormField<String>(
-              value: _preferences.flashPattern,
+              initialValue: _preferences.flashPattern,
               decoration: const InputDecoration(
                 labelText: 'Flash pattern',
               ),
