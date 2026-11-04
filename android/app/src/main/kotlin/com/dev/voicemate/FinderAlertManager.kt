@@ -17,6 +17,8 @@ internal data class FinderAlertConfig(
     val volume: Int = 80,
     val durationSeconds: Int = 5,
     val repeatEnabled: Boolean = true,
+    val flashlightEnabled: Boolean = false,
+    val flashPattern: String = "single",
 ) {
     companion object {
         fun fromExtras(extras: android.os.Bundle?): FinderAlertConfig =
@@ -28,6 +30,9 @@ internal data class FinderAlertConfig(
                 durationSeconds =
                     (extras?.getInt("alert_duration_seconds", 5) ?: 5).coerceIn(1, 30),
                 repeatEnabled = extras?.getBoolean("repeat_enabled", true) ?: true,
+                flashlightEnabled =
+                    extras?.getBoolean("flashlight_enabled", false) ?: false,
+                flashPattern = extras?.getString("flash_pattern") ?: "single",
             )
     }
 }
