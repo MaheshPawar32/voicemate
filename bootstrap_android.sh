@@ -160,7 +160,7 @@ for name in ("build.gradle.kts", "build.gradle"):
                 count=1,
             )
         else:
-            raise SystemExit("Could not find the app dependencies block for Vosk.")
+            text += "\\ndependencies {\\n" + dependency + "}\\n"
 
     # Add JUnit 4 so the native Kotlin detector unit tests compile.
     if "junit:junit" not in text:
