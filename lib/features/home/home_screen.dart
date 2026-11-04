@@ -86,6 +86,12 @@ class _HomeScreenState extends State<HomeScreen> {
           _error = event.message ?? 'Monitoring stopped unexpectedly.';
         });
         break;
+      case 'flashlight_unavailable':
+        setState(() {
+          _error = event.message ??
+              'The flashlight is temporarily unavailable. Sound and vibration alerts remain active.';
+        });
+        break;
       case 'voice_command':
         if (event.command == 'find_phone' ||
             event.command == 'lock_phone') {
@@ -187,8 +193,16 @@ class _HomeScreenState extends State<HomeScreen> {
             'Notification permission is required so the active-monitoring notification and its Stop action remain visible. Enable notifications for VoiceMate in Android settings.');
         }
         final voice = _voiceSettings.read();
+        final alerts = _alertSettings.read();
+        if (alerts.flashlightEnabled) {
+          final cameraGranted = await _monitoring.requestCameraPermission();
+          if (!cameraGranted) {
+            throw const FinderMonitoringException(
+              'Camera permission is required for flashlight alerts. Turn flashlight pulses off in Alert Studio or allow camera access in Android settings.');
+          }
+        }
         await _monitoring.start(
-          alertSettings: _alertSettings.read().toPlatformMap(),
+          alertSettings: alerts.toPlatformMap(),
           voiceEnabled: voice.enabled,
           voiceLockCommandEnabled: voice.lockCommandEnabled,
         );
