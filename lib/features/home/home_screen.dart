@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final FinderMonitoringService _monitoring = FinderMonitoringService();
   late final HistoryRepository _history;
   late final AlertSettingsRepository _alertSettings;
+  late final Box<dynamic> _settingsBox;
   StreamSubscription<FinderMonitoringEvent>? _subscription;
   bool _isMonitoring = false;
   bool _isBusy = false;
@@ -29,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     final settingsBox = Hive.box<dynamic>('voicemate_settings');
+    _settingsBox = settingsBox;
     _history = HistoryRepository(settingsBox);
     _alertSettings = AlertSettingsRepository(settingsBox);
     _subscription = _monitoring.events.listen(_handleMonitoringEvent,
@@ -100,6 +102,43 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<bool> _confirmMicrophoneDisclosure() async {
+    if (_settingsBox.get('mic_disclosure_acknowledged', defaultValue: false) ==
+        true) {
+      return true;
+    }
+    final accepted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Microphone access for phone finder'),
+        content: const SingleChildScrollView(
+          child: Text(
+            'VoiceMate uses the microphone to detect claps and sustained whistle-like tones while finder monitoring is active. Audio is analysed on this device in temporary memory. VoiceMate does not save recordings or upload microphone audio.\n\n'
+            'When you start monitoring, Android shows an ongoing notification with a Stop action. You can stop monitoring from the app or that notification.\n\n'
+            'Only continue when you understand and agree to this microphone use.',
+            style: TextStyle(height: 1.5),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Not now'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+    if (accepted == true) {
+      await _settingsBox.put('mic_disclosure_acknowledged', true);
+      return true;
+    }
+    return false;
+  }
+
   Future<void> _toggleMonitoring() async {
     if (_isBusy) return;
     setState(() {
@@ -116,6 +155,11 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         }
       } else {
+        final disclosureAccepted = await _confirmMicrophoneDisclosure();
+        if (!disclosureAccepted) {
+          if (mounted) setState(() => _isBusy = false);
+          return;
+        }
         final granted = await _monitoring.requestMicrophonePermission();
         if (!granted) {
           throw const FinderMonitoringException(
@@ -214,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 7),
             Text(
               _isMonitoring
-                ? 'VoiceMate is listening for clap and sustained whistle-like tones. A detection triggers a sound and vibration alert.'
+                ? 'VoiceMate listens for clap and sustained whistle-like tones and plays your configured alert.'
                 : 'Start monitoring to listen for clap and sustained whistle-like tones while the Android foreground notification is visible.',
               textAlign: TextAlign.center,
               style: const TextStyle(
