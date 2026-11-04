@@ -85,7 +85,12 @@ internal class VoiceMonitoringService : Service() {
             alertManager = FinderAlertManager(this, alertConfig)
             flashlightManager?.stop()
             flashlightManager = if (alertConfig.flashlightEnabled) {
-                FlashlightManager(this)
+                FlashlightManager(this) { message ->
+                    MonitoringEventBus.emit(mapOf(
+                        "type" to "flashlight_unavailable",
+                        "message" to message,
+                    ))
+                }
             } else {
                 null
             }
