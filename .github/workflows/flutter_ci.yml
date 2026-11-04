@@ -57,3 +57,63 @@ jobs:
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
           retention-days: 7
+
+      - name: Configure release signing
+        id: release-signing
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${ANDROID_KEYSTORE_BASE64:-}" || -z "${ANDROID_KEYSTORE_PASSWORD:-}" || -z "${ANDROID_KEY_PASSWORD:-}" || -z "${ANDROID_KEY_ALIAS:-}" ]]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Release signing secrets are not configured; signed release outputs will be skipped."
+            exit 0
+          fi
+          mkdir -p android/app
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/voicemate-release.jks
+          cat > android/key.properties <<EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=voicemate-release.jks
+          EOF
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+
+      - name: Build universal release APK
+        if: steps.release-signing.outputs.configured == 'true'
+        run: flutter build apk --release
+
+      - name: Build release Android App Bundle
+        if: steps.release-signing.outputs.configured == 'true'
+        run: flutter build appbundle --release
+
+      - name: Verify release APK signature
+        if: steps.release-signing.outputs.configured == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload signed release APK
+        if: steps.release-signing.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: voicemate-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload signed release AAB
+        if: steps.release-signing.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: voicemate-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 14
