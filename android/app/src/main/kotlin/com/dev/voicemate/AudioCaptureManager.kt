@@ -28,7 +28,12 @@ internal class AudioCaptureManager {
     private var worker: Thread? = null
 
     @Synchronized
-    fun start(onMetrics: (Metrics) -> Unit, onError: (String) -> Unit) {
+    fun start(
+        onMetrics: (Metrics) -> Unit,
+        onError: (String) -> Unit,
+        voiceEngine: OfflineCommandEngine? = null,
+        onVoiceCommand: ((String) -> Unit)? = null,
+    ) {
         if (isReading) return
 
         val minBufferBytes = AudioRecord.getMinBufferSize(
@@ -83,6 +88,8 @@ internal class AudioCaptureManager {
                                 SystemClock.elapsedRealtime(),
                             )
                             if (whistle.detected) whistleCount += 1
+                            val voiceCommand = voiceEngine?.process(samples, readCount)
+                            if (voiceCommand != null) onVoiceCommand?.invoke(voiceCommand)
                             frameIndex += 1
                             if (frameIndex % 5 == 0 ||
                                 result.clapDetected ||
