@@ -31,6 +31,7 @@ class MainActivity : FlutterActivity() {
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var pendingNotificationResult: MethodChannel.Result? = null
     private var captureManager: AudioCaptureManager? = null
+    private var alertPreview: FinderAlertManager? = null
     private var activityResumed = false
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -66,7 +67,13 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "requestNotificationPermission" -> requestNotificationPermission(result)
-                "startMonitoring" -> startMonitoring(result)
+                "startMonitoring" -> startMonitoring(call.arguments as? Map<*, *>, result)
+                "previewAlert" -> previewAlert(call.arguments as? Map<*, *>, result)
+                "stopAlertPreview" -> {
+                    alertPreview?.release()
+                    alertPreview = null
+                    result.success(null)
+                }
                 "stopMonitoring" -> {
                     stopService(Intent(this, VoiceMonitoringService::class.java))
                     result.success(null)
@@ -172,7 +179,7 @@ class MainActivity : FlutterActivity() {
         )
     }
 
-    private fun startMonitoring(result: MethodChannel.Result) {
+    private fun startMonitoring(arguments: Map<*, *>?, result: MethodChannel.Result) {
         if (!activityResumed) {
             result.error(
                 "activity_not_visible",
@@ -195,6 +202,12 @@ class MainActivity : FlutterActivity() {
         try {
             val intent = Intent(this, VoiceMonitoringService::class.java).apply {
                 action = VoiceMonitoringService.ACTION_START
+                putExtra("sound_enabled", arguments?.get("sound_enabled") as? Boolean ?: true)
+                putExtra("vibration_enabled", arguments?.get("vibration_enabled") as? Boolean ?: true)
+                putExtra("sound_id", arguments?.get("sound_id") as? String ?: "classic_beep")
+                putExtra("alert_volume", (arguments?.get("alert_volume") as? Number)?.toInt() ?: 80)
+                putExtra("alert_duration_seconds", (arguments?.get("alert_duration_seconds") as? Number)?.toInt() ?: 5)
+                putExtra("repeat_enabled", arguments?.get("repeat_enabled") as? Boolean ?: true)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(intent)
@@ -206,6 +219,35 @@ class MainActivity : FlutterActivity() {
             result.error(
                 "monitoring_start_failed",
                 error.message ?: "Android could not start monitoring.",
+                null,
+            )
+        }
+    }
+
+    private fun previewAlert(arguments: Map<*, *>?, result: MethodChannel.Result) {
+        if (!activityResumed) {
+            result.error("activity_not_visible", "Open VoiceMate before previewing alerts.", null)
+            return
+        }
+        try {
+            alertPreview?.release()
+            val bundle = Bundle().apply {
+                putBoolean("sound_enabled", arguments?.get("sound_enabled") as? Boolean ?: true)
+                putBoolean("vibration_enabled", arguments?.get("vibration_enabled") as? Boolean ?: true)
+                putString("sound_id", arguments?.get("sound_id") as? String ?: "classic_beep")
+                putInt("alert_volume", (arguments?.get("alert_volume") as? Number)?.toInt() ?: 80)
+                putInt("alert_duration_seconds", (arguments?.get("alert_duration_seconds") as? Number)?.toInt() ?: 3)
+                putBoolean("repeat_enabled", arguments?.get("repeat_enabled") as? Boolean ?: false)
+            }
+            alertPreview = FinderAlertManager(this, FinderAlertConfig.fromExtras(bundle))
+            alertPreview?.play()
+            result.success(null)
+        } catch (error: Exception) {
+            alertPreview?.release()
+            alertPreview = null
+            result.error(
+                "alert_preview_failed",
+                error.message ?: "Could not preview the alert.",
                 null,
             )
         }
@@ -301,6 +343,8 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         stopClapTest()
+        alertPreview?.release()
+        alertPreview = null
         pendingPermissionResult?.error(
             "activity_destroyed",
             "The app was closed before microphone permission was resolved.",
