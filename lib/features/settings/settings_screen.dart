@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../app/voicemate_app.dart';
 import '../../services/history_repository.dart';
+import '../../services/admob_service.dart';
 import '../battery_centre/battery_centre_screen.dart';
 import '../alert_studio/alert_studio_screen.dart';
 import '../sound_library/sound_library_screen.dart';
@@ -201,6 +202,24 @@ class SettingsScreen extends StatelessWidget {
       color: VoiceMateApp.cyan, fontSize: 11,
       letterSpacing: 1.5, fontWeight: FontWeight.w800)),
   );
+
+  Future<void> _manageAdPrivacy(BuildContext context) async {
+    try {
+      await AdMobService.instance.showPrivacyOptions();
+      if (!context.mounted) return;
+      final message = AdMobService.instance.privacyOptionsRequired
+          ? 'Google privacy options are still required. You can reopen this page to review them.'
+          : 'No additional Google privacy choices are required for this session.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not open privacy choices: $error')),
+      );
+    }
+  }
 
   void _showPrivacy(BuildContext context) {
     showDialog<void>(
