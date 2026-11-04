@@ -51,6 +51,12 @@ cp "$WORK_DIR/generated/.metadata" "$ROOT/.metadata"
 mkdir -p "$ROOT/android/app/src/main/kotlin/com/dev/voicemate"
 cp -R "$WORK_DIR/native/com/dev/voicemate/." "$ROOT/android/app/src/main/kotlin/com/dev/voicemate/"
 
+# Include optional Device Admin resources for the lock-only shortcut.
+if [[ -d "$ROOT/android_res" ]]; then
+  mkdir -p "$ROOT/android/app/src/main/res/xml"
+  cp -R "$ROOT/android_res/xml/." "$ROOT/android/app/src/main/res/xml/"
+fi
+
 ANDROID_TEST_SOURCE="$ROOT/android_test_src"
 if [[ -d "$ANDROID_TEST_SOURCE" ]]; then
   mkdir -p "$ROOT/android/app/src/test/kotlin/com/dev/voicemate"
@@ -102,6 +108,20 @@ service_tag = """        <service
             android:foregroundServiceType="microphone" />"""
 if ".VoiceMonitoringService" not in text:
     text = text.replace("</application>", service_tag + "\n    </application>", 1)
+
+receiver_tag = """        <receiver
+            android:name=".VoiceMateDeviceAdminReceiver"
+            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/voicemate_device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>"""
+if ".VoiceMateDeviceAdminReceiver" not in text:
+    text = text.replace("</application>", receiver_tag + "\n    </application>", 1)
 manifest.write_text(text)
 PY
 
