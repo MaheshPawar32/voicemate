@@ -37,6 +37,7 @@ class AdMobService extends ChangeNotifier {
 
     try {
       final consentFlow = Completer<void>();
+      var consentFlowTimedOut = false;
 
       void finishConsentFlow() {
         if (!consentFlow.isCompleted) consentFlow.complete();
@@ -58,6 +59,7 @@ class AdMobService extends ChangeNotifier {
 
             await formFlow.future.timeout(_consentFlowTimeout);
           } on TimeoutException {
+            consentFlowTimedOut = true;
             debugPrint('VoiceMate UMP consent form timed out; ads remain disabled.');
           } catch (error) {
             debugPrint('VoiceMate UMP form failed: $error');
@@ -69,13 +71,18 @@ class AdMobService extends ChangeNotifier {
           debugPrint(
             'VoiceMate consent update: ${formError.errorCode} ${formError.message}',
           );
-          // UMP retains the previous session's consent state. Check that
-          // state only after the refresh callback has reported its failure.
+          // UMP may retain a valid prior-session consent state after a
+          // reported network error. Check it after the callback, not before.
           finishConsentFlow();
         },
       );
 
       await consentFlow.future.timeout(_consentFlowTimeout);
+      if (consentFlowTimedOut) {
+        _canRequestAds = false;
+        _privacyOptionsRequired = false;
+        return;
+      }
 
       // UMP may return a valid prior-session consent state after a network
       // error, or an updated state after a form was shown. In both cases this
@@ -113,16 +120,17 @@ class AdMobService extends ChangeNotifier {
       return;
     }
 
-    final initialization = MobileAds.instance.initialize().then((_) {
+    late final Future<void> initialization;
+    initialization = MobileAds.instance.initialize().then((_) {
       _mobileAdsInitialized = true;
+    }).whenComplete(() {
+      if (!_mobileAdsInitialized &&
+          identical(_mobileAdsInitialization, initialization)) {
+        _mobileAdsInitialization = null;
+      }
     });
     _mobileAdsInitialization = initialization;
-    try {
-      await initialization;
-    } catch (_) {
-      _mobileAdsInitialization = null;
-      rethrow;
-    }
+    await initialization;
   }
 
   Future<void> showPrivacyOptions() async {
