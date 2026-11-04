@@ -121,6 +121,7 @@ class _HistoryTile extends StatelessWidget {
     final count = metadata['clap_count'];
     final eventType = event['event_type'] as String;
     final isWhistle = eventType.contains('whistle');
+    final isVoice = eventType.startsWith('voice_');
     final dateText = '${date.day.toString().padLeft(2, '0')}/'
         '${date.month.toString().padLeft(2, '0')}/${date.year} · '
         '${date.hour.toString().padLeft(2, '0')}:'
@@ -130,18 +131,29 @@ class _HistoryTile extends StatelessWidget {
       leading: CircleAvatar(
         backgroundColor: const Color(0x2226D9E8),
         child: Icon(
-          isWhistle ? Icons.graphic_eq_rounded : Icons.back_hand_rounded,
+          isVoice
+              ? Icons.record_voice_over_rounded
+              : (isWhistle
+                  ? Icons.graphic_eq_rounded
+                  : Icons.back_hand_rounded),
           color: VoiceMateApp.cyan)),
       title: Text(
-        isWhistle ? 'Whistle-like tone detected'
-          : (eventType == 'clap_monitor_detected'
-              ? 'Phone finder triggered by clap'
-              : 'Clap detected in test'),
+        eventType == 'voice_find_phone'
+            ? 'Voice command · Find phone'
+            : (eventType == 'voice_lock_phone'
+                ? 'Voice command · Lock phone'
+                : (isWhistle
+                    ? 'Whistle-like tone detected'
+                    : (eventType == 'clap_monitor_detected'
+                        ? 'Phone finder triggered by clap'
+                        : 'Clap detected in test'))),
         style: const TextStyle(fontWeight: FontWeight.w700)),
       subtitle: Text(
-        isWhistle
-          ? '${metadata['whistle_frequency_hz'] ?? 0} Hz · $dateText'
-          : (count is int ? 'Detected clap #$count · $dateText' : dateText),
+        isVoice
+            ? dateText
+            : (isWhistle
+                ? '${metadata['whistle_frequency_hz'] ?? 0} Hz · $dateText'
+                : (count is int ? 'Detected clap #$count · $dateText' : dateText)),
         style: const TextStyle(color: VoiceMateApp.muted)),
     ));
   }
