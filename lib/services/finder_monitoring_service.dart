@@ -7,6 +7,8 @@ class FinderMonitoringEvent {
     this.eventType,
     this.message,
     this.clapCount = 0,
+    this.whistleCount = 0,
+    this.whistleFrequencyHz = 0,
     this.rms = 0,
     this.peak = 0,
     this.timestamp,
@@ -16,6 +18,8 @@ class FinderMonitoringEvent {
   final String? eventType;
   final String? message;
   final int clapCount;
+  final int whistleCount;
+  final int whistleFrequencyHz;
   final double rms;
   final double peak;
   final int? timestamp;
@@ -26,6 +30,9 @@ class FinderMonitoringEvent {
         eventType: map['event_type'] as String?,
         message: map['message'] as String?,
         clapCount: (map['clap_count'] as num?)?.toInt() ?? 0,
+        whistleCount: (map['whistle_count'] as num?)?.toInt() ?? 0,
+        whistleFrequencyHz:
+            (map['whistle_frequency_hz'] as num?)?.toInt() ?? 0,
         rms: (map['rms'] as num?)?.toDouble() ?? 0,
         peak: (map['peak'] as num?)?.toDouble() ?? 0,
         timestamp: (map['timestamp'] as num?)?.toInt(),
