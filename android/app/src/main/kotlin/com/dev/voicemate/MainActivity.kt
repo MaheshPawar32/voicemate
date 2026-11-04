@@ -203,6 +203,9 @@ class MainActivity : FlutterActivity() {
                             "noise_floor" to metrics.noiseFloorRms,
                             "is_clap" to metrics.isClap,
                             "clap_count" to metrics.clapCount,
+                            "is_whistle" to metrics.isWhistle,
+                            "whistle_count" to metrics.whistleCount,
+                            "whistle_frequency_hz" to metrics.whistleFrequencyHz,
                         ))
                     }
                 },
