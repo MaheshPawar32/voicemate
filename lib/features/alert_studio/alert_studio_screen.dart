@@ -46,6 +46,8 @@ class _AlertStudioScreenState extends State<AlertStudioScreen> {
     await _repository.saveVolume(next.volume);
     await _repository.saveDuration(next.durationSeconds);
     await _repository.saveRepeatEnabled(next.repeatEnabled);
+    await _repository.saveFlashlightEnabled(next.flashlightEnabled);
+    await _repository.saveFlashPattern(next.flashPattern);
   }
 
   Future<void> _preview() async {
@@ -124,6 +126,8 @@ class _AlertStudioScreenState extends State<AlertStudioScreen> {
               volume: _preferences.volume,
               durationSeconds: _preferences.durationSeconds,
               repeatEnabled: _preferences.repeatEnabled,
+              flashlightEnabled: _preferences.flashlightEnabled,
+              flashPattern: _preferences.flashPattern,
             )),
           ),
           SwitchListTile(
@@ -139,8 +143,57 @@ class _AlertStudioScreenState extends State<AlertStudioScreen> {
               volume: _preferences.volume,
               durationSeconds: _preferences.durationSeconds,
               repeatEnabled: _preferences.repeatEnabled,
+              flashlightEnabled: _preferences.flashlightEnabled,
+              flashPattern: _preferences.flashPattern,
             )),
           ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Flashlight pulses'),
+            subtitle: const Text(
+              'Blink the rear LED on compatible devices when the finder is triggered.'),
+            value: _preferences.flashlightEnabled,
+            activeThumbColor: VoiceMateApp.cyan,
+            onChanged: (value) => _saveAndSet(AlertPreferences(
+              soundEnabled: _preferences.soundEnabled,
+              vibrationEnabled: _preferences.vibrationEnabled,
+              soundId: _preferences.soundId,
+              volume: _preferences.volume,
+              durationSeconds: _preferences.durationSeconds,
+              repeatEnabled: _preferences.repeatEnabled,
+              flashlightEnabled: value,
+              flashPattern: _preferences.flashPattern,
+            )),
+          ),
+          if (_preferences.flashlightEnabled) ...[
+            const SizedBox(height: 4),
+            DropdownButtonFormField<String>(
+              value: _preferences.flashPattern,
+              decoration: const InputDecoration(
+                labelText: 'Flash pattern',
+              ),
+              items: AlertSettingsRepository.supportedFlashPatterns.entries
+                  .map((entry) => DropdownMenuItem<String>(
+                        value: entry.key,
+                        child: Text(entry.value),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (value == null) return;
+                final next = AlertPreferences(
+                  soundEnabled: _preferences.soundEnabled,
+                  vibrationEnabled: _preferences.vibrationEnabled,
+                  soundId: _preferences.soundId,
+                  volume: _preferences.volume,
+                  durationSeconds: _preferences.durationSeconds,
+                  repeatEnabled: _preferences.repeatEnabled,
+                  flashlightEnabled: true,
+                  flashPattern: value,
+                );
+                _saveAndSet(next);
+              },
+            ),
+          ],
           const Divider(height: 28),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -238,7 +291,7 @@ class _AlertStudioScreenState extends State<AlertStudioScreen> {
           ),
           const SizedBox(height: 10),
           const Text(
-            'The finder uses these saved settings the next time monitoring starts. The preview plays a local Android tone and vibration only.',
+            'The finder uses these saved settings the next time monitoring starts. Flashlight pulses require camera permission and a compatible rear LED. Android may make the torch unavailable when another app is using the camera.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: VoiceMateApp.muted, fontSize: 12, height: 1.5),
