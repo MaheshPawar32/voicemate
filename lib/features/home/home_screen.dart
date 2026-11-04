@@ -356,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        if (!_isMonitoring) ...[
+        if (!_isMonitoring && !_isBusy) ...[
           const SizedBox(height: 14),
           const Center(child: HomeBannerAd()),
         ],
