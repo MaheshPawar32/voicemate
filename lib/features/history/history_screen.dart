@@ -122,6 +122,7 @@ class _HistoryTile extends StatelessWidget {
     final eventType = event['event_type'] as String;
     final isWhistle = eventType.contains('whistle');
     final isVoice = eventType.startsWith('voice_');
+    final quietHours = metadata['quiet_hours'] == true;
     final dateText = '${date.day.toString().padLeft(2, '0')}/'
         '${date.month.toString().padLeft(2, '0')}/${date.year} · '
         '${date.hour.toString().padLeft(2, '0')}:'
@@ -149,11 +150,12 @@ class _HistoryTile extends StatelessWidget {
                         : 'Clap detected in test'))),
         style: const TextStyle(fontWeight: FontWeight.w700)),
       subtitle: Text(
-        isVoice
+        '${isVoice
             ? dateText
             : (isWhistle
                 ? '${metadata['whistle_frequency_hz'] ?? 0} Hz · $dateText'
-                : (count is int ? 'Detected clap #$count · $dateText' : dateText)),
+                : (count is int ? 'Detected clap #$count · $dateText' : dateText))}'
+        '${quietHours ? ' · Alerts muted (quiet hours)' : ''}',
         style: const TextStyle(color: VoiceMateApp.muted)),
     ));
   }
