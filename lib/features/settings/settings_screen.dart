@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../app/voicemate_app.dart';
 import '../../services/history_repository.dart';
 import '../../services/admob_service.dart';
+import '../monitoring/monitoring_centre_screen.dart';
 import '../battery_centre/battery_centre_screen.dart';
 import '../alert_studio/alert_studio_screen.dart';
 import '../sound_library/sound_library_screen.dart';
@@ -47,6 +48,22 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => const BatteryCentreScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              _section('MONITORING'),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.tune_rounded,
+                  color: VoiceMateApp.cyan),
+                title: const Text('Monitoring Centre'),
+                subtitle: const Text(
+                  'Detector sensitivity, auto-stop and quiet hours'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const MonitoringCentreScreen(),
                   ),
                 ),
               ),
