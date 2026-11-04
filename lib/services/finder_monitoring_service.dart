@@ -67,6 +67,20 @@ class FinderMonitoringService {
     }
   }
 
+  Future<bool> requestNotificationPermission() async {
+    try {
+      return await _methods.invokeMethod<bool>(
+            'requestNotificationPermission') ??
+          false;
+    } on PlatformException catch (error) {
+      throw FinderMonitoringException(
+        error.message ?? 'Could not request notification permission.');
+    } on MissingPluginException {
+      throw const FinderMonitoringException(
+        'Android notification permission integration is not available.');
+    }
+  }
+
   Future<void> start() async {
     try {
       await _methods.invokeMethod<void>('startMonitoring');
