@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import '../../app/voicemate_app.dart';
 import '../../services/voice_lock_service.dart';
@@ -33,7 +32,9 @@ class _VoiceScreenLockScreenState extends State<VoiceScreenLockScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _refresh();
+    if (state == AppLifecycleState.resumed) {
+      _refresh();
+    }
   }
 
   Future<void> _refresh() async {
