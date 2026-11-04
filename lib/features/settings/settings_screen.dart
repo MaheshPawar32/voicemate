@@ -7,6 +7,7 @@ import '../battery_centre/battery_centre_screen.dart';
 import '../alert_studio/alert_studio_screen.dart';
 import '../sound_library/sound_library_screen.dart';
 import '../permissions/permission_centre_screen.dart';
+import '../voice_lock/voice_screen_lock_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -74,6 +75,22 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 18),
+              _section('OPTIONAL SECURITY'),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.phonelink_lock_rounded,
+                  color: VoiceMateApp.cyan),
+                title: const Text('Voice Screen Lock'),
+                subtitle: const Text(
+                  'Activate a lock-only device shortcut'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const VoiceScreenLockScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
               _section('APP PERMISSIONS'),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -126,7 +143,7 @@ class SettingsScreen extends StatelessWidget {
                   color: VoiceMateApp.surface,
                   borderRadius: BorderRadius.circular(16)),
                 child: const Text(
-                  'Available in this build: foreground clap-and-whistle monitoring, a persistent Android Stop notification, configurable built-in sound/vibration alerts, foreground diagnostics, local event history and live battery readings. Offline voice commands, voice screen lock, flashlight controls, permissions centre and AdMob/consent integration are still under development.',
+                  'Available in this build: foreground clap-and-whistle monitoring, a persistent Android Stop notification, configurable built-in sound/vibration alerts, foreground diagnostics, local event history, live battery readings, permission status and an optional lock-only shortcut. Offline voice commands, flashlight control and AdMob/consent integration are still under development.',
                   style: TextStyle(
                     color: VoiceMateApp.muted, fontSize: 12, height: 1.5)),
               ),
