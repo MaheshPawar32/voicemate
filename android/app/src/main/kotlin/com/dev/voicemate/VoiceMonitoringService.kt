@@ -38,6 +38,7 @@ internal class VoiceMonitoringService : Service() {
     private var captureManager: AudioCaptureManager? = null
     private var alertManager: FinderAlertManager? = null
     private var alertConfig = FinderAlertConfig()
+    private var flashlightManager: FlashlightManager? = null
     private var voiceEngine: OfflineCommandEngine? = null
     private var voiceEnabled = false
     private var voiceLockCommandEnabled = false
@@ -82,6 +83,12 @@ internal class VoiceMonitoringService : Service() {
         try {
             alertManager?.release()
             alertManager = FinderAlertManager(this, alertConfig)
+            flashlightManager?.stop()
+            flashlightManager = if (alertConfig.flashlightEnabled) {
+                FlashlightManager(this)
+            } else {
+                null
+            }
             val notification = buildNotification()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 startForeground(
@@ -113,6 +120,17 @@ internal class VoiceMonitoringService : Service() {
                 onMetrics = { metrics ->
                     if (metrics.isClap || metrics.isWhistle) {
                         alertManager?.play()
+                        if (alertConfig.flashlightEnabled) {
+                            try {
+                                flashlightManager?.pulse(alertConfig.flashPattern)
+                            } catch (error: Exception) {
+                                MonitoringEventBus.emit(mapOf(
+                                    "type" to "flashlight_unavailable",
+                                    "message" to (error.message
+                                        ?: "Android could not use the flashlight."),
+                                ))
+                            }
+                        }
                         val eventType = if (metrics.isClap) "clap" else "whistle"
                         MonitoringEventBus.emit(mapOf(
                             "type" to "detection",
@@ -150,6 +168,17 @@ internal class VoiceMonitoringService : Service() {
         when (command) {
             "find_phone" -> {
                 alertManager?.play()
+                if (alertConfig.flashlightEnabled) {
+                    try {
+                        flashlightManager?.pulse(alertConfig.flashPattern)
+                    } catch (error: Exception) {
+                        MonitoringEventBus.emit(mapOf(
+                            "type" to "flashlight_unavailable",
+                            "message" to (error.message
+                                ?: "Android could not use the flashlight."),
+                        ))
+                    }
+                }
                 MonitoringEventBus.emit(mapOf(
                     "type" to "voice_command",
                     "command" to "find_phone",
@@ -194,6 +223,7 @@ internal class VoiceMonitoringService : Service() {
         voiceEngine?.close()
         voiceEngine = null
         alertManager?.stop()
+        flashlightManager?.stop()
         isActive = false
         stopForeground(true)
         if (wasRunning) {
@@ -250,6 +280,8 @@ internal class VoiceMonitoringService : Service() {
         stopMonitoring()
         alertManager?.release()
         alertManager = null
+        flashlightManager?.stop()
+        flashlightManager = null
         super.onDestroy()
     }
 
