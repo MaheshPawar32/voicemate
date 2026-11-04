@@ -12,6 +12,10 @@ void main() {
       'voltage_mv': 4210,
       'power_save_mode': false,
       'battery_optimization_ignored': true,
+      'total_ram_mb': 8192,
+      'available_ram_mb': 2730,
+      'app_memory_pss_mb': 120,
+      'low_memory': false,
     });
 
     expect(snapshot.levelPercent, 78);
@@ -21,7 +25,15 @@ void main() {
     expect(snapshot.temperatureC, 31.5);
     expect(snapshot.voltageMv, 4210);
     expect(snapshot.powerSaveMode, isFalse);
+    expect(snapshot.totalRamMb, -1);
+    expect(snapshot.availableRamMb, -1);
+    expect(snapshot.appMemoryPssMb, -1);
+    expect(snapshot.lowMemory, isFalse);
     expect(snapshot.batteryOptimizationIgnored, isTrue);
+    expect(snapshot.totalRamMb, 8192);
+    expect(snapshot.availableRamMb, 2730);
+    expect(snapshot.appMemoryPssMb, 120);
+    expect(snapshot.lowMemory, isFalse);
   });
 
   test('uses safe unknown values for missing data', () {
