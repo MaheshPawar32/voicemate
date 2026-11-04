@@ -71,6 +71,13 @@ class _HomeBannerAdState extends State<HomeBannerAd> {
       final service = AdMobService.instance;
       if (!service.initialized || !service.canRequestAds ||
           _adUnitId.isEmpty) {
+        if (_banner != null) {
+          final previous = _banner;
+          _banner = null;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            previous?.dispose();
+          });
+        }
         return const SizedBox.shrink();
       }
       if (_banner == null) {
