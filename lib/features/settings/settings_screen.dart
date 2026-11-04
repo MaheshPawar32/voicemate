@@ -13,7 +13,6 @@ import '../voice_commands/voice_commands_screen.dart';
 import '../privacy/privacy_policy_screen.dart';
 import '../help/help_and_support_screen.dart';
 import '../help/about_help_screen.dart';
-import '../privacy/privacy_centre_screen.dart';
 import '../help/about_help_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -149,9 +148,19 @@ class SettingsScreen extends StatelessWidget {
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => const PrivacyCentreScreen(),
+                    builder: (_) => const PrivacyPolicyScreen(),
                   ),
                 ),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.tune_rounded,
+                  color: VoiceMateApp.cyan),
+                title: const Text('Advertising privacy choices'),
+                subtitle: const Text(
+                  'Manage Google consent choices when required'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _manageAdPrivacy(context),
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -178,6 +187,19 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.help_outline_rounded,
+                  color: VoiceMateApp.cyan),
+                title: const Text('Help & Support'),
+                subtitle: const Text('Setup, permissions and troubleshooting'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const HelpAndSupportScreen(),
+                  ),
+                ),
+              ),
               const SizedBox(height: 14),
               Container(
                 padding: const EdgeInsets.all(15),
@@ -185,7 +207,7 @@ class SettingsScreen extends StatelessWidget {
                   color: VoiceMateApp.surface,
                   borderRadius: BorderRadius.circular(16)),
                 child: const Text(
-                  'Current capabilities: foreground clap-and-whistle finder, persistent Stop notification, configurable built-in sound/vibration, local history, live battery readings, permission status, lock-only shortcut, and optional offline English voice commands after model setup. Flashlight patterns and AdMob/consent are not in this build yet.',
+                  'Current capabilities: foreground clap-and-whistle finder, persistent Stop notification, configurable sound/vibration/flashlight alerts, local event history, battery and memory readings, permission controls, offline English voice commands after model setup, lock-only shortcut, and consent-gated Home banner ads. Real AdMob production IDs and physical-device validation are still required before release.',
                   style: TextStyle(
                     color: VoiceMateApp.muted, fontSize: 12, height: 1.5)),
               ),
