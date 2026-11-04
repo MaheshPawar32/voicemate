@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../app/voicemate_app.dart';
 import '../../services/history_repository.dart';
+import '../battery_centre/battery_centre_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -25,6 +26,22 @@ class SettingsScreen extends StatelessWidget {
               const Text('Privacy and local app data.',
                 style: TextStyle(color: VoiceMateApp.muted)),
               const SizedBox(height: 25),
+              _section('DEVICE'),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.battery_charging_full_rounded,
+                  color: VoiceMateApp.cyan),
+                title: const Text('Battery & performance'),
+                subtitle: const Text(
+                  'Live charge, battery health and power status'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const BatteryCentreScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
               _section('PRIVACY & DATA'),
               ListTile(
                 contentPadding: EdgeInsets.zero,
