@@ -6,6 +6,7 @@ import '../../services/history_repository.dart';
 import '../battery_centre/battery_centre_screen.dart';
 import '../alert_studio/alert_studio_screen.dart';
 import '../sound_library/sound_library_screen.dart';
+import '../permissions/permission_centre_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -73,6 +74,22 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 18),
+              _section('APP PERMISSIONS'),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.verified_user_outlined,
+                  color: VoiceMateApp.cyan),
+                title: const Text('Permissions Centre'),
+                subtitle: const Text(
+                  'Check microphone and notification access'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const PermissionCentreScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
               _section('PRIVACY & DATA'),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -80,7 +97,7 @@ class SettingsScreen extends StatelessWidget {
                   color: VoiceMateApp.cyan),
                 title: const Text('Microphone privacy'),
                 subtitle: const Text(
-                  'The diagnostic uses the microphone only while the test is open. Audio is processed in memory.'),
+                  'Finder monitoring uses the microphone only after you accept the disclosure, tap Start and grant the required permissions. Audio is processed in memory and is not stored or uploaded by VoiceMate.'),
                 onTap: () => _showPrivacy(context),
               ),
               ListTile(
@@ -133,7 +150,7 @@ class SettingsScreen extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Microphone privacy'),
         content: const SingleChildScrollView(child: Text(
-          'VoiceMate requests microphone access only when you start the foreground clap diagnostic. Audio samples are processed in memory to calculate signal levels and clap events. The app does not save or upload raw audio. Detection history stores event timestamps and numeric metadata only. You can stop the test at any time from its screen.')),
+          'VoiceMate requests microphone access only after you explicitly choose to start a supported finder feature. The current finder analyses clap and sustained whistle-like signals while its foreground service is active. Audio samples are processed in memory and are not saved or uploaded by VoiceMate. The active service is indicated by an Android notification with a Stop action. Local history stores event types, timestamps and numeric metadata only.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
