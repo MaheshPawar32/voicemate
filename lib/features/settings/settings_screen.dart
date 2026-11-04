@@ -8,6 +8,7 @@ import '../alert_studio/alert_studio_screen.dart';
 import '../sound_library/sound_library_screen.dart';
 import '../permissions/permission_centre_screen.dart';
 import '../voice_lock/voice_screen_lock_screen.dart';
+import '../voice_commands/voice_commands_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -71,6 +72,22 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => const SoundLibraryScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              _section('VOICE CONTROL'),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.record_voice_over_rounded,
+                  color: VoiceMateApp.cyan),
+                title: const Text('Offline Voice Commands'),
+                subtitle: const Text(
+                  'Install the local English model and set voice actions'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const VoiceCommandsScreen(),
                   ),
                 ),
               ),
@@ -143,7 +160,7 @@ class SettingsScreen extends StatelessWidget {
                   color: VoiceMateApp.surface,
                   borderRadius: BorderRadius.circular(16)),
                 child: const Text(
-                  'Available in this build: foreground clap-and-whistle monitoring, a persistent Android Stop notification, configurable built-in sound/vibration alerts, foreground diagnostics, local event history, live battery readings, permission status and an optional lock-only shortcut. Offline voice commands, flashlight control and AdMob/consent integration are still under development.',
+                  'Available in this build: foreground clap-and-whistle monitoring, a persistent Android Stop notification, configurable built-in sound/vibration alerts, local event history, live battery readings, permission status, and an optional lock-only shortcut. Offline voice commands are being integrated and must be installed and validated on a device; flashlight control and AdMob/consent are still pending.',
                   style: TextStyle(
                     color: VoiceMateApp.muted, fontSize: 12, height: 1.5)),
               ),
