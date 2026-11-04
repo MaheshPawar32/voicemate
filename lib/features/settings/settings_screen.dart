@@ -13,7 +13,6 @@ import '../voice_commands/voice_commands_screen.dart';
 import '../privacy/privacy_policy_screen.dart';
 import '../help/help_and_support_screen.dart';
 import '../help/about_help_screen.dart';
-import '../help/about_help_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
