@@ -32,7 +32,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     ),
     _PolicySection(
       'Advertising and third parties',
-      'The current development source does not contain a Google Mobile Ads SDK or serve ads. The privacy policy and Google Play Data safety disclosures must be updated before any advertising SDK is added to a release. The optional voice-model download sends a normal HTTPS request to the model host, which can see standard network metadata such as your IP address.',
+      'VoiceMate integrates Google Mobile Ads and the Google User Messaging Platform (UMP). UMP refreshes consent information on app launch and presents any consent form required for the user. Banner requests are made only when UMP reports that ads may be requested. In the current layout, a banner can appear on Home while finder monitoring is off; it is hidden during monitoring and other feature screens. Debug builds use Google test ads. Release banners remain disabled until a real AdMob banner unit ID is configured. When an ad request is made, Google Mobile Ads may process network, device, advertising, app-interaction and diagnostic information under Google’s service terms. The optional voice-model download also sends a normal HTTPS request to the model host, which can see standard network metadata such as your IP address.',
     ),
     _PolicySection(
       'Your choices',
