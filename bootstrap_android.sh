@@ -169,12 +169,12 @@ for name in ("build.gradle.kts", "build.gradle"):
     if not re.search(r'targetSdk\s*=\s*36|targetSdkVersion\s+36', text):
         raise SystemExit(f"Could not set target SDK 36 in {path}")
 
-    if name.endswith(".kts") and "manifestPlaceholders[\"admobAppId\"]" not in text:
-        placeholder = '''        manifestPlaceholders["admobAppId"] = project.findProperty("admobAppId")?.toString() ?: "ca-app-pub-3940256099942544~3347511713"\\n'''
-        if re.search(r'defaultConfig\\s*\\{', text):
+    if name.endswith(".kts") and 'manifestPlaceholders["admobAppId"]' not in text:
+        placeholder = '        manifestPlaceholders["admobAppId"] = project.findProperty("admobAppId")?.toString() ?: "ca-app-pub-3940256099942544~3347511713"' + chr(10)
+        if re.search(r'defaultConfig\s*\{', text):
             text = re.sub(
-                r'(defaultConfig\\s*\\{)',
-                lambda match: match.group(1) + "\\n" + placeholder,
+                r'(defaultConfig\s*\{)',
+                lambda match: match.group(1) + chr(10) + placeholder,
                 text,
                 count=1,
             )
