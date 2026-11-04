@@ -9,6 +9,8 @@ import '../sound_library/sound_library_screen.dart';
 import '../permissions/permission_centre_screen.dart';
 import '../voice_lock/voice_screen_lock_screen.dart';
 import '../voice_commands/voice_commands_screen.dart';
+import '../privacy/privacy_policy_screen.dart';
+import '../help/help_and_support_screen.dart';
 import '../privacy/privacy_centre_screen.dart';
 import '../help/about_help_screen.dart';
 
