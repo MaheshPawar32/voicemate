@@ -14,6 +14,25 @@ internal class ClapDetector(
     private val minCrestFactor: Double = 2.2,
     private val refractoryMs: Long = 450L,
 ) {
+    companion object {
+        fun forSensitivity(level: String): ClapDetector = when (level) {
+            "low" -> ClapDetector(
+                absoluteRmsFloor = 1_500.0,
+                absolutePeakFloor = 7_000.0,
+                rmsMultiplier = 4.2,
+                peakMultiplier = 10.0,
+                minCrestFactor = 2.5,
+            )
+            "high" -> ClapDetector(
+                absoluteRmsFloor = 700.0,
+                absolutePeakFloor = 3_500.0,
+                rmsMultiplier = 2.8,
+                peakMultiplier = 6.5,
+                minCrestFactor = 1.9,
+            )
+            else -> ClapDetector()
+        }
+    }
     private var noiseFloorRms = 300.0
     private var lastClapAtMs = Long.MIN_VALUE
     private var clapCount = 0
