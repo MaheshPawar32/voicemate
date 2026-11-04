@@ -5,6 +5,8 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
+import android.app.ActivityManager
+import android.os.Debug
 import android.content.Context
 
 internal object DeviceInfoProvider {
@@ -52,6 +54,13 @@ internal object DeviceInfoProvider {
         }
 
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val activityManager =
+            context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val memoryInfo = ActivityManager.MemoryInfo()
+        activityManager.getMemoryInfo(memoryInfo)
+        val appMemoryInfo = Debug.MemoryInfo()
+        Debug.getMemoryInfo(appMemoryInfo)
+
         val ignoresBatteryOptimizations = if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
         ) {
@@ -71,6 +80,10 @@ internal object DeviceInfoProvider {
             "voltage_mv" to intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1),
             "power_save_mode" to powerManager.isPowerSaveMode,
             "battery_optimization_ignored" to ignoresBatteryOptimizations,
+            "total_ram_mb" to (memoryInfo.totalMem / (1024L * 1024L)).toInt(),
+            "available_ram_mb" to (memoryInfo.availMem / (1024L * 1024L)).toInt(),
+            "app_memory_pss_mb" to (appMemoryInfo.totalPss / 1024),
+            "low_memory" to memoryInfo.lowMemory,
         )
     }
 }
