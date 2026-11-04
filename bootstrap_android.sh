@@ -151,11 +151,11 @@ for name in ("build.gradle.kts", "build.gradle"):
     # Add Vosk for entirely on-device speech recognition. The speech model is
     # downloaded once after user consent and remains in app-private storage.
     if name.endswith(".kts") and "com.alphacephei:vosk-android" not in text:
-        dependency = '    implementation("com.alphacephei:vosk-android:0.3.75")\\n'
-        if re.search(r'dependencies\\s*\\{', text):
+        dependency = '    implementation("com.alphacephei:vosk-android:0.3.75")\n'
+        if re.search(r'dependencies\s*\{', text):
             text = re.sub(
-                r'(dependencies\\s*\\{)',
-                lambda match: match.group(1) + "\\n" + dependency,
+                r'(dependencies\s*\{)',
+                lambda match: match.group(1) + "\n" + dependency,
                 text,
                 count=1,
             )
