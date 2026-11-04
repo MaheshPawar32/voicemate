@@ -20,6 +20,8 @@ class MainActivity : FlutterActivity() {
             "com.dev.voicemate/monitoring/methods"
         private const val MONITORING_EVENTS_CHANNEL =
             "com.dev.voicemate/monitoring/events"
+        private const val DEVICE_METHODS_CHANNEL =
+            "com.dev.voicemate/device/methods"
         private const val REQUEST_MICROPHONE = 7401
         private const val REQUEST_NOTIFICATIONS = 7402
     }
@@ -70,6 +72,26 @@ class MainActivity : FlutterActivity() {
                     result.success(null)
                 }
                 "getMonitoringStatus" -> result.success(VoiceMonitoringService.isActive)
+                else -> result.notImplemented()
+            }
+        }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            DEVICE_METHODS_CHANNEL,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getBatteryInfo" -> {
+                    try {
+                        result.success(DeviceInfoProvider.batterySnapshot(this))
+                    } catch (error: Exception) {
+                        result.error(
+                            "battery_info_unavailable",
+                            error.message ?: "Could not read battery information.",
+                            null,
+                        )
+                    }
+                }
                 else -> result.notImplemented()
             }
         }
