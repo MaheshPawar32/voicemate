@@ -92,6 +92,22 @@ internal class VoiceMonitoringService : Service() {
             stopSelf()
             return
         }
+        val notificationPermissionGranted =
+            Build.VERSION.SDK_INT < 33 ||
+                checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+        val notificationsEnabled =
+            Build.VERSION.SDK_INT < 24 ||
+                (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+                    .areNotificationsEnabled()
+        if (!notificationPermissionGranted || !notificationsEnabled) {
+            MonitoringEventBus.emit(mapOf(
+                "type" to "service_error",
+                "message" to "Enable VoiceMate notifications so the active monitoring notification and Stop action remain visible.",
+            ))
+            stopSelf()
+            return
+        }
 
         try {
             alertManager?.release()
