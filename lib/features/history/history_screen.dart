@@ -128,7 +128,7 @@ class _HistoryTile extends StatelessWidget {
     return Card(child: ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
       leading: CircleAvatar(
-        backgroundColor: Color(0x2226D9E8),
+        backgroundColor: const Color(0x2226D9E8),
         child: Icon(
           isWhistle ? Icons.graphic_eq_rounded : Icons.back_hand_rounded,
           color: VoiceMateApp.cyan)),
