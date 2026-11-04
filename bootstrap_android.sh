@@ -138,6 +138,12 @@ receiver_tag = """        <receiver
         </receiver>"""
 if ".VoiceMateDeviceAdminReceiver" not in text:
     text = text.replace("</application>", receiver_tag + "\n    </application>", 1)
+
+admob_meta_tag = """        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />"""
+if "com.google.android.gms.ads.APPLICATION_ID" not in text:
+    text = text.replace("</application>", admob_meta_tag + "\n    </application>", 1)
 manifest.write_text(text)
 PY
 
@@ -162,6 +168,18 @@ for name in ("build.gradle.kts", "build.gradle"):
     path.write_text(text)
     if not re.search(r'targetSdk\s*=\s*36|targetSdkVersion\s+36', text):
         raise SystemExit(f"Could not set target SDK 36 in {path}")
+
+    if name.endswith(".kts") and "manifestPlaceholders[\"admobAppId\"]" not in text:
+        placeholder = '''        manifestPlaceholders["admobAppId"] = project.findProperty("admobAppId")?.toString() ?: "ca-app-pub-3940256099942544~3347511713"\\n'''
+        if re.search(r'defaultConfig\\s*\\{', text):
+            text = re.sub(
+                r'(defaultConfig\\s*\\{)',
+                lambda match: match.group(1) + "\\n" + placeholder,
+                text,
+                count=1,
+            )
+        else:
+            raise SystemExit("Could not add the AdMob app ID manifest placeholder.")
 
     # Add Vosk for entirely on-device speech recognition. The speech model is
     # downloaded once after user consent and remains in app-private storage.
