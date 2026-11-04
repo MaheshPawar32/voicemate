@@ -77,6 +77,10 @@ class MainActivity : FlutterActivity() {
                 )
                 "requestLockAdminActivation" -> requestLockAdminActivation(result)
                 "lockDeviceNow" -> lockDeviceNow(result)
+                "installVoiceModel" -> installVoiceModel(result)
+                "isVoiceModelInstalled" -> result.success(
+                    VoiceModelInstaller.isInstalled(this),
+                )
                 "startMonitoring" -> startMonitoring(call.arguments as? Map<*, *>, result)
                 "previewAlert" -> previewAlert(call.arguments as? Map<*, *>, result)
                 "stopAlertPreview" -> {
@@ -319,6 +323,50 @@ class MainActivity : FlutterActivity() {
                 null,
             )
         }
+    }
+
+    private fun installVoiceModel(result: MethodChannel.Result) {
+        synchronized(this) {
+            if (modelInstallInProgress) {
+                result.error(
+                    "model_install_in_progress",
+                    "The offline voice model is already being installed.",
+                    null,
+                )
+                return
+            }
+            modelInstallInProgress = true
+        }
+        Thread({
+            try {
+                val directory = VoiceModelInstaller.install(this) { downloaded, total ->
+                    mainHandler.post {
+                        MonitoringEventBus.emit(mapOf(
+                            "type" to "voice_model_progress",
+                            "downloaded_bytes" to downloaded,
+                            "total_bytes" to total,
+                        ))
+                    }
+                }
+                mainHandler.post {
+                    modelInstallInProgress = false
+                    MonitoringEventBus.emit(mapOf(
+                        "type" to "voice_model_ready",
+                        "model" to VoiceModelInstaller.MODEL_DIRECTORY,
+                    ))
+                    result.success(directory.absolutePath)
+                }
+            } catch (error: Exception) {
+                mainHandler.post {
+                    modelInstallInProgress = false
+                    result.error(
+                        "voice_model_install_failed",
+                        error.message ?: "Could not install the offline voice model.",
+                        null,
+                    )
+                }
+            }
+        }, "VoiceMateModelInstaller").start()
     }
 
     private fun previewAlert(arguments: Map<*, *>?, result: MethodChannel.Result) {
