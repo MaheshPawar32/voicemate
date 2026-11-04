@@ -1,15 +1,141 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../app/voicemate_app.dart';
+import '../../services/finder_monitoring_service.dart';
+import '../../services/history_repository.dart';
 import '../clap_detection/clap_test_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  void _openClapTest(BuildContext context) {
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final FinderMonitoringService _monitoring = FinderMonitoringService();
+  late final HistoryRepository _history;
+  StreamSubscription<FinderMonitoringEvent>? _subscription;
+  bool _isMonitoring = false;
+  bool _isBusy = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _history = HistoryRepository(Hive.box<dynamic>('voicemate_settings'));
+    _subscription = _monitoring.events.listen(_handleMonitoringEvent,
+      onError: (Object error) {
+        if (!mounted) return;
+        setState(() {
+          _error = error.toString();
+          _isMonitoring = false;
+          _isBusy = false;
+        });
+      });
+    unawaited(_refreshStatus());
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _refreshStatus() async {
+    try {
+      final active = await _monitoring.isActive();
+      if (mounted) setState(() => _isMonitoring = active);
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    }
+  }
+
+  void _handleMonitoringEvent(FinderMonitoringEvent event) {
+    if (!mounted) return;
+    switch (event.type) {
+      case 'service_started':
+        setState(() {
+          _isMonitoring = true;
+          _isBusy = false;
+          _error = null;
+        });
+        break;
+      case 'service_stopped':
+        setState(() {
+          _isMonitoring = false;
+          _isBusy = false;
+        });
+        break;
+      case 'service_error':
+        setState(() {
+          _isMonitoring = false;
+          _isBusy = false;
+          _error = event.message ?? 'Monitoring stopped unexpectedly.';
+        });
+        break;
+      case 'detection':
+        if (event.eventType == 'clap') {
+          unawaited(_history.record(
+            eventType: 'clap_monitor_detected',
+            metadata: {
+              'clap_count': event.clapCount,
+              'rms': event.rms,
+              'peak': event.peak,
+            },
+          ));
+        }
+        break;
+    }
+  }
+
+  Future<void> _toggleMonitoring() async {
+    if (_isBusy) return;
+    setState(() {
+      _isBusy = true;
+      _error = null;
+    });
+    try {
+      if (_isMonitoring) {
+        await _monitoring.stop();
+        if (mounted) {
+          setState(() {
+            _isMonitoring = false;
+            _isBusy = false;
+          });
+        }
+      } else {
+        final granted = await _monitoring.requestMicrophonePermission();
+        if (!granted) {
+          throw const FinderMonitoringException(
+            'Microphone permission is required. Enable it in Android settings to start monitoring.');
+        }
+        await _monitoring.start();
+        if (mounted) {
+          setState(() {
+            _isMonitoring = true;
+            _isBusy = false;
+          });
+        }
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _error = error.toString();
+          _isBusy = false;
+          _isMonitoring = false;
+        });
+      }
+    }
+  }
+
+  void _openClapTest() {
+    if (_isMonitoring) return;
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const ClapTestScreen()),
-    );
+      MaterialPageRoute<void>(builder: (_) => const ClapTestScreen()));
   }
 
   @override
@@ -22,18 +148,22 @@ class HomeScreen extends StatelessWidget {
         const SizedBox(height: 20),
         Row(children: [
           const Expanded(child: Text('Your phone,\nnever lost.',
-            style: TextStyle(
-              fontSize: 27, height: 1.15, fontWeight: FontWeight.w800))),
+            style: TextStyle(fontSize: 27, height: 1.15,
+              fontWeight: FontWeight.w800))),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF302A20),
+              color: _isMonitoring
+                ? const Color(0xFF17382F) : const Color(0xFF302A20),
               borderRadius: BorderRadius.circular(30)),
-            child: const Row(children: [
-              Icon(Icons.circle, size: 8, color: Color(0xFFFFBE55)),
-              SizedBox(width: 7),
-              Text('MONITORING OFF', style: TextStyle(
-                fontSize: 11, fontWeight: FontWeight.w700)),
+            child: Row(children: [
+              Icon(Icons.circle, size: 8,
+                color: _isMonitoring
+                  ? const Color(0xFF38D99A) : const Color(0xFFFFBE55)),
+              const SizedBox(width: 7),
+              Text(_isMonitoring ? 'MONITORING ON' : 'MONITORING OFF',
+                style: const TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w700)),
             ]),
           ),
         ]),
@@ -57,43 +187,64 @@ class HomeScreen extends StatelessWidget {
                 border: Border.all(
                   color: VoiceMateApp.cyan.withValues(alpha: .35),
                   width: 1.5)),
-              child: const Icon(Icons.graphic_eq_rounded,
+              child: Icon(
+                _isMonitoring ? Icons.hearing_rounded
+                  : Icons.graphic_eq_rounded,
                 size: 58, color: VoiceMateApp.cyan)),
             const SizedBox(height: 17),
-            const Text('Monitoring is off', style: TextStyle(
-              fontSize: 20, fontWeight: FontWeight.w800)),
+            Text(_isMonitoring ? 'Clap finder is active' : 'Finder is paused',
+              style: const TextStyle(
+                fontSize: 20, fontWeight: FontWeight.w800)),
             const SizedBox(height: 7),
-            const Text(
-              'The background phone finder is not enabled. You can run the foreground microphone diagnostic below.',
+            Text(
+              _isMonitoring
+                ? 'VoiceMate is listening for clap signals. A clap triggers a sound and vibration alert.'
+                : 'Start monitoring to listen for clap signals while the persistent Android notification is visible.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: VoiceMateApp.muted, height: 1.45)),
+              style: const TextStyle(
+                color: VoiceMateApp.muted, height: 1.45)),
             const SizedBox(height: 18),
             FilledButton.icon(
-              onPressed: () => _openClapTest(context),
-              icon: const Icon(Icons.hearing_rounded),
-              label: const Text('Run clap detection test'),
+              onPressed: _isBusy ? null : _toggleMonitoring,
+              icon: Icon(_isBusy
+                ? Icons.hourglass_top_rounded
+                : (_isMonitoring ? Icons.stop_rounded : Icons.hearing_rounded)),
+              label: Text(_isBusy ? 'Please wait…'
+                : (_isMonitoring ? 'Stop monitoring' : 'Start clap finder')),
               style: FilledButton.styleFrom(
-                backgroundColor: VoiceMateApp.cyan,
+                backgroundColor: _isMonitoring
+                  ? const Color(0xFFFF657A) : VoiceMateApp.cyan,
                 foregroundColor: const Color(0xFF06111D),
                 minimumSize: const Size.fromHeight(50)),
             ),
           ]),
         ),
+        if (_error != null) ...[
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              color: const Color(0xFF3A202B),
+              borderRadius: BorderRadius.circular(14)),
+            child: Text(_error!,
+              style: const TextStyle(color: Color(0xFFFFA7B2))),
+          ),
+        ],
         const SizedBox(height: 25),
-        const Text('Available now', style: TextStyle(
+        const Text('Available tools', style: TextStyle(
           fontSize: 19, fontWeight: FontWeight.w800)),
         const SizedBox(height: 13),
         Card(
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: () => _openClapTest(context),
-            child: const Padding(
-              padding: EdgeInsets.all(16),
+            onTap: _isMonitoring ? null : _openClapTest,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: Row(children: [
-                Icon(Icons.back_hand_rounded,
+                const Icon(Icons.back_hand_rounded,
                   color: VoiceMateApp.cyan, size: 30),
-                SizedBox(width: 14),
-                Expanded(child: Column(
+                const SizedBox(width: 14),
+                const Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Clap Detection Diagnostic',
@@ -104,7 +255,10 @@ class HomeScreen extends StatelessWidget {
                         color: VoiceMateApp.muted, fontSize: 12)),
                   ],
                 )),
-                Icon(Icons.chevron_right_rounded),
+                Icon(_isMonitoring
+                  ? Icons.lock_outline_rounded
+                  : Icons.chevron_right_rounded,
+                  color: VoiceMateApp.muted),
               ]),
             ),
           ),
@@ -121,7 +275,7 @@ class HomeScreen extends StatelessWidget {
               Icon(Icons.shield_outlined, color: VoiceMateApp.cyan),
               SizedBox(width: 12),
               Expanded(child: Text(
-                'Privacy first\nThe microphone is used only during the visible test. Audio is analysed in memory and is not recorded or uploaded by VoiceMate.',
+                'Privacy first\nMicrophone monitoring starts only after you tap Start and grant permission. Audio is processed on this device; VoiceMate does not save recordings.',
                 style: TextStyle(height: 1.45))),
             ],
           ),
