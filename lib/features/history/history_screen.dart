@@ -127,7 +127,7 @@ class _HistoryTile extends StatelessWidget {
         '${date.minute.toString().padLeft(2, '0')}';
     return Card(child: ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-      leading: const CircleAvatar(
+      leading: CircleAvatar(
         backgroundColor: Color(0x2226D9E8),
         child: Icon(
           isWhistle ? Icons.graphic_eq_rounded : Icons.back_hand_rounded,
