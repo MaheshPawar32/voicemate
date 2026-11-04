@@ -8,6 +8,7 @@ import '../../services/finder_monitoring_service.dart';
 import '../../services/history_repository.dart';
 import '../../services/alert_settings_repository.dart';
 import '../../services/voice_settings_repository.dart';
+import '../ads/home_banner_ad.dart';
 import '../clap_detection/clap_test_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -355,6 +356,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
+        if (!_isMonitoring) ...[
+          const SizedBox(height: 14),
+          const Center(child: HomeBannerAd()),
+        ],
         const SizedBox(height: 20),
         Container(
           padding: const EdgeInsets.all(16),
