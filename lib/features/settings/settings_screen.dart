@@ -9,6 +9,8 @@ import '../sound_library/sound_library_screen.dart';
 import '../permissions/permission_centre_screen.dart';
 import '../voice_lock/voice_screen_lock_screen.dart';
 import '../voice_commands/voice_commands_screen.dart';
+import '../privacy/privacy_centre_screen.dart';
+import '../help/about_help_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -136,6 +138,19 @@ class SettingsScreen extends StatelessWidget {
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.policy_outlined,
+                  color: VoiceMateApp.cyan),
+                title: const Text('Privacy Policy'),
+                subtitle: const Text('How VoiceMate handles audio and local data'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const PrivacyCentreScreen(),
+                  ),
+                ),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.history_rounded,
                   color: VoiceMateApp.cyan),
                 title: const Text('Clear detection history'),
@@ -147,11 +162,17 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               _section('ABOUT'),
-              const ListTile(
+              ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.info_outline, color: VoiceMateApp.cyan),
-                title: Text('VoiceMate'),
-                subtitle: Text('Version 0.1.0 · Android'),
+                leading: const Icon(Icons.info_outline, color: VoiceMateApp.cyan),
+                title: const Text('About & Help'),
+                subtitle: const Text('Feature guide and troubleshooting'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AboutHelpScreen(),
+                  ),
+                ),
               ),
               const SizedBox(height: 14),
               Container(
@@ -160,7 +181,7 @@ class SettingsScreen extends StatelessWidget {
                   color: VoiceMateApp.surface,
                   borderRadius: BorderRadius.circular(16)),
                 child: const Text(
-                  'Available in this build: foreground clap-and-whistle monitoring, a persistent Android Stop notification, configurable built-in sound/vibration alerts, local event history, live battery readings, permission status, and an optional lock-only shortcut. Offline voice commands are being integrated and must be installed and validated on a device; flashlight control and AdMob/consent are still pending.',
+                  'Current capabilities: foreground clap-and-whistle finder, persistent Stop notification, configurable built-in sound/vibration, local history, live battery readings, permission status, lock-only shortcut, and optional offline English voice commands after model setup. Flashlight patterns and AdMob/consent are not in this build yet.',
                   style: TextStyle(
                     color: VoiceMateApp.muted, fontSize: 12, height: 1.5)),
               ),
@@ -184,7 +205,7 @@ class SettingsScreen extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Microphone privacy'),
         content: const SingleChildScrollView(child: Text(
-          'VoiceMate requests microphone access only after you explicitly choose to start a supported finder feature. The current finder analyses clap and sustained whistle-like signals while its foreground service is active. Audio samples are processed in memory and are not saved or uploaded by VoiceMate. The active service is indicated by an Android notification with a Stop action. Local history stores event types, timestamps and numeric metadata only.')),
+          'VoiceMate requests microphone access only after you explicitly choose to start a supported finder feature. When offline voice commands are enabled, speech is recognised locally with the downloaded English (US) model. Audio samples and recognised phrases are processed in memory; VoiceMate does not save raw recordings or transcripts or upload microphone audio. The active service is indicated by an Android notification with a Stop action. Local history stores event types, timestamps and numeric metadata only.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
