@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/voicemate_app.dart';
 import '../alert_studio/alert_studio_screen.dart';
 import '../battery_centre/battery_centre_screen.dart';
+import '../monitoring/monitoring_centre_screen.dart';
 import '../permissions/permission_centre_screen.dart';
 import '../voice_commands/voice_commands_screen.dart';
 import '../voice_lock/voice_screen_lock_screen.dart';
@@ -38,7 +39,7 @@ class HelpAndSupportScreen extends StatelessWidget {
         const SizedBox(height: 20),
         const _HelpSection(
           title: 'Start phone finder',
-          body: 'Open Home and tap Start clap finder. Accept the microphone disclosure and grant microphone and notification permissions. Android keeps a foreground notification visible while the finder is active. Tap Stop in the app or notification to end monitoring.',
+          body: 'Open Home and tap Start clap finder. Accept the microphone disclosure and grant microphone and notification permissions. Android keeps a foreground notification visible while the finder is active. Tap Stop in the app or notification to end monitoring. Open Monitoring Centre to enable/disable clap and whistle detection, change sensitivity, set an automatic stop limit, or mute alerts during quiet hours.',
         ),
         const _HelpSection(
           title: 'Claps or whistles are not detected',
@@ -73,6 +74,12 @@ class HelpAndSupportScreen extends StatelessWidget {
           title: 'Permissions Centre',
           subtitle: 'Check microphone, camera and notifications',
           builder: (_) => const PermissionCentreScreen(),
+        ),
+        _HelpLink(
+          icon: Icons.settings_input_component_rounded,
+          title: 'Monitoring Centre',
+          subtitle: 'Detector modes, sensitivity and quiet hours',
+          builder: (_) => const MonitoringCentreScreen(),
         ),
         _HelpLink(
           icon: Icons.tune_rounded,
