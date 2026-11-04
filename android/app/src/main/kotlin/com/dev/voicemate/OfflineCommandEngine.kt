@@ -37,11 +37,11 @@ internal class OfflineCommandEngine(modelDirectory: File) : AutoCloseable {
         if (!complete) return null
 
         val json = JSONObject(recognizer.result)
-        val text = json.optString("text", "")
-            .lowercase()
-            .trim()
-            .replace(Regex("\\s+"), " ")
+        return intentForTranscript(json.optString("text", ""))
+    }
 
+    internal fun intentForTranscript(transcript: String): String? {
+        val text = transcript.lowercase().trim().replace(Regex("\\s+"), " ")
         return when (text) {
             "find my phone", "where are you", "hello voice mate" -> "find_phone"
             "lock my phone", "lock this phone" -> "lock_phone"
