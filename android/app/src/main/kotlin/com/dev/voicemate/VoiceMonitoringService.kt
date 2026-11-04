@@ -12,6 +12,8 @@ import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.Build
 import android.os.IBinder
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -36,6 +38,10 @@ internal class VoiceMonitoringService : Service() {
     private var captureManager: AudioCaptureManager? = null
     private var alertManager: FinderAlertManager? = null
     private var alertConfig = FinderAlertConfig()
+    private var voiceEngine: OfflineCommandEngine? = null
+    private var voiceEnabled = false
+    private var voiceLockCommandEnabled = false
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onCreate() {
         super.onCreate()
@@ -50,6 +56,9 @@ internal class VoiceMonitoringService : Service() {
             }
             else -> {
                 alertConfig = FinderAlertConfig.fromExtras(intent?.extras)
+                voiceEnabled = intent?.getBooleanExtra("voice_enabled", false) == true
+                voiceLockCommandEnabled =
+                    intent?.getBooleanExtra("voice_lock_command_enabled", false) == true
                 startMonitoring()
             }
         }
@@ -84,10 +93,23 @@ internal class VoiceMonitoringService : Service() {
                 startForeground(NOTIFICATION_ID, notification)
             }
 
+            if (voiceEnabled) {
+                if (!VoiceModelInstaller.isInstalled(this)) {
+                    throw IllegalStateException(
+                        "Install the offline English voice model in Voice Commands before enabling voice detection.",
+                    )
+                }
+                voiceEngine = OfflineCommandEngine(VoiceModelInstaller.modelDirectory(this))
+            }
+
             isActive = true
             val manager = AudioCaptureManager()
             captureManager = manager
             manager.start(
+                onVoiceCommand = { command ->
+                    mainHandler.post { handleVoiceCommand(command) }
+                },
+                voiceEngine = voiceEngine,
                 onMetrics = { metrics ->
                     if (metrics.isClap || metrics.isWhistle) {
                         alertManager?.play()
@@ -124,10 +146,53 @@ internal class VoiceMonitoringService : Service() {
         }
     }
 
+    private fun handleVoiceCommand(command: String) {
+        when (command) {
+            "find_phone" -> {
+                alertManager?.play()
+                MonitoringEventBus.emit(mapOf(
+                    "type" to "voice_command",
+                    "command" to "find_phone",
+                    "timestamp" to System.currentTimeMillis(),
+                ))
+            }
+            "lock_phone" -> {
+                if (!voiceLockCommandEnabled) {
+                    MonitoringEventBus.emit(mapOf(
+                        "type" to "voice_command_ignored",
+                        "reason" to "voice_lock_not_enabled",
+                    ))
+                    return
+                }
+                val locked = try {
+                    DeviceLockManager(this).lockNow()
+                } catch (_: Exception) {
+                    false
+                }
+                MonitoringEventBus.emit(mapOf(
+                    "type" to if (locked) "voice_command" else "voice_command_ignored",
+                    "command" to "lock_phone",
+                    "reason" to if (locked) "locked" else "device_admin_not_active",
+                    "timestamp" to System.currentTimeMillis(),
+                ))
+            }
+            "stop_monitoring" -> {
+                MonitoringEventBus.emit(mapOf(
+                    "type" to "voice_command",
+                    "command" to "stop_monitoring",
+                    "timestamp" to System.currentTimeMillis(),
+                ))
+                stopSelf()
+            }
+        }
+    }
+
     private fun stopMonitoring() {
         val wasRunning = isActive || captureManager != null
         captureManager?.stop()
         captureManager = null
+        voiceEngine?.close()
+        voiceEngine = null
         alertManager?.stop()
         isActive = false
         stopForeground(true)
