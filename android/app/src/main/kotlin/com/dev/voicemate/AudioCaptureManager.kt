@@ -18,6 +18,9 @@ internal class AudioCaptureManager {
         val noiseFloorRms: Double,
         val isClap: Boolean,
         val clapCount: Int,
+        val isWhistle: Boolean,
+        val whistleCount: Int,
+        val whistleFrequencyHz: Int?,
     )
 
     @Volatile private var isReading = false
@@ -58,6 +61,8 @@ internal class AudioCaptureManager {
         recorder = audioRecord
         isReading = true
         val detector = ClapDetector()
+        val whistleDetector = WhistleDetector()
+        var whistleCount = 0
         val samples = ShortArray(FRAME_SAMPLES)
 
         worker = Thread({
@@ -72,8 +77,17 @@ internal class AudioCaptureManager {
                                 readCount,
                                 SystemClock.elapsedRealtime(),
                             )
+                            val whistle = whistleDetector.process(
+                                samples,
+                                readCount,
+                                SystemClock.elapsedRealtime(),
+                            )
+                            if (whistle.detected) whistleCount += 1
                             frameIndex += 1
-                            if (frameIndex % 5 == 0 || result.clapDetected) {
+                            if (frameIndex % 5 == 0 ||
+                                result.clapDetected ||
+                                whistle.detected
+                            ) {
                                 onMetrics(
                                     Metrics(
                                         rms = result.rms,
@@ -81,6 +95,9 @@ internal class AudioCaptureManager {
                                         noiseFloorRms = result.noiseFloorRms,
                                         isClap = result.clapDetected,
                                         clapCount = result.clapCount,
+                                        isWhistle = whistle.detected,
+                                        whistleCount = whistleCount,
+                                        whistleFrequencyHz = whistle.frequencyHz,
                                     ),
                                 )
                             }
