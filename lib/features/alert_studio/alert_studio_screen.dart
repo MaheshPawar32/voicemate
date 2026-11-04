@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../app/voicemate_app.dart';
 import '../../services/alert_settings_repository.dart';
+import '../../services/finder_monitoring_service.dart';
 import '../sound_library/sound_library_screen.dart';
 
 class AlertStudioScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class AlertStudioScreen extends StatefulWidget {
 class _AlertStudioScreenState extends State<AlertStudioScreen> {
   late final AlertSettingsRepository _repository;
   late AlertPreferences _preferences;
+  final FinderMonitoringService _finder = FinderMonitoringService();
   bool _previewing = false;
   String? _error;
 
@@ -61,6 +63,14 @@ class _AlertStudioScreenState extends State<AlertStudioScreen> {
       _error = null;
     });
     try {
+      if (_preferences.flashlightEnabled) {
+        final granted = await _finder.requestCameraPermission();
+        if (!granted) {
+          throw const FinderMonitoringException(
+            'Camera permission is required to preview flashlight alerts. You can still preview sound and vibration by turning flashlight pulses off.',
+          );
+        }
+      }
       await _repository.preview(_preferences);
       await Future<void>.delayed(
         Duration(seconds: _preferences.durationSeconds),
@@ -225,6 +235,8 @@ class _AlertStudioScreenState extends State<AlertStudioScreen> {
                 volume: value.round(),
                 durationSeconds: _preferences.durationSeconds,
                 repeatEnabled: _preferences.repeatEnabled,
+                flashlightEnabled: _preferences.flashlightEnabled,
+                flashPattern: _preferences.flashPattern,
               );
             }),
             onChangeEnd: (value) =>
@@ -251,6 +263,8 @@ class _AlertStudioScreenState extends State<AlertStudioScreen> {
                 volume: _preferences.volume,
                 durationSeconds: value.round(),
                 repeatEnabled: _preferences.repeatEnabled,
+                flashlightEnabled: _preferences.flashlightEnabled,
+                flashPattern: _preferences.flashPattern,
               );
             }),
             onChangeEnd: (value) =>
@@ -269,6 +283,8 @@ class _AlertStudioScreenState extends State<AlertStudioScreen> {
               volume: _preferences.volume,
               durationSeconds: _preferences.durationSeconds,
               repeatEnabled: value,
+              flashlightEnabled: _preferences.flashlightEnabled,
+              flashPattern: _preferences.flashPattern,
             )),
           ),
           if (_error != null) ...[
