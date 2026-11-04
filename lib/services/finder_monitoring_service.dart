@@ -81,9 +81,9 @@ class FinderMonitoringService {
     }
   }
 
-  Future<void> start() async {
+  Future<void> start({Map<String, Object?> alertSettings = const {}}) async {
     try {
-      await _methods.invokeMethod<void>('startMonitoring');
+      await _methods.invokeMethod<void>('startMonitoring', alertSettings);
     } on PlatformException catch (error) {
       throw FinderMonitoringException(
         error.message ?? 'Could not start phone finder monitoring.');
