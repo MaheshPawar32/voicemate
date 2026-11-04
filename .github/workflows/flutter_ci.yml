@@ -83,6 +83,28 @@ jobs:
           EOF
           echo "configured=true" >> "$GITHUB_OUTPUT"
 
+      - name: Build installable release-test APK (temporary debug signing)
+        if: steps.release-signing.outputs.configured != 'true'
+        run: flutter build apk --release
+
+      - name: Verify release-test APK signature
+        if: steps.release-signing.outputs.configured != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload installable release-test APK
+        if: steps.release-signing.outputs.configured != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: voicemate-release-test-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Build universal release APK
         if: steps.release-signing.outputs.configured == 'true'
         run: flutter build apk --release
