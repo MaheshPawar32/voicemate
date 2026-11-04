@@ -135,6 +135,31 @@ class _BatteryCentreScreenState extends State<BatteryCentreScreen> {
               title: 'Power source',
               value: _humanize(snapshot.pluggedSource)),
             const SizedBox(height: 22),
+            const Text('Memory & performance', style: TextStyle(
+              fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            _ReadingTile(
+              icon: Icons.memory_rounded,
+              title: 'Total RAM',
+              value: snapshot.totalRamMb > 0
+                ? '${snapshot.totalRamMb} MB'
+                : 'Unavailable'),
+            _ReadingTile(
+              icon: Icons.memory_rounded,
+              title: 'Available RAM',
+              value: snapshot.availableRamMb >= 0
+                ? '${snapshot.availableRamMb} MB'
+                : 'Unavailable',
+              valueColor: snapshot.lowMemory
+                ? const Color(0xFFFFBE55)
+                : null),
+            _ReadingTile(
+              icon: Icons.phone_android_rounded,
+              title: 'VoiceMate memory',
+              value: snapshot.appMemoryPssMb >= 0
+                ? '${snapshot.appMemoryPssMb} MB'
+                : 'Unavailable'),
+            const SizedBox(height: 22),
             const Text('Power management', style: TextStyle(
               fontSize: 18, fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
@@ -158,7 +183,7 @@ class _BatteryCentreScreenState extends State<BatteryCentreScreen> {
                 color: VoiceMateApp.surface,
                 borderRadius: BorderRadius.circular(16)),
               child: const Text(
-                'Android may limit background work to protect battery life. VoiceMate does not request battery-optimization exemptions automatically. Check your phone manufacturer’s battery settings if monitoring is stopped by the system.',
+                'These are system snapshots, not a CPU benchmark or guaranteed battery-life estimate. Android may limit background work to protect battery life. VoiceMate does not request battery-optimization exemptions automatically. Check your phone manufacturer’s battery settings if monitoring is stopped by the system.',
                 style: TextStyle(
                   color: VoiceMateApp.muted, height: 1.5, fontSize: 12)),
             ),
