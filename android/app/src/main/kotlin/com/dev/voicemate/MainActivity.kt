@@ -346,6 +346,22 @@ class MainActivity : FlutterActivity() {
             )
             return
         }
+        val notificationPermissionGranted =
+            Build.VERSION.SDK_INT < 33 ||
+                checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+        val notificationsEnabled =
+            Build.VERSION.SDK_INT < 24 ||
+                (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+                    .areNotificationsEnabled()
+        if (!notificationPermissionGranted || !notificationsEnabled) {
+            result.error(
+                "notifications_disabled",
+                "Enable VoiceMate notifications so the active monitoring notification and Stop action remain visible.",
+                null,
+            )
+            return
+        }
         if (arguments?.get("flashlight_enabled") == true &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
             checkSelfPermission(Manifest.permission.CAMERA) !=
