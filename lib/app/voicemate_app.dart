@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
+import '../services/admob_service.dart';
 
 import '../features/history/history_screen.dart';
 import '../features/home/home_screen.dart';
@@ -82,6 +86,12 @@ class VoiceMateShell extends StatefulWidget {
 
 class _VoiceMateShellState extends State<VoiceMateShell> {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(AdMobService.instance.initialize());
+  }
 
   @override
   Widget build(BuildContext context) {
