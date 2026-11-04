@@ -5,12 +5,14 @@ class PermissionStatusSnapshot {
     required this.microphoneGranted,
     required this.notificationPermissionGranted,
     required this.notificationsEnabled,
+    required this.cameraGranted,
     required this.apiLevel,
   });
 
   final bool microphoneGranted;
   final bool notificationPermissionGranted;
   final bool notificationsEnabled;
+  final bool cameraGranted;
   final int apiLevel;
 
   bool get monitoringNotificationReady =>
@@ -22,6 +24,7 @@ class PermissionStatusSnapshot {
         notificationPermissionGranted:
             map['notification_permission_granted'] == true,
         notificationsEnabled: map['notifications_enabled'] == true,
+        cameraGranted: map['camera_granted'] == true,
         apiLevel: (map['api_level'] as num?)?.toInt() ?? 0,
       );
 }
@@ -63,6 +66,19 @@ class PermissionCentreService {
     } on PlatformException catch (error) {
       throw PermissionCentreException(
         error.message ?? 'Could not request microphone permission.',
+      );
+    }
+  }
+
+  Future<bool> requestCamera() async {
+    try {
+      return await _methods.invokeMethod<bool>(
+            'requestCameraPermission',
+          ) ??
+          false;
+    } on PlatformException catch (error) {
+      throw PermissionCentreException(
+        error.message ?? 'Could not request camera permission.',
       );
     }
   }
