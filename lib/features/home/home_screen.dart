@@ -7,6 +7,7 @@ import '../../app/voicemate_app.dart';
 import '../../services/finder_monitoring_service.dart';
 import '../../services/history_repository.dart';
 import '../../services/alert_settings_repository.dart';
+import '../../services/voice_settings_repository.dart';
 import '../clap_detection/clap_test_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final FinderMonitoringService _monitoring = FinderMonitoringService();
   late final HistoryRepository _history;
   late final AlertSettingsRepository _alertSettings;
+  late final VoiceSettingsRepository _voiceSettings;
   late final Box<dynamic> _settingsBox;
   StreamSubscription<FinderMonitoringEvent>? _subscription;
   bool _isMonitoring = false;
@@ -33,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _settingsBox = settingsBox;
     _history = HistoryRepository(settingsBox);
     _alertSettings = AlertSettingsRepository(settingsBox);
+    _voiceSettings = VoiceSettingsRepository(settingsBox);
     _subscription = _monitoring.events.listen(_handleMonitoringEvent,
       onError: (Object error) {
         if (!mounted) return;
@@ -82,6 +85,18 @@ class _HomeScreenState extends State<HomeScreen> {
           _isBusy = false;
           _error = event.message ?? 'Monitoring stopped unexpectedly.';
         });
+        break;
+      case 'voice_command':
+        if (event.command == 'find_phone' ||
+            event.command == 'lock_phone') {
+          unawaited(_history.record(
+            eventType: event.command == 'find_phone'
+                ? 'voice_find_phone'
+                : 'voice_lock_phone',
+          ));
+        } else if (event.command == 'stop_monitoring') {
+          setState(() => _isMonitoring = false);
+        }
         break;
       case 'detection':
         if (event.eventType == 'clap' || event.eventType == 'whistle') {
@@ -171,8 +186,11 @@ class _HomeScreenState extends State<HomeScreen> {
           throw const FinderMonitoringException(
             'Notification permission is required so the active-monitoring notification and its Stop action remain visible. Enable notifications for VoiceMate in Android settings.');
         }
+        final voice = _voiceSettings.read();
         await _monitoring.start(
           alertSettings: _alertSettings.read().toPlatformMap(),
+          voiceEnabled: voice.enabled,
+          voiceLockCommandEnabled: voice.lockCommandEnabled,
         );
         if (mounted) {
           setState(() {
