@@ -55,7 +55,8 @@ internal class VoiceMonitoringService : Service() {
 
     private fun startMonitoring() {
         if (isActive) return
-        if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) !=
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+            checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) !=
             PackageManager.PERMISSION_GRANTED
         ) {
             MonitoringEventBus.emit(mapOf(
@@ -181,7 +182,8 @@ internal class VoiceMonitoringService : Service() {
 
 private class FinderAlertManager(service: Service) {
     private val tone = ToneGenerator(AudioManager.STREAM_ALARM, 90)
-    private val vibrator = service.getSystemService(Vibrator::class.java)
+    private val vibrator =
+        service.getSystemService(Service.VIBRATOR_SERVICE) as? Vibrator
     private var lastPlayedAt = 0L
 
     fun play() {
