@@ -294,11 +294,11 @@ class _AlertStudioScreenState extends State<AlertStudioScreen> {
           ],
           const SizedBox(height: 14),
           FilledButton.icon(
-            onPressed: _previewing ? null : _preview,
+            onPressed: _preview,
             icon: Icon(_previewing
-              ? Icons.hourglass_top_rounded
+              ? Icons.stop_rounded
               : Icons.play_arrow_rounded),
-            label: Text(_previewing ? 'Playing preview…' : 'Preview alert'),
+            label: Text(_previewing ? 'Stop preview' : 'Preview alert'),
             style: FilledButton.styleFrom(
               backgroundColor: VoiceMateApp.cyan,
               foregroundColor: const Color(0xFF06111D),
