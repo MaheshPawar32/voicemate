@@ -288,10 +288,30 @@ internal class VoiceMonitoringService : Service() {
         } else {
             Notification.Builder(this).setPriority(Notification.PRIORITY_LOW)
         }
+        val activeModes = mutableListOf<String>()
+        if (monitoringConfig.clapEnabled) activeModes.add("claps")
+        if (monitoringConfig.whistleEnabled) activeModes.add("whistles")
+        if (voiceEnabled) activeModes.add("voice commands")
+        val modeText = if (activeModes.isEmpty()) {
+            "Monitoring active"
+        } else {
+            "Listening for " + activeModes.joinToString(", ")
+        }
+        val durationText = if (monitoringConfig.autoStopMinutes > 0) {
+            " · auto-stop in ${monitoringConfig.autoStopMinutes} min"
+        } else {
+            ""
+        }
+        val quietText = if (monitoringConfig.quietHoursEnabled) {
+            " · alerts muted ${monitoringConfig.quietStart}–${monitoringConfig.quietEnd}"
+        } else {
+            ""
+        }
+
         return builder
             .setSmallIcon(applicationInfo.icon)
             .setContentTitle("VoiceMate is monitoring")
-            .setContentText("Listening for clap or whistle signals. Tap Stop to end monitoring.")
+            .setContentText(modeText + durationText + quietText)
             .setCategory(Notification.CATEGORY_SERVICE)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
