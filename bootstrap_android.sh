@@ -82,6 +82,7 @@ permissions = [
     "android.permission.FOREGROUND_SERVICE",
     "android.permission.FOREGROUND_SERVICE_MICROPHONE",
     "android.permission.VIBRATE",
+    "android.permission.POST_NOTIFICATIONS",
 ]
 for permission in permissions:
     tag = f'<uses-permission android:name="{permission}" />'
