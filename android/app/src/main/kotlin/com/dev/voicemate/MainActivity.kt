@@ -335,6 +335,17 @@ class MainActivity : FlutterActivity() {
             )
             return
         }
+        val clapEnabled = arguments?.get("clap_enabled") as? Boolean ?: true
+        val whistleEnabled = arguments?.get("whistle_enabled") as? Boolean ?: true
+        val voiceEnabled = arguments?.get("voice_enabled") as? Boolean ?: false
+        if (!clapEnabled && !whistleEnabled && !voiceEnabled) {
+            result.error(
+                "no_detector_enabled",
+                "Enable clap, whistle or offline voice detection before starting monitoring.",
+                null,
+            )
+            return
+        }
         if (arguments?.get("flashlight_enabled") == true &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
             checkSelfPermission(Manifest.permission.CAMERA) !=
@@ -363,6 +374,14 @@ class MainActivity : FlutterActivity() {
                     "voice_lock_command_enabled",
                     arguments?.get("voice_lock_command_enabled") as? Boolean ?: false,
                 )
+                putExtra("clap_enabled", clapEnabled)
+                putExtra("whistle_enabled", whistleEnabled)
+                putExtra("clap_sensitivity", arguments?.get("clap_sensitivity") as? String ?: "normal")
+                putExtra("whistle_sensitivity", arguments?.get("whistle_sensitivity") as? String ?: "normal")
+                putExtra("auto_stop_minutes", (arguments?.get("auto_stop_minutes") as? Number)?.toInt() ?: 0)
+                putExtra("quiet_hours_enabled", arguments?.get("quiet_hours_enabled") as? Boolean ?: false)
+                putExtra("quiet_start", arguments?.get("quiet_start") as? String ?: "22:00")
+                putExtra("quiet_end", arguments?.get("quiet_end") as? String ?: "07:00")
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(intent)
