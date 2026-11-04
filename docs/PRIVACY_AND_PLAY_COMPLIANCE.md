@@ -41,11 +41,14 @@ DevicePolicyManager is only a user-enabled screen-lock shortcut. Explain activat
 ## Release checklist
 - [ ] Target Android 16 / API 36 or higher for new app submissions from 31 August 2026.
 - [ ] Accurate microphone declaration and foreground service type/permissions where applicable.
-- [ ] Replace the support-email placeholder in `privacy_policy.html`.
+- [ ] Publish a monitored developer contact address in the store listing and privacy policy contact section.
 - [ ] Host the policy at a public HTTPS URL and link it from the app and Play Console.
 - [ ] Microphone disclosure before permission request.
-- [ ] Public accurate privacy policy.
-- [ ] Data safety includes SDK data handling (the Google Mobile Ads SDK automatically collects/shares IP address, app interactions, diagnostics and device/account identifiers; confirm the actual SDK version/configuration).
+- [ ] Public HTTPS privacy policy accurately describes microphone, flashlight, offline model, local history and Google Mobile Ads/UMP handling.
+- [ ] Data safety includes the Google Mobile Ads SDK actually bundled by the release (IP address, app interactions, diagnostics and device/account identifiers may be collected/shared by the SDK; confirm the exact resolved SDK version and configuration).
+- [ ] UMP refreshes consent information on every launch, any required form completes before the ad gate opens, and `canRequestAds()` is checked before every ad request.
+- [ ] If UMP requires a privacy-options entry point, the Settings item remains visible and opens the form.
+- [ ] Hosted and in-app privacy policies describe the included GMA/UMP SDK, the Home-only banner placement and the optional Vosk model download.
 - [ ] UMP consent tested in relevant regions.
 - [ ] Ad placements reviewed against current policy.
 - [ ] Content rating and permissions declarations complete.
