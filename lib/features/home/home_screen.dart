@@ -8,6 +8,7 @@ import '../../services/finder_monitoring_service.dart';
 import '../../services/history_repository.dart';
 import '../../services/alert_settings_repository.dart';
 import '../../services/voice_settings_repository.dart';
+import '../../services/monitoring_settings_repository.dart';
 import '../ads/home_banner_ad.dart';
 import '../clap_detection/clap_test_screen.dart';
 
@@ -23,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late final HistoryRepository _history;
   late final AlertSettingsRepository _alertSettings;
   late final VoiceSettingsRepository _voiceSettings;
+  late final MonitoringSettingsRepository _monitoringSettings;
   late final Box<dynamic> _settingsBox;
   StreamSubscription<FinderMonitoringEvent>? _subscription;
   bool _isMonitoring = false;
@@ -37,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _history = HistoryRepository(settingsBox);
     _alertSettings = AlertSettingsRepository(settingsBox);
     _voiceSettings = VoiceSettingsRepository(settingsBox);
+    _monitoringSettings = MonitoringSettingsRepository(settingsBox);
     _subscription = _monitoring.events.listen(_handleMonitoringEvent,
       onError: (Object error) {
         if (!mounted) return;
@@ -78,6 +81,13 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _isMonitoring = false;
           _isBusy = false;
+        });
+        break;
+      case 'service_auto_stopped':
+        setState(() {
+          _isMonitoring = false;
+          _isBusy = false;
+          _error = 'Monitoring stopped automatically after the selected time limit.';
         });
         break;
       case 'service_error':
@@ -195,6 +205,14 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         final voice = _voiceSettings.read();
         final alerts = _alertSettings.read();
+        final monitoringSettings = _monitoringSettings.read();
+        if (!monitoringSettings.clapEnabled &&
+            !monitoringSettings.whistleEnabled &&
+            !voice.enabled) {
+          throw const FinderMonitoringException(
+            'Enable clap detection, whistle detection or offline voice commands in Monitoring Centre before starting.',
+          );
+        }
         if (alerts.flashlightEnabled) {
           final cameraGranted = await _monitoring.requestCameraPermission();
           if (!cameraGranted) {
@@ -206,6 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
           alertSettings: alerts.toPlatformMap(),
           voiceEnabled: voice.enabled,
           voiceLockCommandEnabled: voice.lockCommandEnabled,
+          monitoringSettings: monitoringSettings,
         );
         if (mounted) {
           setState(() {
