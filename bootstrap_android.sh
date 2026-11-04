@@ -258,6 +258,33 @@ else:
     raise SystemExit("Could not find Android app Gradle configuration.")
 PY
 
+# Force Vosk's transitive JNA dependency to a 16 KB page-compatible version.
+# A current Vosk issue reports that JNA 5.17.0 fixes libjnidispatch.so alignment;
+# the release workflow also checks every packaged native library.
+python3 - "$ROOT/android/build.gradle.kts" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+if not path.exists():
+    raise SystemExit(f"Android root Gradle file not found: {path}")
+text = path.read_text()
+block = """
+allprojects {
+    configurations.configureEach {
+        resolutionStrategy {
+            force("com.alphacephei:vosk-android:0.3.75")
+            force("net.java.dev.jna:jna:5.17.0@aar")
+            force("net.java.dev.jna:jna:5.17.0")
+        }
+    }
+}
+"""
+if "net.java.dev.jna:jna:5.17.0" not in text:
+    text += block
+path.write_text(text)
+PY
+
 cd "$ROOT"
 flutter pub get
 if [[ "$GENERATE_ICON" == true ]]; then
