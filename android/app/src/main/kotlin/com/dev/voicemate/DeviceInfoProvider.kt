@@ -33,10 +33,10 @@ internal object DeviceInfoProvider {
 
         val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
         val pluggedSource = when {
-            plugged and BatteryManager.BATTERY_PLUGGED_AC != 0 -> "ac"
-            plugged and BatteryManager.BATTERY_PLUGGED_USB != 0 -> "usb"
+            (plugged and BatteryManager.BATTERY_PLUGGED_AC) != 0 -> "ac"
+            (plugged and BatteryManager.BATTERY_PLUGGED_USB) != 0 -> "usb"
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 &&
-                plugged and BatteryManager.BATTERY_PLUGGED_WIRELESS != 0 -> "wireless"
+                (plugged and BatteryManager.BATTERY_PLUGGED_WIRELESS) != 0 -> "wireless"
             else -> "none"
         }
 
