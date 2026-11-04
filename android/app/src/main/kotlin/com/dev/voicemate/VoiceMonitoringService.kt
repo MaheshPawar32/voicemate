@@ -83,12 +83,15 @@ internal class VoiceMonitoringService : Service() {
             captureManager = manager
             manager.start(
                 onMetrics = { metrics ->
-                    if (metrics.isClap) {
+                    if (metrics.isClap || metrics.isWhistle) {
                         alertManager?.play()
+                        val eventType = if (metrics.isClap) "clap" else "whistle"
                         MonitoringEventBus.emit(mapOf(
                             "type" to "detection",
-                            "event_type" to "clap",
+                            "event_type" to eventType,
                             "clap_count" to metrics.clapCount,
+                            "whistle_count" to metrics.whistleCount,
+                            "whistle_frequency_hz" to (metrics.whistleFrequencyHz ?: 0),
                             "rms" to metrics.rms,
                             "peak" to metrics.peak,
                             "timestamp" to System.currentTimeMillis(),
@@ -147,7 +150,7 @@ internal class VoiceMonitoringService : Service() {
         return builder
             .setSmallIcon(applicationInfo.icon)
             .setContentTitle("VoiceMate is monitoring")
-            .setContentText("Listening for clap signals. Tap Stop to end monitoring.")
+            .setContentText("Listening for clap or whistle signals. Tap Stop to end monitoring.")
             .setCategory(Notification.CATEGORY_SERVICE)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
