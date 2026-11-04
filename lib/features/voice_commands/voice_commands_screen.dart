@@ -106,10 +106,12 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
         if (mounted) setState(() => _lockCommandEnabled = false);
       }
     } catch (error) {
-      if (mounted) setState(() {
-        _loading = false;
-        _error = error.toString();
-      });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = error.toString();
+        });
+      }
     }
   }
 
@@ -135,7 +137,9 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true) {
+      return;
+    }
 
     setState(() {
       _installing = true;
@@ -152,11 +156,13 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
         });
       }
     } catch (error) {
-      if (mounted) setState(() {
-        _installing = false;
-        _downloadProgress = null;
-        _error = error.toString();
-      });
+      if (mounted) {
+        setState(() {
+          _installing = false;
+          _downloadProgress = null;
+          _error = error.toString();
+        });
+      }
     }
   }
 
