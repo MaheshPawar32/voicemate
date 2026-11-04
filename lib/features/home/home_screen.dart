@@ -103,6 +103,13 @@ class _HomeScreenState extends State<HomeScreen> {
               'The flashlight is temporarily unavailable. Sound and vibration alerts remain active.';
         });
         break;
+      case 'voice_command_ignored':
+        setState(() {
+          _error = event.reason == 'device_admin_not_active'
+              ? 'Activate the lock-only Device Admin permission before using “Lock my phone”.'
+              : 'That voice action is disabled in Offline Voice Commands.';
+        });
+        break;
       case 'voice_command':
         if (event.command == 'find_phone' ||
             event.command == 'lock_phone') {
@@ -127,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'whistle_frequency_hz': event.whistleFrequencyHz,
               'rms': event.rms,
               'peak': event.peak,
+              'quiet_hours': event.quietHours,
             },
           ));
         }
