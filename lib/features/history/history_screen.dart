@@ -100,7 +100,7 @@ class _EmptyHistory extends StatelessWidget {
           fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         const Text(
-          'Clap detections made during the foreground test will appear here. '
+          'Clap and whistle detections made by the finder and foreground test appear here. '
           'VoiceMate stores event details only, never microphone recordings.',
           textAlign: TextAlign.center,
           style: TextStyle(color: VoiceMateApp.muted, height: 1.5)),
@@ -119,6 +119,8 @@ class _HistoryTile extends StatelessWidget {
       event['timestamp'] as int).toLocal();
     final metadata = event['metadata'] as Map<String, dynamic>;
     final count = metadata['clap_count'];
+    final eventType = event['event_type'] as String;
+    final isWhistle = eventType.contains('whistle');
     final dateText = '${date.day.toString().padLeft(2, '0')}/'
         '${date.month.toString().padLeft(2, '0')}/${date.year} · '
         '${date.hour.toString().padLeft(2, '0')}:'
@@ -127,11 +129,19 @@ class _HistoryTile extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
       leading: const CircleAvatar(
         backgroundColor: Color(0x2226D9E8),
-        child: Icon(Icons.back_hand_rounded, color: VoiceMateApp.cyan)),
-      title: const Text('Clap detected in test',
-        style: TextStyle(fontWeight: FontWeight.w700)),
+        child: Icon(
+          isWhistle ? Icons.graphic_eq_rounded : Icons.back_hand_rounded,
+          color: VoiceMateApp.cyan)),
+      title: Text(
+        isWhistle ? 'Whistle-like tone detected'
+          : (eventType == 'clap_monitor_detected'
+              ? 'Phone finder triggered by clap'
+              : 'Clap detected in test'),
+        style: const TextStyle(fontWeight: FontWeight.w700)),
       subtitle: Text(
-        count is int ? 'Detected clap #$count · $dateText' : dateText,
+        isWhistle
+          ? '${metadata['whistle_frequency_hz'] ?? 0} Hz · $dateText'
+          : (count is int ? 'Detected clap #$count · $dateText' : dateText),
         style: const TextStyle(color: VoiceMateApp.muted)),
     ));
   }
