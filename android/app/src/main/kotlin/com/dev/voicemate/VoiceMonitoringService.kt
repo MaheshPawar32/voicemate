@@ -18,7 +18,7 @@ import android.os.Vibrator
 import android.util.Log
 
 /**
- * Explicitly started foreground microphone service for clap-based phone finding.
+ * Explicitly started foreground microphone service for clap and whistle phone finding.
  * It is never started from boot, a timer, or a background receiver.
  */
 internal class VoiceMonitoringService : Service() {
@@ -79,6 +79,7 @@ internal class VoiceMonitoringService : Service() {
                 startForeground(NOTIFICATION_ID, notification)
             }
 
+            isActive = true
             val manager = AudioCaptureManager()
             captureManager = manager
             manager.start(
@@ -106,7 +107,6 @@ internal class VoiceMonitoringService : Service() {
                     stopSelf()
                 },
             )
-            isActive = true
             MonitoringEventBus.emit(mapOf("type" to "service_started"))
         } catch (error: Exception) {
             Log.e("VoiceMate", "Could not start microphone monitoring", error)
@@ -120,12 +120,15 @@ internal class VoiceMonitoringService : Service() {
     }
 
     private fun stopMonitoring() {
+        val wasRunning = isActive || captureManager != null
         captureManager?.stop()
         captureManager = null
         alertManager?.stop()
         isActive = false
         stopForeground(true)
-        MonitoringEventBus.emit(mapOf("type" to "service_stopped"))
+        if (wasRunning) {
+            MonitoringEventBus.emit(mapOf("type" to "service_stopped"))
+        }
     }
 
     private fun buildNotification(): Notification {
@@ -165,7 +168,7 @@ internal class VoiceMonitoringService : Service() {
                 "Phone finder monitoring",
                 NotificationManager.IMPORTANCE_LOW,
             ).apply {
-                description = "Visible status while VoiceMate listens for clap signals."
+                description = "Visible status while VoiceMate listens for clap and whistle signals."
                 setShowBadge(false)
             }
             getSystemService(NotificationManager::class.java)
