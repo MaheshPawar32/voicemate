@@ -10,6 +10,10 @@ class BatterySnapshot {
     required this.voltageMv,
     required this.powerSaveMode,
     required this.batteryOptimizationIgnored,
+    required this.totalRamMb,
+    required this.availableRamMb,
+    required this.appMemoryPssMb,
+    required this.lowMemory,
   });
 
   final int levelPercent;
@@ -20,6 +24,10 @@ class BatterySnapshot {
   final int voltageMv;
   final bool powerSaveMode;
   final bool batteryOptimizationIgnored;
+  final int totalRamMb;
+  final int availableRamMb;
+  final int appMemoryPssMb;
+  final bool lowMemory;
 
   factory BatterySnapshot.fromMap(Map<dynamic, dynamic> map) =>
       BatterySnapshot(
@@ -32,6 +40,10 @@ class BatterySnapshot {
         powerSaveMode: map['power_save_mode'] == true,
         batteryOptimizationIgnored:
             map['battery_optimization_ignored'] == true,
+        totalRamMb: (map['total_ram_mb'] as num?)?.toInt() ?? -1,
+        availableRamMb: (map['available_ram_mb'] as num?)?.toInt() ?? -1,
+        appMemoryPssMb: (map['app_memory_pss_mb'] as num?)?.toInt() ?? -1,
+        lowMemory: map['low_memory'] == true,
       );
 }
 
