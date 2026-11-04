@@ -90,6 +90,7 @@ permissions = [
     "android.permission.VIBRATE",
     "android.permission.POST_NOTIFICATIONS",
     "android.permission.INTERNET",
+    "android.permission.CAMERA",
 ]
 for permission in permissions:
     tag = f'<uses-permission android:name="{permission}" />'
@@ -102,6 +103,12 @@ for permission in permissions:
             if not root:
                 raise SystemExit("Android manifest root element was not found.")
             text = text[:root.end()] + "\n    " + tag + text[root.end():]
+
+camera_feature = """    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />"""
+if "android.hardware.camera" not in text:
+    text = text.replace("</manifest>", camera_feature + "\\n</manifest>", 1)
 
 service_tag = """        <service
             android:name=".VoiceMonitoringService"
