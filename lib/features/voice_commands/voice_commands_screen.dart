@@ -362,9 +362,11 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
                         padding: EdgeInsets.fromLTRB(16, 0, 16, 14),
                         child: Align(
                           alignment: Alignment.centerLeft,
-                          child: Text('Supported phrase: “Lock my phone”',
+                          child: Text(
+                            'Supported phrase: “Lock my phone”. This command only locks the screen and requires Device Admin activation.',
                             style: TextStyle(
-                              color: VoiceMateApp.muted, fontSize: 12)),
+                              color: VoiceMateApp.muted, fontSize: 12, height: 1.4),
+                          ),
                         ),
                       ),
                   ],
