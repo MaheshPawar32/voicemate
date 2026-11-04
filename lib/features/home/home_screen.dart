@@ -78,11 +78,15 @@ class _HomeScreenState extends State<HomeScreen> {
         });
         break;
       case 'detection':
-        if (event.eventType == 'clap') {
+        if (event.eventType == 'clap' || event.eventType == 'whistle') {
           unawaited(_history.record(
-            eventType: 'clap_monitor_detected',
+            eventType: event.eventType == 'clap'
+                ? 'clap_monitor_detected'
+                : 'whistle_monitor_detected',
             metadata: {
               'clap_count': event.clapCount,
+              'whistle_count': event.whistleCount,
+              'whistle_frequency_hz': event.whistleFrequencyHz,
               'rms': event.rms,
               'peak': event.peak,
             },
@@ -192,14 +196,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   : Icons.graphic_eq_rounded,
                 size: 58, color: VoiceMateApp.cyan)),
             const SizedBox(height: 17),
-            Text(_isMonitoring ? 'Clap finder is active' : 'Finder is paused',
+            Text(_isMonitoring ? 'Clap & whistle finder is active' : 'Finder is paused',
               style: const TextStyle(
                 fontSize: 20, fontWeight: FontWeight.w800)),
             const SizedBox(height: 7),
             Text(
               _isMonitoring
-                ? 'VoiceMate is listening for clap signals. A clap triggers a sound and vibration alert.'
-                : 'Start monitoring to listen for clap signals while the persistent Android notification is visible.',
+                ? 'VoiceMate is listening for clap and sustained whistle-like tones. A detection triggers a sound and vibration alert.'
+                : 'Start monitoring to listen for clap and sustained whistle-like tones while the Android foreground notification is visible.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: VoiceMateApp.muted, height: 1.45)),
