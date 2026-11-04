@@ -38,11 +38,23 @@ internal class VoiceMonitoringService : Service() {
     private var captureManager: AudioCaptureManager? = null
     private var alertManager: FinderAlertManager? = null
     private var alertConfig = FinderAlertConfig()
+    private var monitoringConfig = MonitoringConfig()
     private var flashlightManager: FlashlightManager? = null
     private var voiceEngine: OfflineCommandEngine? = null
     private var voiceEnabled = false
     private var voiceLockCommandEnabled = false
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val autoStopRunnable = Runnable {
+        if (isActive) {
+            MonitoringEventBus.emit(mapOf(
+                "type" to "service_auto_stopped",
+                "reason" to "duration_limit",
+                "timestamp" to System.currentTimeMillis(),
+            ))
+            stopMonitoring()
+            stopSelf()
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -57,6 +69,7 @@ internal class VoiceMonitoringService : Service() {
             }
             else -> {
                 alertConfig = FinderAlertConfig.fromExtras(intent?.extras)
+                monitoringConfig = MonitoringConfig.fromExtras(intent?.extras)
                 voiceEnabled = intent?.getBooleanExtra("voice_enabled", false) == true
                 voiceLockCommandEnabled =
                     intent?.getBooleanExtra("voice_lock_command_enabled", false) == true
@@ -115,7 +128,12 @@ internal class VoiceMonitoringService : Service() {
             }
 
             isActive = true
-            val manager = AudioCaptureManager()
+            val manager = AudioCaptureManager(
+                clapEnabled = monitoringConfig.clapEnabled,
+                whistleEnabled = monitoringConfig.whistleEnabled,
+                clapSensitivity = monitoringConfig.clapSensitivity,
+                whistleSensitivity = monitoringConfig.whistleSensitivity,
+            )
             captureManager = manager
             manager.start(
                 onVoiceCommand = { command ->
@@ -124,8 +142,9 @@ internal class VoiceMonitoringService : Service() {
                 voiceEngine = voiceEngine,
                 onMetrics = { metrics ->
                     if (metrics.isClap || metrics.isWhistle) {
-                        alertManager?.play()
-                        if (alertConfig.flashlightEnabled) {
+                        val quietHours = monitoringConfig.isQuietHoursNow()
+                        if (!quietHours) alertManager?.play()
+                        if (!quietHours && alertConfig.flashlightEnabled) {
                             try {
                                 flashlightManager?.pulse(alertConfig.flashPattern)
                             } catch (error: Exception) {
@@ -145,6 +164,7 @@ internal class VoiceMonitoringService : Service() {
                             "whistle_frequency_hz" to (metrics.whistleFrequencyHz ?: 0),
                             "rms" to metrics.rms,
                             "peak" to metrics.peak,
+                            "quiet_hours" to quietHours,
                             "timestamp" to System.currentTimeMillis(),
                         ))
                     }
@@ -157,7 +177,17 @@ internal class VoiceMonitoringService : Service() {
                     stopSelf()
                 },
             )
-            MonitoringEventBus.emit(mapOf("type" to "service_started"))
+            if (monitoringConfig.autoStopMinutes > 0) {
+                mainHandler.removeCallbacks(autoStopRunnable)
+                mainHandler.postDelayed(
+                    autoStopRunnable,
+                    monitoringConfig.autoStopMinutes * 60_000L,
+                )
+            }
+            MonitoringEventBus.emit(mapOf(
+                "type" to "service_started",
+                "auto_stop_minutes" to monitoringConfig.autoStopMinutes,
+            ))
         } catch (error: Exception) {
             Log.e("VoiceMate", "Could not start microphone monitoring", error)
             stopMonitoring()
@@ -172,8 +202,9 @@ internal class VoiceMonitoringService : Service() {
     private fun handleVoiceCommand(command: String) {
         when (command) {
             "find_phone" -> {
-                alertManager?.play()
-                if (alertConfig.flashlightEnabled) {
+                val quietHours = monitoringConfig.isQuietHoursNow()
+                if (!quietHours) alertManager?.play()
+                if (!quietHours && alertConfig.flashlightEnabled) {
                     try {
                         flashlightManager?.pulse(alertConfig.flashPattern)
                     } catch (error: Exception) {
@@ -187,6 +218,7 @@ internal class VoiceMonitoringService : Service() {
                 MonitoringEventBus.emit(mapOf(
                     "type" to "voice_command",
                     "command" to "find_phone",
+                    "quiet_hours" to quietHours,
                     "timestamp" to System.currentTimeMillis(),
                 ))
             }
@@ -222,6 +254,7 @@ internal class VoiceMonitoringService : Service() {
     }
 
     private fun stopMonitoring() {
+        mainHandler.removeCallbacks(autoStopRunnable)
         val wasRunning = isActive || captureManager != null
         captureManager?.stop()
         captureManager = null
