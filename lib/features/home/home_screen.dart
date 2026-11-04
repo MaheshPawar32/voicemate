@@ -117,6 +117,12 @@ class _HomeScreenState extends State<HomeScreen> {
           throw const FinderMonitoringException(
             'Microphone permission is required. Enable it in Android settings to start monitoring.');
         }
+        final notificationsGranted =
+            await _monitoring.requestNotificationPermission();
+        if (!notificationsGranted) {
+          throw const FinderMonitoringException(
+            'Notification permission is required so the active-monitoring notification and its Stop action remain visible. Enable notifications for VoiceMate in Android settings.');
+        }
         await _monitoring.start();
         if (mounted) {
           setState(() {
