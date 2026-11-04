@@ -335,6 +335,18 @@ class MainActivity : FlutterActivity() {
             )
             return
         }
+        if (arguments?.get("flashlight_enabled") == true &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+            checkSelfPermission(Manifest.permission.CAMERA) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            result.error(
+                "camera_permission_denied",
+                "Camera permission is required for flashlight alerts.",
+                null,
+            )
+            return
+        }
         try {
             val intent = Intent(this, VoiceMonitoringService::class.java).apply {
                 action = VoiceMonitoringService.ACTION_START
