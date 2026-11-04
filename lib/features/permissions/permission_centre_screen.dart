@@ -45,6 +45,10 @@ class _PermissionCentreScreenState extends State<PermissionCentreScreen> {
     await _perform(_service.requestNotifications);
   }
 
+  Future<void> _requestCamera() async {
+    await _perform(_service.requestCamera);
+  }
+
   Future<void> _openSettings() async {
     try {
       await _service.openAppSettings();
@@ -133,6 +137,17 @@ class _PermissionCentreScreenState extends State<PermissionCentreScreen> {
               deniedLabel: 'Disabled',
               actionLabel: 'Allow notifications',
               onAction: _busy ? null : _requestNotifications,
+            ),
+            const SizedBox(height: 12),
+            _PermissionTile(
+              icon: Icons.flash_on_rounded,
+              title: 'Camera / flashlight',
+              description: 'Used only to activate the rear LED for alert pulses. VoiceMate does not capture photos or video.',
+              granted: permission.cameraGranted,
+              grantedLabel: 'Allowed',
+              deniedLabel: 'Not allowed',
+              actionLabel: 'Allow camera access',
+              onAction: _busy ? null : _requestCamera,
             ),
             const SizedBox(height: 22),
             const Text('APP SETTINGS', style: TextStyle(
