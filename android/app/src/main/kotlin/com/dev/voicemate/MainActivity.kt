@@ -31,6 +31,7 @@ class MainActivity : FlutterActivity() {
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
+    @Volatile private var modelInstallInProgress = false
     private var testEventSink: EventChannel.EventSink? = null
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var pendingNotificationResult: MethodChannel.Result? = null
