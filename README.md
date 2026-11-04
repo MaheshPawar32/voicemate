@@ -29,16 +29,15 @@ VoiceMate is an Android-only, offline-first phone utility built with Flutter and
 
 ## Setup
 
-1. Download the VoiceMate Play Store Artwork Pack and extract it into this repository root. This adds the 512px launcher icon source and store artwork.
-2. Install Flutter stable, Android SDK and Python 3.
-3. Run the bootstrap script **once** to generate the Android Gradle project and launcher icons:
+1. Install Flutter stable, Android SDK and Python 3.
+2. Run the bootstrap script **once** to generate the Android Gradle project and launcher icons from the committed 512px app icon:
 
 ```bash
 chmod +x bootstrap_android.sh
 ./bootstrap_android.sh
 ```
 
-4. Then run:
+3. Then run:
 
 ```bash
 flutter analyze
@@ -46,7 +45,7 @@ flutter test
 flutter run
 ```
 
-The script generates the Android platform wrapper, adds the microphone permission, configures target SDK 36 and generates the Android launcher icon. Verify the application ID is exactly `com.dev.voicemate` and check the generated Gradle target SDK before release. Do not rerun the bootstrap script after making custom Android project changes because it regenerates the Android directory.
+The script generates the Android platform wrapper, adds the microphone permission, configures target SDK 36, generates the VoiceMate launcher icon, and prepares optional JKS-based release signing. Verify the application ID is exactly `com.dev.voicemate`. Do not rerun the bootstrap script after making custom Android project changes because it regenerates the Android directory. See [Release Signing](docs/RELEASE_SIGNING.md) to enable signed release APK/AAB builds in GitHub Actions.
 
 ## Store listing and policy
 
