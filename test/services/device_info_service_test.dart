@@ -25,10 +25,6 @@ void main() {
     expect(snapshot.temperatureC, 31.5);
     expect(snapshot.voltageMv, 4210);
     expect(snapshot.powerSaveMode, isFalse);
-    expect(snapshot.totalRamMb, -1);
-    expect(snapshot.availableRamMb, -1);
-    expect(snapshot.appMemoryPssMb, -1);
-    expect(snapshot.lowMemory, isFalse);
     expect(snapshot.batteryOptimizationIgnored, isTrue);
     expect(snapshot.totalRamMb, 8192);
     expect(snapshot.availableRamMb, 2730);
@@ -43,5 +39,9 @@ void main() {
     expect(snapshot.temperatureC, -1);
     expect(snapshot.voltageMv, -1);
     expect(snapshot.powerSaveMode, isFalse);
+    expect(snapshot.totalRamMb, -1);
+    expect(snapshot.availableRamMb, -1);
+    expect(snapshot.appMemoryPssMb, -1);
+    expect(snapshot.lowMemory, isFalse);
   });
 }
