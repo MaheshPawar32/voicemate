@@ -446,7 +446,12 @@ class MainActivity : FlutterActivity() {
             alertPreview?.play()
             if (bundle.getBoolean("flashlight_enabled", false)) {
                 try {
-                    flashlightPreview = FlashlightManager(this)
+                    flashlightPreview = FlashlightManager(this) { message ->
+                        MonitoringEventBus.emit(mapOf(
+                            "type" to "flashlight_unavailable",
+                            "message" to message,
+                        ))
+                    }
                     flashlightPreview?.pulse(bundle.getString("flash_pattern") ?: "single")
                 } catch (flashError: Exception) {
                     MonitoringEventBus.emit(mapOf(
