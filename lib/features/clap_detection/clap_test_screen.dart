@@ -58,11 +58,13 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
           if (event.error != null || event.stopped) _isRunning = false;
           if (event.error != null) _error = event.error;
         });
-        if (event.isClap) {
+        if (event.isClap || event.isWhistle) {
           unawaited(_history.record(
-            eventType: 'clap_test_detected',
+            eventType: event.isClap ? 'clap_test_detected' : 'whistle_test_detected',
             metadata: {
               'clap_count': event.clapCount,
+              'whistle_count': event.whistleCount,
+              'whistle_frequency_hz': event.whistleFrequencyHz,
               'rms': event.rms,
               'peak': event.peak,
             },
@@ -126,14 +128,14 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
             width: 154, height: 154,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _latest.isClap
+              color: (_latest.isClap || _latest.isWhistle)
                 ? VoiceMateApp.cyan.withValues(alpha: .2)
                 : VoiceMateApp.cyan.withValues(alpha: .06),
               border: Border.all(
                 color: VoiceMateApp.cyan.withValues(
                   alpha: _isRunning ? .8 : .25),
                 width: _isRunning ? 2 : 1),
-              boxShadow: _latest.isClap ? [
+              boxShadow: (_latest.isClap || _latest.isWhistle) ? [
                 BoxShadow(
                   color: VoiceMateApp.cyan.withValues(alpha: .22),
                   blurRadius: 32, spreadRadius: 3),
@@ -141,20 +143,23 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
             ),
             child: Icon(
               _latest.isClap ? Icons.waving_hand_rounded
-                : Icons.hearing_rounded,
+                : (_latest.isWhistle
+                    ? Icons.graphic_eq_rounded : Icons.hearing_rounded),
               size: 66, color: VoiceMateApp.cyan),
           )),
           const SizedBox(height: 18),
           Text(
             _latest.isClap ? 'Clap detected!'
-              : (_isRunning ? 'Listening for test claps' : 'Ready for a test'),
+              : (_latest.isWhistle ? 'Whistle-like tone detected!'
+                : (_isRunning ? 'Listening for claps and whistles'
+                  : 'Ready for a test')),
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
           const SizedBox(height: 7),
           Text(
             _isRunning
-              ? 'Clap naturally at different distances. Watch the signal and count.'
-              : 'Start the test, then clap once or several times near your phone.',
+              ? 'Try a clap and a steady whistle. Sustained tones in the whistle band are detected.'
+              : 'Start the test, then clap or whistle steadily near your phone.',
             textAlign: TextAlign.center,
             style: const TextStyle(color: VoiceMateApp.muted, height: 1.45)),
           const SizedBox(height: 24),
@@ -183,8 +188,11 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
                 const SizedBox(height: 18),
                 Row(children: [
                   _Metric(label: 'CLAPS', value: '${_latest.clapCount}'),
-                  _Metric(label: 'RMS', value: _latest.rms.toStringAsFixed(0)),
-                  _Metric(label: 'PEAK', value: _latest.peak.toStringAsFixed(0)),
+                  _Metric(label: 'WHISTLES', value: '${_latest.whistleCount}'),
+                  _Metric(
+                    label: 'TONE Hz',
+                    value: _latest.whistleFrequencyHz.toString(),
+                  ),
                 ]),
               ],
             ),
@@ -214,7 +222,7 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
           ),
           const SizedBox(height: 14),
           const Text(
-            'This is a foreground diagnostic test, not the background phone-finder feature. Detection accuracy must be validated on physical devices before wider use.',
+            'This is a foreground diagnostic. Sustained electronic tones can resemble whistles; test in real environments before relying on detection.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: VoiceMateApp.muted, fontSize: 12, height: 1.5)),
