@@ -40,7 +40,6 @@ internal class VoiceMonitoringService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        alertManager = FinderAlertManager(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
