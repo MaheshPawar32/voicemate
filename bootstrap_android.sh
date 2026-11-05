@@ -178,10 +178,10 @@ for name in ("build.gradle.kts", "build.gradle"):
         }
 """
         if "abiFilters" not in text:
-            if not re.search(r'defaultConfig\\s*\\{', text):
+            if not re.search(r'defaultConfig\s*\{', text):
                 raise SystemExit("Could not find defaultConfig to configure supported ABIs.")
             text = re.sub(
-                r'(defaultConfig\\s*\\{)',
+                r'(defaultConfig\s*\{)',
                 lambda match: match.group(1) + chr(10) + abi_config,
                 text,
                 count=1,
