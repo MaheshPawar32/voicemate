@@ -186,6 +186,26 @@ for name in ("build.gradle.kts", "build.gradle"):
                 text,
                 count=1,
             )
+        # Flutter's target-platform flag does not filter native libraries
+        # contributed by every Android AAR. Explicitly exclude Vosk's unused
+        # 32-bit ARM payload at APK packaging time as a second, enforceable guard.
+        packaging_config = """    packaging {
+        jniLibs {
+            excludes += setOf("**/armeabi-v7a/**")
+        }
+    }
+"""
+        if "excludes += setOf(\"**/armeabi-v7a/**\")" not in text:
+            if not re.search(r'android\s*\{', text):
+                raise SystemExit("Could not find android block to exclude the incompatible 32-bit ABI.")
+            text = re.sub(
+                r'(android\s*\{)',
+                lambda match: match.group(1) + chr(10) + packaging_config,
+                text,
+                count=1,
+            )
+        if "excludes += setOf(\"**/armeabi-v7a/**\")" not in text:
+            raise SystemExit("Could not configure 32-bit ARM native-library packaging exclusion.")
     path.write_text(text)
     if not re.search(r'targetSdk\s*=\s*36|targetSdkVersion\s+36', text):
         raise SystemExit(f"Could not set target SDK 36 in {path}")
