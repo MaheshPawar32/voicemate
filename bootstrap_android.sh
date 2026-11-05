@@ -169,6 +169,23 @@ for name in ("build.gradle.kts", "build.gradle"):
     text = re.sub(r'minSdkVersion\s+flutter\.minSdkVersion', 'minSdkVersion 24', text)
     text = re.sub(r'compileSdk\s*=\s*flutter\.compileSdkVersion', 'compileSdk = 36', text)
     text = re.sub(r'compileSdkVersion\s+flutter\.compileSdkVersion', 'compileSdkVersion 36', text)
+    # Vosk 0.3.75 ships a 32-bit ARM libvosk.so with 4 KB ELF LOAD
+    # alignment. Keep 64-bit Android targets, whose Vosk binaries pass
+    # the 16 KB ELF check; do not package the incompatible armeabi-v7a ABI.
+    if name.endswith(".kts"):
+        abi_config = """        ndk {
+            abiFilters += setOf("arm64-v8a", "x86_64")
+        }
+"""
+        if "abiFilters" not in text:
+            if not re.search(r'defaultConfig\\s*\\{', text):
+                raise SystemExit("Could not find defaultConfig to configure supported ABIs.")
+            text = re.sub(
+                r'(defaultConfig\\s*\\{)',
+                lambda match: match.group(1) + chr(10) + abi_config,
+                text,
+                count=1,
+            )
     path.write_text(text)
     if not re.search(r'targetSdk\s*=\s*36|targetSdkVersion\s+36', text):
         raise SystemExit(f"Could not set target SDK 36 in {path}")
