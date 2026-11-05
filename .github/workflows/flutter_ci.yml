@@ -48,7 +48,7 @@ jobs:
         run: ./gradlew :app:testDebugUnitTest
 
       - name: Build debug APK
-        run: flutter build apk --debug --dart-define=USE_NEXT_GEN_SDK=true
+        run: flutter build apk --debug --target-platform android-arm64,android-x64 --dart-define=USE_NEXT_GEN_SDK=true
 
       - name: Verify debug APK native library alignment
         shell: bash
@@ -111,7 +111,7 @@ jobs:
 
       - name: Build installable release-test APK (temporary debug signing)
         if: steps.release-signing.outputs.configured != 'true'
-        run: flutter build apk --release --dart-define=USE_NEXT_GEN_SDK=true
+        run: flutter build apk --release --target-platform android-arm64,android-x64 --dart-define=USE_NEXT_GEN_SDK=true
 
       - name: Verify release-test APK native library alignment
         if: steps.release-signing.outputs.configured != 'true'
@@ -156,11 +156,11 @@ jobs:
 
       - name: Build universal release APK
         if: steps.release-signing.outputs.configured == 'true'
-        run: flutter build apk --release --dart-define=USE_NEXT_GEN_SDK=true --dart-define=ADMOB_BANNER_ID=$ADMOB_BANNER_ID
+        run: flutter build apk --release --target-platform android-arm64,android-x64 --dart-define=USE_NEXT_GEN_SDK=true --dart-define=ADMOB_BANNER_ID=$ADMOB_BANNER_ID
 
       - name: Build release Android App Bundle
         if: steps.release-signing.outputs.configured == 'true'
-        run: flutter build appbundle --release --dart-define=USE_NEXT_GEN_SDK=true --dart-define=ADMOB_BANNER_ID=$ADMOB_BANNER_ID
+        run: flutter build appbundle --release --target-platform android-arm64,android-x64 --dart-define=USE_NEXT_GEN_SDK=true --dart-define=ADMOB_BANNER_ID=$ADMOB_BANNER_ID
 
       - name: Verify signed release APK native library alignment
         if: steps.release-signing.outputs.configured == 'true'
