@@ -3,7 +3,36 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:voicemate/features/onboarding/onboarding_screen.dart';
 
 void main() {
-  testWidgets('onboarding advances through its introduction', (tester) async {
+  testWidgets('onboarding advances through all current introduction pages',
+      (tester) async {
+    var completed = false;
+    await tester.view.setPhysicalSize(const Size(800, 600));
+    await tester.view.setDevicePixelRatio(1);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: OnboardingScreen(onComplete: () => completed = true),
+      ),
+    );
+
+    expect(find.text('Find your phone with sound'), findsOneWidget);
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    expect(find.text('Use optional offline voice commands'), findsOneWidget);
+
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your controls stay in your hands'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Get started'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Get started'));
+    expect(completed, isTrue);
+  });
+
+  testWidgets('onboarding can be skipped from the first page', (tester) async {
     var completed = false;
     await tester.pumpWidget(
       MaterialApp(
@@ -11,16 +40,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Test clap detection'), findsOneWidget);
-    await tester.tap(find.text('Continue'));
-    await tester.pumpAndSettle();
-    expect(find.text('Simple, offline-first'), findsOneWidget);
-
-    await tester.tap(find.text('Continue'));
-    await tester.pumpAndSettle();
-    expect(find.text('Microphone privacy'), findsOneWidget);
-
-    await tester.tap(find.text('Get started'));
+    await tester.tap(find.text('Skip'));
     expect(completed, isTrue);
   });
 }
