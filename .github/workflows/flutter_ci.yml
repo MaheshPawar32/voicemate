@@ -54,10 +54,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          LLVM_READELF="$(find "$ANDROID_HOME/ndk" -type f -name llvm-readelf | sort -V | tail -n 1)"
-          test -n "$LLVM_READELF"
+          LLVM_READELF="$(find "$ANDROID_HOME/ndk" -name llvm-readelf -print -quit 2>/dev/null || true)"
+          if [[ -z "$LLVM_READELF" ]]; then
+            LLVM_READELF="$(find "$ANDROID_HOME" -name llvm-readelf -print -quit 2>/dev/null || true)"
+          fi
+          if [[ -z "$LLVM_READELF" || ! -x "$LLVM_READELF" ]]; then
+            echo "Android NDK llvm-readelf executable was not found. Installed NDKs:"
+            ls -la "$ANDROID_HOME/ndk" || true
+            exit 1
+          fi
           python3 scripts/check_16kb_native.py --archive build/app/outputs/flutter-apk/app-debug.apk --readelf "$LLVM_READELF"
-          ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -n 1)"
+          ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -name zipalign -print 2>/dev/null | sort -V | tail -n 1)"
+          if [[ -z "$ZIPALIGN" || ! -x "$ZIPALIGN" ]]; then
+            echo "Android build-tools zipalign executable was not found."
+            ls -la "$ANDROID_HOME/build-tools" || true
+            exit 1
+          fi
           "$ZIPALIGN" -c -P 16 -v 4 build/app/outputs/flutter-apk/app-debug.apk
 
       - name: Upload debug APK
@@ -106,10 +118,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          LLVM_READELF="$(find "$ANDROID_HOME/ndk" -type f -name llvm-readelf | sort -V | tail -n 1)"
-          test -n "$LLVM_READELF"
+          LLVM_READELF="$(find "$ANDROID_HOME/ndk" -name llvm-readelf -print -quit 2>/dev/null || true)"
+          if [[ -z "$LLVM_READELF" ]]; then
+            LLVM_READELF="$(find "$ANDROID_HOME" -name llvm-readelf -print -quit 2>/dev/null || true)"
+          fi
+          if [[ -z "$LLVM_READELF" || ! -x "$LLVM_READELF" ]]; then
+            echo "Android NDK llvm-readelf executable was not found. Installed NDKs:"
+            ls -la "$ANDROID_HOME/ndk" || true
+            exit 1
+          fi
           python3 scripts/check_16kb_native.py --archive build/app/outputs/flutter-apk/app-release.apk --readelf "$LLVM_READELF"
-          ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -n 1)"
+          ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -name zipalign -print 2>/dev/null | sort -V | tail -n 1)"
+          if [[ -z "$ZIPALIGN" || ! -x "$ZIPALIGN" ]]; then
+            echo "Android build-tools zipalign executable was not found."
+            ls -la "$ANDROID_HOME/build-tools" || true
+            exit 1
+          fi
           "$ZIPALIGN" -c -P 16 -v 4 build/app/outputs/flutter-apk/app-release.apk
 
       - name: Verify release-test APK signature
@@ -143,10 +167,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          LLVM_READELF="$(find "$ANDROID_HOME/ndk" -type f -name llvm-readelf | sort -V | tail -n 1)"
-          test -n "$LLVM_READELF"
+          LLVM_READELF="$(find "$ANDROID_HOME/ndk" -name llvm-readelf -print -quit 2>/dev/null || true)"
+          if [[ -z "$LLVM_READELF" ]]; then
+            LLVM_READELF="$(find "$ANDROID_HOME" -name llvm-readelf -print -quit 2>/dev/null || true)"
+          fi
+          if [[ -z "$LLVM_READELF" || ! -x "$LLVM_READELF" ]]; then
+            echo "Android NDK llvm-readelf executable was not found. Installed NDKs:"
+            ls -la "$ANDROID_HOME/ndk" || true
+            exit 1
+          fi
           python3 scripts/check_16kb_native.py --archive build/app/outputs/flutter-apk/app-release.apk --readelf "$LLVM_READELF"
-          ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -n 1)"
+          ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -name zipalign -print 2>/dev/null | sort -V | tail -n 1)"
+          if [[ -z "$ZIPALIGN" || ! -x "$ZIPALIGN" ]]; then
+            echo "Android build-tools zipalign executable was not found."
+            ls -la "$ANDROID_HOME/build-tools" || true
+            exit 1
+          fi
           "$ZIPALIGN" -c -P 16 -v 4 build/app/outputs/flutter-apk/app-release.apk
 
       - name: Verify signed release AAB native library alignment
@@ -154,8 +190,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          LLVM_READELF="$(find "$ANDROID_HOME/ndk" -type f -name llvm-readelf | sort -V | tail -n 1)"
-          test -n "$LLVM_READELF"
+          LLVM_READELF="$(find "$ANDROID_HOME/ndk" -name llvm-readelf -print -quit 2>/dev/null || true)"
+          if [[ -z "$LLVM_READELF" ]]; then
+            LLVM_READELF="$(find "$ANDROID_HOME" -name llvm-readelf -print -quit 2>/dev/null || true)"
+          fi
+          if [[ -z "$LLVM_READELF" || ! -x "$LLVM_READELF" ]]; then
+            echo "Android NDK llvm-readelf executable was not found. Installed NDKs:"
+            ls -la "$ANDROID_HOME/ndk" || true
+            exit 1
+          fi
           python3 scripts/check_16kb_native.py --archive build/app/outputs/bundle/release/app-release.aab --readelf "$LLVM_READELF"
 
       - name: Verify release APK signature
