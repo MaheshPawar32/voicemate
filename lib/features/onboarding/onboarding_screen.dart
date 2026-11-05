@@ -41,19 +41,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final item = _items[_page];
+    final compact = MediaQuery.sizeOf(context).height < 700;
+    final illustrationSize = compact ? 148.0 : 190.0;
+
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(24, 18, 24, compact ? 20 : 28),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.graphic_eq_rounded,
-                    color: VoiceMateApp.cyan),
+                  const Icon(
+                    Icons.graphic_eq_rounded,
+                    color: VoiceMateApp.cyan,
+                  ),
                   const SizedBox(width: 8),
-                  const Text('VoiceMate', style: TextStyle(
-                    fontWeight: FontWeight.w800, fontSize: 18)),
+                  const Text(
+                    'VoiceMate',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                    ),
+                  ),
                   const Spacer(),
                   TextButton(
                     onPressed: widget.onComplete,
@@ -61,29 +72,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ],
               ),
-              const Spacer(),
+              SizedBox(height: compact ? 22 : 42),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 280),
                 child: Container(
                   key: ValueKey(item.label),
-                  width: 190,
-                  height: 190,
+                  width: illustrationSize,
+                  height: illustrationSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: VoiceMateApp.cyan.withValues(alpha: .07),
                     border: Border.all(
-                      color: VoiceMateApp.cyan.withValues(alpha: .22)),
+                      color: VoiceMateApp.cyan.withValues(alpha: .22),
+                    ),
                   ),
-                  child: Icon(item.icon,
-                    size: 88, color: VoiceMateApp.cyan),
+                  child: Icon(
+                    item.icon,
+                    size: illustrationSize * .46,
+                    color: VoiceMateApp.cyan,
+                  ),
                 ),
               ),
-              const SizedBox(height: 38),
-              Text(item.label, style: const TextStyle(
-                color: VoiceMateApp.cyan,
-                letterSpacing: 2,
-                fontSize: 11,
-                fontWeight: FontWeight.w800)),
+              SizedBox(height: compact ? 22 : 38),
+              Text(
+                item.label,
+                style: const TextStyle(
+                  color: VoiceMateApp.cyan,
+                  letterSpacing: 2,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
               const SizedBox(height: 13),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 220),
@@ -91,8 +110,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   item.title,
                   key: ValueKey(item.title),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 29, fontWeight: FontWeight.w800),
+                  style: TextStyle(
+                    fontSize: compact ? 25 : 29,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               const SizedBox(height: 13),
@@ -109,7 +130,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ),
               ),
-              const Spacer(),
+              SizedBox(height: compact ? 26 : 38),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
@@ -143,7 +164,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   minimumSize: const Size.fromHeight(54),
                 ),
                 child: Text(
-                  _page == _items.length - 1 ? 'Get started' : 'Continue'),
+                  _page == _items.length - 1 ? 'Get started' : 'Continue',
+                ),
               ),
             ],
           ),
