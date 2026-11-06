@@ -2,7 +2,7 @@
 
 **Your phone listens. Your phone responds.**
 
-Vokey (formerly VoiceMate) is an Android-only, offline-first phone utility built with Flutter and Kotlin.
+Vokey is an Android-only, offline-first phone utility built with Flutter and Kotlin.
 
 > Status: Flutter UI foundation and an early foreground-only clap-test prototype are committed. The production background finder, validated clap/whistle detection, and offline speech recognition are not implemented yet.
 
@@ -40,7 +40,7 @@ flutter build apk --release
 bash scripts/launch_smoke_test.sh build/app/outputs/flutter-apk/app-release.apk  # needs a device/emulator
 ```
 
-Application ID: `com.dev.vokey` (changed from `com.dev.voicemate` during the Vokey rebrand, before any Play release; a device with the old build keeps it as a separate app). Target/compile SDK 36, min SDK 24. Without `android/key.properties` the release build is debug-signed for testing only — see [Release Signing](docs/RELEASE_SIGNING.md).
+Application ID: `com.dev.vokey`. Target/compile SDK 36, min SDK 24. Without `android/key.properties` the release build is debug-signed for testing only — see [Release Signing](docs/RELEASE_SIGNING.md).
 
 Launcher icons are generated from `assets/branding/vokey_icon_1024.png` with `dart run flutter_launcher_icons`. The Play Store icon is `assets/branding/vokey_play_store_icon_512.png`.
 
@@ -48,7 +48,7 @@ Launcher icons are generated from `assets/branding/vokey_icon_1024.png` with `da
 
 The repository includes a privacy policy draft and Play Store metadata checklist. The privacy policy is not yet hosted at a public HTTPS URL. To publish it, enable GitHub Pages for this repository (deploy from the main branch root); then verify the public page at:
 
-`https://maheshpawar32.github.io/voicemate/privacy_policy.html`
+`https://maheshpawar32.github.io/vokey/privacy_policy.html`
 
 Replace `REPLACE_WITH_SUPPORT_EMAIL` before publishing. Add the final policy URL inside the app and in Play Console. The artwork pack's screen images are design mockups, not genuine app screenshots; capture screenshots from the built app for Play submission.
 

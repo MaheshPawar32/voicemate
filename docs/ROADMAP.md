@@ -1,4 +1,4 @@
-# Vokey Roadmap (formerly VoiceMate)
+# Vokey Roadmap
 
 ## Phase 0 – Repository setup
 - [x] Dedicated repository and product/UI/architecture/privacy documentation.
