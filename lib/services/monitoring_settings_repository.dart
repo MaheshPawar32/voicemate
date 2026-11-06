@@ -1,5 +1,7 @@
 import 'package:hive/hive.dart';
 
+import '../core/storage/safe_read.dart';
+
 class MonitoringPreferences {
   const MonitoringPreferences({
     this.clapEnabled = true,
@@ -38,15 +40,15 @@ class MonitoringPreferences {
   };
 
   Map<String, Object> toMap() => {
-    'clap_enabled': clapEnabled,
-    'whistle_enabled': whistleEnabled,
-    'clap_sensitivity': clapSensitivity,
-    'whistle_sensitivity': whistleSensitivity,
-    'auto_stop_minutes': autoStopMinutes,
-    'quiet_hours_enabled': quietHoursEnabled,
-    'quiet_start': quietStart,
-    'quiet_end': quietEnd,
-  };
+        'clap_enabled': clapEnabled,
+        'whistle_enabled': whistleEnabled,
+        'clap_sensitivity': clapSensitivity,
+        'whistle_sensitivity': whistleSensitivity,
+        'auto_stop_minutes': autoStopMinutes,
+        'quiet_hours_enabled': quietHoursEnabled,
+        'quiet_start': quietStart,
+        'quiet_end': quietEnd,
+      };
 
   Map<String, Object> toPlatformMap() => toMap();
 }
@@ -64,7 +66,7 @@ class MonitoringSettingsRepository {
 
     final clapSensitivity = map['clap_sensitivity'];
     final whistleSensitivity = map['whistle_sensitivity'];
-    final autoStop = (map['auto_stop_minutes'] as num?)?.toInt() ?? 0;
+    final autoStop = readInt(map['auto_stop_minutes'], 0);
     return MonitoringPreferences(
       clapEnabled: map['clap_enabled'] != false,
       whistleEnabled: map['whistle_enabled'] != false,
@@ -72,13 +74,14 @@ class MonitoringSettingsRepository {
           MonitoringPreferences.sensitivityOptions.containsKey(clapSensitivity)
               ? clapSensitivity as String
               : 'normal',
-      whistleSensitivity:
-          MonitoringPreferences.sensitivityOptions.containsKey(whistleSensitivity)
-              ? whistleSensitivity as String
-              : 'normal',
-      autoStopMinutes: MonitoringPreferences.autoStopOptions.containsKey(autoStop)
-          ? autoStop
-          : 0,
+      whistleSensitivity: MonitoringPreferences.sensitivityOptions
+              .containsKey(whistleSensitivity)
+          ? whistleSensitivity as String
+          : 'normal',
+      autoStopMinutes:
+          MonitoringPreferences.autoStopOptions.containsKey(autoStop)
+              ? autoStop
+              : 0,
       quietHoursEnabled: map['quiet_hours_enabled'] == true,
       quietStart: _normalizeTime(map['quiet_start'], '22:00'),
       quietEnd: _normalizeTime(map['quiet_end'], '07:00'),
@@ -95,8 +98,12 @@ class MonitoringSettingsRepository {
     final pieces = value.split(':');
     final hour = int.tryParse(pieces[0]);
     final minute = int.tryParse(pieces[1]);
-    if (hour == null || minute == null ||
-        hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+    if (hour == null ||
+        minute == null ||
+        hour < 0 ||
+        hour > 23 ||
+        minute < 0 ||
+        minute > 59) {
       return fallback;
     }
     return value;

@@ -42,7 +42,7 @@ def verify_archive(archive_path: str, readelf: str, min_alignment: int) -> int:
         for info in native_entries:
             checked += 1
             data = archive.read(info)
-            temp_name = f"/tmp/voicemate_16kb_{checked}.so"
+            temp_name = f"/tmp/vokey_16kb_{checked}.so"
             with open(temp_name, "wb") as output:
                 output.write(data)
 

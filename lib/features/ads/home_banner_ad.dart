@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../../core/ads/ad_ids.dart';
 import '../../services/admob_service.dart';
 
 class HomeBannerAd extends StatefulWidget {
@@ -12,17 +12,10 @@ class HomeBannerAd extends StatefulWidget {
 }
 
 class _HomeBannerAdState extends State<HomeBannerAd> {
-  static const _configuredBannerId =
-      String.fromEnvironment('ADMOB_BANNER_ID');
-  static const _testBannerId = 'ca-app-pub-3940256099942544/6300978111';
-
   BannerAd? _banner;
   bool _loading = false;
 
-  String get _adUnitId {
-    if (_configuredBannerId.isNotEmpty) return _configuredBannerId;
-    return kDebugMode ? _testBannerId : '';
-  }
+  String get _adUnitId => AdIds.banner;
 
   @override
   void dispose() {
@@ -66,34 +59,35 @@ class _HomeBannerAdState extends State<HomeBannerAd> {
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
-    animation: AdMobService.instance,
-    builder: (context, _) {
-      final service = AdMobService.instance;
-      if (!service.initialized || !service.canRequestAds ||
-          _adUnitId.isEmpty) {
-        if (_banner != null) {
-          final previous = _banner;
-          _banner = null;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            previous?.dispose();
-          });
-        }
-        return const SizedBox.shrink();
-      }
-      if (_banner == null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _loadBanner();
-        });
-        return const SizedBox.shrink();
-      }
-      return SafeArea(
-        top: false,
-        child: SizedBox(
-          width: double.infinity,
-          height: _banner!.size.height.toDouble(),
-          child: Center(child: AdWidget(ad: _banner!)),
-        ),
+        animation: AdMobService.instance,
+        builder: (context, _) {
+          final service = AdMobService.instance;
+          if (!service.initialized ||
+              !service.canRequestAds ||
+              _adUnitId.isEmpty) {
+            if (_banner != null) {
+              final previous = _banner;
+              _banner = null;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                previous?.dispose();
+              });
+            }
+            return const SizedBox.shrink();
+          }
+          if (_banner == null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _loadBanner();
+            });
+            return const SizedBox.shrink();
+          }
+          return SafeArea(
+            top: false,
+            child: SizedBox(
+              width: double.infinity,
+              height: _banner!.size.height.toDouble(),
+              child: Center(child: AdWidget(ad: _banner!)),
+            ),
+          );
+        },
       );
-    },
-  );
 }

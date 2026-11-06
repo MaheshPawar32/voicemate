@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../app/voicemate_app.dart';
+import '../../app/vokey_app.dart';
 import '../../services/history_repository.dart';
 
 class HistoryScreen extends StatelessWidget {
@@ -9,7 +9,7 @@ class HistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final box = Hive.box<dynamic>('voicemate_settings');
+    final box = Hive.box<dynamic>('vokey_settings');
     final repository = HistoryRepository(box);
     return SafeArea(
       child: ValueListenableBuilder<Box<dynamic>>(
@@ -22,14 +22,16 @@ class HistoryScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 22, 20, 12),
                 sliver: SliverToBoxAdapter(
                   child: Row(children: [
-                    const Expanded(child: Column(
+                    const Expanded(
+                        child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('History', style: TextStyle(
-                          fontSize: 28, fontWeight: FontWeight.w800)),
+                        Text('History',
+                            style: TextStyle(
+                                fontSize: 28, fontWeight: FontWeight.w800)),
                         SizedBox(height: 6),
                         Text('Detection events stored on this phone.',
-                          style: TextStyle(color: VoiceMateApp.muted)),
+                            style: TextStyle(color: VokeyApp.muted)),
                       ],
                     )),
                     if (events.isNotEmpty)
@@ -43,7 +45,7 @@ class HistoryScreen extends StatelessWidget {
               ),
               if (events.isEmpty)
                 const SliverFillRemaining(
-                  hasScrollBody: false, child: _EmptyHistory())
+                    hasScrollBody: false, child: _EmptyHistory())
               else
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
@@ -62,21 +64,22 @@ class HistoryScreen extends StatelessWidget {
   }
 
   Future<void> _confirmClear(
-    BuildContext context, HistoryRepository repository,
+    BuildContext context,
+    HistoryRepository repository,
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Clear detection history?'),
         content: const Text(
-          'This permanently removes event history stored by VoiceMate on this phone.'),
+            'This permanently removes event history stored by Vokey on this phone.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel')),
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel')),
           FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Clear history')),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Clear history')),
         ],
       ),
     );
@@ -89,24 +92,24 @@ class _EmptyHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(30),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.history_rounded, size: 58,
-          color: VoiceMateApp.cyan.withValues(alpha: .75)),
-        const SizedBox(height: 16),
-        const Text('No detection events yet', style: TextStyle(
-          fontSize: 18, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 8),
-        const Text(
-          'Clap and whistle detections made by the finder and foreground test appear here. '
-          'VoiceMate stores event details only, never microphone recordings.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: VoiceMateApp.muted, height: 1.5)),
-      ],
-    ),
-  );
+        padding: const EdgeInsets.all(30),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.history_rounded,
+                size: 58, color: VokeyApp.cyan.withValues(alpha: .75)),
+            const SizedBox(height: 16),
+            const Text('No detection events yet',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            const Text(
+                'Clap and whistle detections made by the finder and foreground test appear here. '
+                'Vokey stores event details only, never microphone recordings.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: VokeyApp.muted, height: 1.5)),
+          ],
+        ),
+      );
 }
 
 class _HistoryTile extends StatelessWidget {
@@ -115,8 +118,8 @@ class _HistoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final date = DateTime.fromMillisecondsSinceEpoch(
-      event['timestamp'] as int).toLocal();
+    final date = DateTime.fromMillisecondsSinceEpoch(event['timestamp'] as int)
+        .toLocal();
     final metadata = event['metadata'] as Map<String, dynamic>;
     final count = metadata['clap_count'];
     final eventType = event['event_type'] as String;
@@ -127,36 +130,33 @@ class _HistoryTile extends StatelessWidget {
         '${date.month.toString().padLeft(2, '0')}/${date.year} · '
         '${date.hour.toString().padLeft(2, '0')}:'
         '${date.minute.toString().padLeft(2, '0')}';
-    return Card(child: ListTile(
+    return Card(
+        child: ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
       leading: CircleAvatar(
-        backgroundColor: const Color(0x2226D9E8),
-        child: Icon(
-          isVoice
-              ? Icons.record_voice_over_rounded
-              : (isWhistle
-                  ? Icons.graphic_eq_rounded
-                  : Icons.back_hand_rounded),
-          color: VoiceMateApp.cyan)),
+          backgroundColor: const Color(0x2226D9E8),
+          child: Icon(
+              isVoice
+                  ? Icons.record_voice_over_rounded
+                  : (isWhistle
+                      ? Icons.graphic_eq_rounded
+                      : Icons.back_hand_rounded),
+              color: VokeyApp.cyan)),
       title: Text(
-        eventType == 'voice_find_phone'
-            ? 'Voice command · Find phone'
-            : (eventType == 'voice_lock_phone'
-                ? 'Voice command · Lock phone'
-                : (isWhistle
-                    ? 'Whistle-like tone detected'
-                    : (eventType == 'clap_monitor_detected'
-                        ? 'Phone finder triggered by clap'
-                        : 'Clap detected in test'))),
-        style: const TextStyle(fontWeight: FontWeight.w700)),
+          eventType == 'voice_find_phone'
+              ? 'Voice command · Find phone'
+              : (eventType == 'voice_lock_phone'
+                  ? 'Voice command · Lock phone'
+                  : (isWhistle
+                      ? 'Whistle-like tone detected'
+                      : (eventType == 'clap_monitor_detected'
+                          ? 'Phone finder triggered by clap'
+                          : 'Clap detected in test'))),
+          style: const TextStyle(fontWeight: FontWeight.w700)),
       subtitle: Text(
-        '${isVoice
-            ? dateText
-            : (isWhistle
-                ? '${metadata['whistle_frequency_hz'] ?? 0} Hz · $dateText'
-                : (count is int ? 'Detected clap #$count · $dateText' : dateText))}'
-        '${quietHours ? ' · Alerts muted (quiet hours)' : ''}',
-        style: const TextStyle(color: VoiceMateApp.muted)),
+          '${isVoice ? dateText : (isWhistle ? '${metadata['whistle_frequency_hz'] ?? 0} Hz · $dateText' : (count is int ? 'Detected clap #$count · $dateText' : dateText))}'
+          '${quietHours ? ' · Alerts muted (quiet hours)' : ''}',
+          style: const TextStyle(color: VokeyApp.muted)),
     ));
   }
 }

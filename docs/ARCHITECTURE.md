@@ -1,4 +1,4 @@
-# VoiceMate Architecture
+# Vokey Architecture
 
 ## System
 ```text
@@ -37,7 +37,7 @@ lib/
 Use VelocityX/VxStore; do not add Riverpod, Provider, GetX or BLoC without an explicit decision. Keep detection algorithms outside widgets.
 
 ## Kotlin package
-`android/app/src/main/kotlin/com/dev/voicemate/`
+`android/app/src/main/kotlin/com/dev/vokey/`
 - MainActivity.kt – channel registration/lifecycle
 - VoiceMonitoringService.kt – foreground service
 - AudioCaptureManager.kt – sole AudioRecord owner
@@ -71,7 +71,7 @@ Hive stores preferences and event metadata only. Audio buffers remain transient.
 The repository includes an early diagnostic-only microphone path:
 - Flutter screen: `ClapTestScreen`
 - Dart bridge: `ClapTestService`
-- Native channel: `com.dev.voicemate/audio_test/methods` and `com.dev.voicemate/audio_test/events`
+- Native channel: `com.dev.vokey/audio_test/methods` and `com.dev.vokey/audio_test/events`
 - Kotlin capture owner: `AudioCaptureManager`
 - Pure signal detector: `ClapDetector`
 

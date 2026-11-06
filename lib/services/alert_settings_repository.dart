@@ -1,6 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 
+import '../core/storage/safe_read.dart';
+
 class AlertPreferences {
   const AlertPreferences({
     this.soundEnabled = true,
@@ -23,15 +25,15 @@ class AlertPreferences {
   final String flashPattern;
 
   Map<String, Object> toPlatformMap() => {
-    'sound_enabled': soundEnabled,
-    'vibration_enabled': vibrationEnabled,
-    'sound_id': soundId,
-    'alert_volume': volume,
-    'alert_duration_seconds': durationSeconds,
-    'repeat_enabled': repeatEnabled,
-    'flashlight_enabled': flashlightEnabled,
-    'flash_pattern': flashPattern,
-  };
+        'sound_enabled': soundEnabled,
+        'vibration_enabled': vibrationEnabled,
+        'sound_id': soundId,
+        'alert_volume': volume,
+        'alert_duration_seconds': durationSeconds,
+        'repeat_enabled': repeatEnabled,
+        'flashlight_enabled': flashlightEnabled,
+        'flash_pattern': flashPattern,
+      };
 }
 
 class AlertSettingsRepository {
@@ -61,46 +63,40 @@ class AlertSettingsRepository {
   };
 
   AlertPreferences read() => AlertPreferences(
-    soundEnabled: _box.get(_soundEnabled, defaultValue: true) == true,
-    vibrationEnabled: _box.get(_vibrationEnabled, defaultValue: true) == true,
-    soundId: supportedSounds.containsKey(
-      _box.get(_soundId, defaultValue: 'classic_beep'))
-        ? _box.get(_soundId, defaultValue: 'classic_beep') as String
-        : 'classic_beep',
-    volume: ((_box.get(_volume, defaultValue: 80) as num?)?.toInt() ?? 80)
-      .clamp(0, 100).toInt(),
-    durationSeconds:
-      ((_box.get(_duration, defaultValue: 5) as num?)?.toInt() ?? 5)
-        .clamp(1, 30).toInt(),
-    repeatEnabled: _box.get(_repeat, defaultValue: true) == true,
-    flashlightEnabled: _box.get(_flashlightEnabled, defaultValue: false) == true,
-    flashPattern: supportedFlashPatterns.containsKey(
-      _box.get(_flashPattern, defaultValue: 'single'))
-        ? _box.get(_flashPattern, defaultValue: 'single') as String
-        : 'single',
-  );
+        soundEnabled: _box.get(_soundEnabled, defaultValue: true) == true,
+        vibrationEnabled:
+            _box.get(_vibrationEnabled, defaultValue: true) == true,
+        soundId: supportedSounds
+                .containsKey(_box.get(_soundId, defaultValue: 'classic_beep'))
+            ? _box.get(_soundId, defaultValue: 'classic_beep') as String
+            : 'classic_beep',
+        volume: readInt(_box.get(_volume), 80).clamp(0, 100).toInt(),
+        durationSeconds: readInt(_box.get(_duration), 5).clamp(1, 30).toInt(),
+        repeatEnabled: _box.get(_repeat, defaultValue: true) == true,
+        flashlightEnabled:
+            _box.get(_flashlightEnabled, defaultValue: false) == true,
+        flashPattern: supportedFlashPatterns
+                .containsKey(_box.get(_flashPattern, defaultValue: 'single'))
+            ? _box.get(_flashPattern, defaultValue: 'single') as String
+            : 'single',
+      );
 
-  Future<void> saveSoundEnabled(bool value) =>
-      _box.put(_soundEnabled, value);
+  Future<void> saveSoundEnabled(bool value) => _box.put(_soundEnabled, value);
   Future<void> saveVibrationEnabled(bool value) =>
       _box.put(_vibrationEnabled, value);
-  Future<void> saveSoundId(String value) =>
-      _box.put(_soundId, supportedSounds.containsKey(value)
-        ? value : 'classic_beep');
-  Future<void> saveVolume(int value) =>
-      _box.put(_volume, value.clamp(0, 100));
+  Future<void> saveSoundId(String value) => _box.put(
+      _soundId, supportedSounds.containsKey(value) ? value : 'classic_beep');
+  Future<void> saveVolume(int value) => _box.put(_volume, value.clamp(0, 100));
   Future<void> saveDuration(int value) =>
       _box.put(_duration, value.clamp(1, 30));
-  Future<void> saveRepeatEnabled(bool value) =>
-      _box.put(_repeat, value);
+  Future<void> saveRepeatEnabled(bool value) => _box.put(_repeat, value);
   Future<void> saveFlashlightEnabled(bool value) =>
       _box.put(_flashlightEnabled, value);
-  Future<void> saveFlashPattern(String value) =>
-      _box.put(_flashPattern, supportedFlashPatterns.containsKey(value)
-        ? value : 'single');
+  Future<void> saveFlashPattern(String value) => _box.put(_flashPattern,
+      supportedFlashPatterns.containsKey(value) ? value : 'single');
 
   Future<void> preview(AlertPreferences preferences) async {
-    const channel = MethodChannel('com.dev.voicemate/monitoring/methods');
+    const channel = MethodChannel('com.dev.vokey/monitoring/methods');
     await channel.invokeMethod<void>(
       'previewAlert',
       preferences.toPlatformMap(),
@@ -108,7 +104,7 @@ class AlertSettingsRepository {
   }
 
   Future<void> stopPreview() async {
-    const channel = MethodChannel('com.dev.voicemate/monitoring/methods');
+    const channel = MethodChannel('com.dev.vokey/monitoring/methods');
     await channel.invokeMethod<void>('stopAlertPreview');
   }
 }

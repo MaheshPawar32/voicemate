@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:voicemate/services/permission_centre_service.dart';
+import 'package:vokey/services/permission_centre_service.dart';
 
 void main() {
   test('identifies monitoring notification readiness', () {

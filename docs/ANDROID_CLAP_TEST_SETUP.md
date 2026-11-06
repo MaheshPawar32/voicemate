@@ -23,5 +23,5 @@ flutter create --platforms=android --org com.dev .
 ```
 
 Then verify the generated namespace and application ID are both
-`com.dev.voicemate`. Keep native sources in
-`android/app/src/main/kotlin/com/dev/voicemate/`.
+`com.dev.vokey`. Keep native sources in
+`android/app/src/main/kotlin/com/dev/vokey/`.

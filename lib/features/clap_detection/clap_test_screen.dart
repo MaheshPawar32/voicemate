@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../app/voicemate_app.dart';
+import '../../app/vokey_app.dart';
 import '../../services/clap_test_service.dart';
 import '../../services/history_repository.dart';
 
@@ -17,7 +17,7 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
   late final HistoryRepository _history;
   StreamSubscription<ClapTestEvent>? _subscription;
   ClapTestEvent _latest = const ClapTestEvent(
-    rms: 0, peak: 0, noiseFloor: 0, clapCount: 0, isClap: false);
+      rms: 0, peak: 0, noiseFloor: 0, clapCount: 0, isClap: false);
   bool _isRunning = false;
   bool _isBusy = false;
   String? _error;
@@ -25,7 +25,7 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
   @override
   void initState() {
     super.initState();
-    _history = HistoryRepository(Hive.box<dynamic>('voicemate_settings'));
+    _history = HistoryRepository(Hive.box<dynamic>('vokey_settings'));
   }
 
   @override
@@ -42,13 +42,13 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
       _isRunning = false;
       _error = null;
       _latest = const ClapTestEvent(
-        rms: 0, peak: 0, noiseFloor: 0, clapCount: 0, isClap: false);
+          rms: 0, peak: 0, noiseFloor: 0, clapCount: 0, isClap: false);
     });
     try {
       final granted = await _service.requestMicrophonePermission();
       if (!granted) {
         throw const ClapTestException(
-          'Microphone permission was not granted. You can enable it in Android app settings.');
+            'Microphone permission was not granted. You can enable it in Android app settings.');
       }
       await _subscription?.cancel();
       _subscription = _service.events.listen((event) {
@@ -60,7 +60,8 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
         });
         if (event.isClap || event.isWhistle) {
           unawaited(_history.record(
-            eventType: event.isClap ? 'clap_test_detected' : 'whistle_test_detected',
+            eventType:
+                event.isClap ? 'clap_test_detected' : 'whistle_test_detected',
             metadata: {
               'clap_count': event.clapCount,
               'whistle_count': event.whistleCount,
@@ -72,7 +73,10 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
         }
       }, onError: (Object error) {
         if (!mounted) return;
-        setState(() { _error = error.toString(); _isRunning = false; });
+        setState(() {
+          _error = error.toString();
+          _isRunning = false;
+        });
       });
       if (mounted) setState(() => _isRunning = true);
       await _service.start();
@@ -81,7 +85,10 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
       _subscription = null;
       await _service.stop();
       if (mounted) {
-        setState(() { _isRunning = false; _error = error.toString(); });
+        setState(() {
+          _isRunning = false;
+          _error = error.toString();
+        });
       }
     } finally {
       if (mounted) setState(() => _isBusy = false);
@@ -100,91 +107,104 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
     final level = (_latest.rms / 10000).clamp(0.0, 1.0).toDouble();
     return Scaffold(
       appBar: AppBar(title: const Text('Clap detection lab')),
-      body: SafeArea(child: ListView(
+      body: SafeArea(
+          child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
         children: [
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: VoiceMateApp.surface,
+              color: VokeyApp.surface,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: VoiceMateApp.cyan.withValues(alpha: .18)),
+              border: Border.all(color: VokeyApp.cyan.withValues(alpha: .18)),
             ),
             child: const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.privacy_tip_outlined, color: VoiceMateApp.cyan),
+                Icon(Icons.privacy_tip_outlined, color: VokeyApp.cyan),
                 SizedBox(width: 12),
-                Expanded(child: Text(
-                  'This test listens only while this screen is open and the test is running. Audio is analysed in memory; VoiceMate does not save or upload recordings.',
-                  style: TextStyle(height: 1.5))),
+                Expanded(
+                    child: Text(
+                        'This test listens only while this screen is open and the test is running. Audio is analysed in memory; Vokey does not save or upload recordings.',
+                        style: TextStyle(height: 1.5))),
               ],
             ),
           ),
           const SizedBox(height: 26),
-          Center(child: AnimatedContainer(
+          Center(
+              child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            width: 154, height: 154,
+            width: 154,
+            height: 154,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: (_latest.isClap || _latest.isWhistle)
-                ? VoiceMateApp.cyan.withValues(alpha: .2)
-                : VoiceMateApp.cyan.withValues(alpha: .06),
+                  ? VokeyApp.cyan.withValues(alpha: .2)
+                  : VokeyApp.cyan.withValues(alpha: .06),
               border: Border.all(
-                color: VoiceMateApp.cyan.withValues(
-                  alpha: _isRunning ? .8 : .25),
-                width: _isRunning ? 2 : 1),
-              boxShadow: (_latest.isClap || _latest.isWhistle) ? [
-                BoxShadow(
-                  color: VoiceMateApp.cyan.withValues(alpha: .22),
-                  blurRadius: 32, spreadRadius: 3),
-              ] : null,
+                  color: VokeyApp.cyan.withValues(alpha: _isRunning ? .8 : .25),
+                  width: _isRunning ? 2 : 1),
+              boxShadow: (_latest.isClap || _latest.isWhistle)
+                  ? [
+                      BoxShadow(
+                          color: VokeyApp.cyan.withValues(alpha: .22),
+                          blurRadius: 32,
+                          spreadRadius: 3),
+                    ]
+                  : null,
             ),
             child: Icon(
-              _latest.isClap ? Icons.waving_hand_rounded
-                : (_latest.isWhistle
-                    ? Icons.graphic_eq_rounded : Icons.hearing_rounded),
-              size: 66, color: VoiceMateApp.cyan),
+                _latest.isClap
+                    ? Icons.waving_hand_rounded
+                    : (_latest.isWhistle
+                        ? Icons.graphic_eq_rounded
+                        : Icons.hearing_rounded),
+                size: 66,
+                color: VokeyApp.cyan),
           )),
           const SizedBox(height: 18),
           Text(
-            _latest.isClap ? 'Clap detected!'
-              : (_latest.isWhistle ? 'Whistle-like tone detected!'
-                : (_isRunning ? 'Listening for claps and whistles'
-                  : 'Ready for a test')),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
+              _latest.isClap
+                  ? 'Clap detected!'
+                  : (_latest.isWhistle
+                      ? 'Whistle-like tone detected!'
+                      : (_isRunning
+                          ? 'Listening for claps and whistles'
+                          : 'Ready for a test')),
+              textAlign: TextAlign.center,
+              style:
+                  const TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
           const SizedBox(height: 7),
           Text(
-            _isRunning
-              ? 'Try a clap and a steady whistle. Sustained tones in the whistle band are detected.'
-              : 'Start the test, then clap or whistle steadily near your phone.',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: VoiceMateApp.muted, height: 1.45)),
+              _isRunning
+                  ? 'Try a clap and a steady whistle. Sustained tones in the whistle band are detected.'
+                  : 'Start the test, then clap or whistle steadily near your phone.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: VokeyApp.muted, height: 1.45)),
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(17),
             decoration: BoxDecoration(
-              color: VoiceMateApp.card,
-              borderRadius: BorderRadius.circular(18)),
+                color: VokeyApp.card, borderRadius: BorderRadius.circular(18)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
-                  const Expanded(child: Text('Live microphone level',
-                    style: TextStyle(fontWeight: FontWeight.w700))),
+                  const Expanded(
+                      child: Text('Live microphone level',
+                          style: TextStyle(fontWeight: FontWeight.w700))),
                   Text('${(level * 100).round()}%',
-                    style: const TextStyle(
-                      color: VoiceMateApp.cyan, fontWeight: FontWeight.w700)),
+                      style: const TextStyle(
+                          color: VokeyApp.cyan, fontWeight: FontWeight.w700)),
                 ]),
                 const SizedBox(height: 12),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: level, minHeight: 10,
-                    backgroundColor: VoiceMateApp.surface,
-                    color: VoiceMateApp.cyan)),
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                        value: level,
+                        minHeight: 10,
+                        backgroundColor: VokeyApp.surface,
+                        color: VokeyApp.cyan)),
                 const SizedBox(height: 18),
                 Row(children: [
                   _Metric(label: 'CLAPS', value: '${_latest.clapCount}'),
@@ -200,32 +220,34 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
           if (_error != null) ...[
             const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFF3A202B),
-                borderRadius: BorderRadius.circular(14)),
-              child: Text(_error!,
-                style: const TextStyle(color: Color(0xFFFFA7B2)))),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                    color: const Color(0xFF3A202B),
+                    borderRadius: BorderRadius.circular(14)),
+                child: Text(_error!,
+                    style: const TextStyle(color: Color(0xFFFFA7B2)))),
           ],
           const SizedBox(height: 22),
           FilledButton.icon(
             onPressed: _isBusy ? null : (_isRunning ? _stop : _start),
-            icon: Icon(_isBusy ? Icons.hourglass_top_rounded
-              : (_isRunning ? Icons.stop_rounded : Icons.mic_rounded)),
-            label: Text(_isBusy ? 'Please wait…'
-              : (_isRunning ? 'Stop test' : 'Start clap test')),
+            icon: Icon(_isBusy
+                ? Icons.hourglass_top_rounded
+                : (_isRunning ? Icons.stop_rounded : Icons.mic_rounded)),
+            label: Text(_isBusy
+                ? 'Please wait…'
+                : (_isRunning ? 'Stop test' : 'Start clap test')),
             style: FilledButton.styleFrom(
-              backgroundColor: _isRunning
-                ? const Color(0xFFFF657A) : VoiceMateApp.cyan,
-              foregroundColor: const Color(0xFF06111D),
-              minimumSize: const Size.fromHeight(54)),
+                backgroundColor:
+                    _isRunning ? const Color(0xFFFF657A) : VokeyApp.cyan,
+                foregroundColor: const Color(0xFF06111D),
+                minimumSize: const Size.fromHeight(54)),
           ),
           const SizedBox(height: 14),
           const Text(
-            'This is a foreground diagnostic. Sustained electronic tones can resemble whistles; test in real environments before relying on detection.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: VoiceMateApp.muted, fontSize: 12, height: 1.5)),
+              'This is a foreground diagnostic. Sustained electronic tones can resemble whistles; test in real environments before relying on detection.',
+              textAlign: TextAlign.center,
+              style:
+                  TextStyle(color: VokeyApp.muted, fontSize: 12, height: 1.5)),
         ],
       )),
     );
@@ -238,14 +260,17 @@ class _Metric extends StatelessWidget {
   final String value;
 
   @override
-  Widget build(BuildContext context) => Expanded(child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(label, style: const TextStyle(
-        color: VoiceMateApp.muted, fontSize: 10, letterSpacing: 1.1)),
-      const SizedBox(height: 5),
-      Text(value, style: const TextStyle(
-        fontSize: 18, fontWeight: FontWeight.w800)),
-    ],
-  ));
+  Widget build(BuildContext context) => Expanded(
+          child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  color: VokeyApp.muted, fontSize: 10, letterSpacing: 1.1)),
+          const SizedBox(height: 5),
+          Text(value,
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        ],
+      ));
 }

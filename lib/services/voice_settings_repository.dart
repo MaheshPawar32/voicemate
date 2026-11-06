@@ -18,10 +18,10 @@ class VoiceSettingsRepository {
   static const _voiceLockEnabledKey = 'voice_lock_command_enabled';
 
   VoiceSettings read() => VoiceSettings(
-    enabled: _box.get(_voiceEnabledKey, defaultValue: false) == true,
-    lockCommandEnabled:
-        _box.get(_voiceLockEnabledKey, defaultValue: false) == true,
-  );
+        enabled: _box.get(_voiceEnabledKey, defaultValue: false) == true,
+        lockCommandEnabled:
+            _box.get(_voiceLockEnabledKey, defaultValue: false) == true,
+      );
 
   Future<void> setEnabled(bool value) => _box.put(_voiceEnabledKey, value);
 

@@ -5,7 +5,7 @@ Engineering checklist only; re-check current Android and Google Play policies be
 ## Microphone disclosure
 Before requesting permission, explain:
 
-> VoiceMate uses your microphone to detect claps, whistles, and supported voice commands while monitoring is enabled. Audio is processed on your device and is not recorded or uploaded by VoiceMate. A persistent notification indicates active monitoring. You can stop monitoring at any time.
+> Vokey uses your microphone to detect claps, whistles, and supported voice commands while monitoring is enabled. Audio is processed on your device and is not recorded or uploaded by Vokey. A persistent notification indicates active monitoring. You can stop monitoring at any time.
 
 Only make this claim if the implementation and included SDKs support it. Disclose third-party advertising SDK data handling separately.
 

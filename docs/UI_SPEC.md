@@ -1,6 +1,6 @@
-# VoiceMate UI Design Specification
+# Vokey UI Design Specification
 
-Use the generated VoiceMate UI concept image from the project conversation as the visual reference.
+Use the generated Vokey UI concept image from the project conversation as the visual reference.
 
 ## Design tokens
 | Token | Hex |
@@ -26,7 +26,7 @@ Use the generated VoiceMate UI concept image from the project conversation as th
 
 ## Screen composition
 ### Splash
-VoiceMate audio mark, name and tagline. No network wait or forced ad.
+Vokey audio mark, name and tagline. No network wait or forced ad.
 
 ### Onboarding
 Three concise slides: Find your phone; Control your phone; Privacy matters. Skip/Next/Get Started. Request microphone permission only when the user enables a feature.

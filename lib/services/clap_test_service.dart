@@ -10,10 +10,16 @@ class ClapTestException implements Exception {
 
 class ClapTestEvent {
   const ClapTestEvent({
-    required this.rms, required this.peak, required this.noiseFloor,
-    required this.clapCount, required this.isClap,
-    this.isWhistle = false, this.whistleCount = 0,
-    this.whistleFrequencyHz = 0, this.error, this.stopped = false,
+    required this.rms,
+    required this.peak,
+    required this.noiseFloor,
+    required this.clapCount,
+    required this.isClap,
+    this.isWhistle = false,
+    this.whistleCount = 0,
+    this.whistleFrequencyHz = 0,
+    this.error,
+    this.stopped = false,
   });
   final double rms;
   final double peak;
@@ -36,8 +42,7 @@ class ClapTestEvent {
       isClap: map['is_clap'] == true || type == 'clap',
       isWhistle: map['is_whistle'] == true,
       whistleCount: (map['whistle_count'] as num?)?.toInt() ?? 0,
-      whistleFrequencyHz:
-          (map['whistle_frequency_hz'] as num?)?.toInt() ?? 0,
+      whistleFrequencyHz: (map['whistle_frequency_hz'] as num?)?.toInt() ?? 0,
       error: type == 'error' ? map['message'] as String? : null,
       stopped: type == 'stopped',
     );
@@ -45,19 +50,25 @@ class ClapTestEvent {
 }
 
 class ClapTestService {
-  static const MethodChannel _methods = MethodChannel('com.dev.voicemate/audio_test/methods');
-  static const EventChannel _events = EventChannel('com.dev.voicemate/audio_test/events');
+  static const MethodChannel _methods =
+      MethodChannel('com.dev.vokey/audio_test/methods');
+  static const EventChannel _events =
+      EventChannel('com.dev.vokey/audio_test/events');
 
-  Stream<ClapTestEvent> get events => _events.receiveBroadcastStream()
+  Stream<ClapTestEvent> get events => _events
+      .receiveBroadcastStream()
       .map((event) => ClapTestEvent.fromMap(event as Map<dynamic, dynamic>));
 
   Future<bool> requestMicrophonePermission() async {
     try {
-      return await _methods.invokeMethod<bool>('requestMicrophonePermission') ?? false;
+      return await _methods.invokeMethod<bool>('requestMicrophonePermission') ??
+          false;
     } on PlatformException catch (error) {
-      throw ClapTestException(error.message ?? 'Could not request microphone permission.');
+      throw ClapTestException(
+          error.message ?? 'Could not request microphone permission.');
     } on MissingPluginException {
-      throw const ClapTestException('Android native audio is not connected yet. Generate the Android platform folder first.');
+      throw const ClapTestException(
+          'Android native audio is not connected yet. Generate the Android platform folder first.');
     }
   }
 
@@ -65,9 +76,11 @@ class ClapTestService {
     try {
       await _methods.invokeMethod<void>('startClapTest');
     } on PlatformException catch (error) {
-      throw ClapTestException(error.message ?? 'Could not start the clap test.');
+      throw ClapTestException(
+          error.message ?? 'Could not start the clap test.');
     } on MissingPluginException {
-      throw const ClapTestException('Android native audio is not connected yet. Generate the Android platform folder first.');
+      throw const ClapTestException(
+          'Android native audio is not connected yet. Generate the Android platform folder first.');
     }
   }
 

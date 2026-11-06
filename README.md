@@ -1,13 +1,13 @@
-# VoiceMate – Voice Control & Phone Finder
+# Vokey – Voice Control & Phone Finder
 
 **Your phone listens. Your phone responds.**
 
-VoiceMate is an Android-only, offline-first phone utility built with Flutter and Kotlin.
+Vokey (formerly VoiceMate) is an Android-only, offline-first phone utility built with Flutter and Kotlin.
 
 > Status: Flutter UI foundation and an early foreground-only clap-test prototype are committed. The production background finder, validated clap/whistle detection, and offline speech recognition are not implemented yet.
 
 ## Product principles
-- Android application ID: `com.dev.voicemate`
+- Android application ID: `com.dev.vokey`
 - Flutter UI + Kotlin Android services.
 - Hive for local settings. VelocityX/VxStore integration remains planned; the current screens use Flutter Material 3.
 - No login, backend, cloud database, or analytics.
@@ -29,23 +29,20 @@ VoiceMate is an Android-only, offline-first phone utility built with Flutter and
 
 ## Setup
 
-1. Install Flutter stable, Android SDK and Python 3.
-2. Run the bootstrap script **once** to generate the Android Gradle project and launcher icons from the committed 512px app icon:
+The Android Gradle project under `android/` is committed and is the single source of truth (the old `bootstrap_android.sh` regeneration step was removed because CI-generated projects silently diverged from local ones — see `docs/STARTUP_CRASH_2026-11.md`).
 
 ```bash
-chmod +x bootstrap_android.sh
-./bootstrap_android.sh
-```
-
-3. Then run:
-
-```bash
+flutter pub get
 flutter analyze
 flutter test
-flutter run
+(cd android && ./gradlew :app:testDebugUnitTest)   # Kotlin detector tests
+flutter build apk --release
+bash scripts/launch_smoke_test.sh build/app/outputs/flutter-apk/app-release.apk  # needs a device/emulator
 ```
 
-The script generates the Android platform wrapper, adds the microphone permission, configures target SDK 36, generates the VoiceMate launcher icon, and prepares optional JKS-based release signing. Verify the application ID is exactly `com.dev.voicemate`. Do not rerun the bootstrap script after making custom Android project changes because it regenerates the Android directory. See [Release Signing](docs/RELEASE_SIGNING.md) to enable signed release APK/AAB builds in GitHub Actions.
+Application ID: `com.dev.vokey` (changed from `com.dev.voicemate` during the Vokey rebrand, before any Play release; a device with the old build keeps it as a separate app). Target/compile SDK 36, min SDK 24. Without `android/key.properties` the release build is debug-signed for testing only — see [Release Signing](docs/RELEASE_SIGNING.md).
+
+Launcher icons are generated from `assets/branding/vokey_icon_1024.png` with `dart run flutter_launcher_icons`. The Play Store icon is `assets/branding/vokey_play_store_icon_512.png`.
 
 ## Store listing and policy
 

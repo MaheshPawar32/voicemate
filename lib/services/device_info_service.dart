@@ -29,8 +29,7 @@ class BatterySnapshot {
   final int appMemoryPssMb;
   final bool lowMemory;
 
-  factory BatterySnapshot.fromMap(Map<dynamic, dynamic> map) =>
-      BatterySnapshot(
+  factory BatterySnapshot.fromMap(Map<dynamic, dynamic> map) => BatterySnapshot(
         levelPercent: (map['level_percent'] as num?)?.toInt() ?? -1,
         status: map['status'] as String? ?? 'unknown',
         pluggedSource: map['plugged_source'] as String? ?? 'none',
@@ -38,8 +37,7 @@ class BatterySnapshot {
         temperatureC: (map['temperature_c'] as num?)?.toDouble() ?? -1,
         voltageMv: (map['voltage_mv'] as num?)?.toInt() ?? -1,
         powerSaveMode: map['power_save_mode'] == true,
-        batteryOptimizationIgnored:
-            map['battery_optimization_ignored'] == true,
+        batteryOptimizationIgnored: map['battery_optimization_ignored'] == true,
         totalRamMb: (map['total_ram_mb'] as num?)?.toInt() ?? -1,
         availableRamMb: (map['available_ram_mb'] as num?)?.toInt() ?? -1,
         appMemoryPssMb: (map['app_memory_pss_mb'] as num?)?.toInt() ?? -1,
@@ -49,22 +47,23 @@ class BatterySnapshot {
 
 class DeviceInfoService {
   static const MethodChannel _channel =
-      MethodChannel('com.dev.voicemate/device/methods');
+      MethodChannel('com.dev.vokey/device/methods');
 
   Future<BatterySnapshot> getBatterySnapshot() async {
     try {
       final result =
           await _channel.invokeMapMethod<dynamic, dynamic>('getBatteryInfo');
       if (result == null) {
-        throw const DeviceInfoException('Android returned no battery information.');
+        throw const DeviceInfoException(
+            'Android returned no battery information.');
       }
       return BatterySnapshot.fromMap(result);
     } on PlatformException catch (error) {
       throw DeviceInfoException(
-        error.message ?? 'Could not read battery information.');
+          error.message ?? 'Could not read battery information.');
     } on MissingPluginException {
       throw const DeviceInfoException(
-        'Battery information is available only on Android.');
+          'Battery information is available only on Android.');
     }
   }
 }

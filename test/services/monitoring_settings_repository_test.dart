@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-import 'package:voicemate/services/monitoring_settings_repository.dart';
+import 'package:vokey/services/monitoring_settings_repository.dart';
 
 void main() {
   late Directory directory;
@@ -10,7 +10,7 @@ void main() {
   late MonitoringSettingsRepository repository;
 
   setUp(() async {
-    directory = await Directory.systemTemp.createTemp('voicemate_monitoring_');
+    directory = await Directory.systemTemp.createTemp('vokey_monitoring_');
     Hive.init(directory.path);
     box = await Hive.openBox<dynamic>('monitoring_settings_test');
     repository = MonitoringSettingsRepository(box);
@@ -34,7 +34,8 @@ void main() {
     expect(settings.quietEnd, '07:00');
   });
 
-  test('persists independent detector, sensitivity and schedule options', () async {
+  test('persists independent detector, sensitivity and schedule options',
+      () async {
     const settings = MonitoringPreferences(
       clapEnabled: false,
       whistleEnabled: true,

@@ -2,17 +2,17 @@ import 'package:flutter/services.dart';
 
 class VoiceLockService {
   static const MethodChannel _channel =
-      MethodChannel('com.dev.voicemate/monitoring/methods');
+      MethodChannel('com.dev.vokey/monitoring/methods');
 
   Future<bool> isAdminActive() async {
     try {
       return await _channel.invokeMethod<bool>('getLockAdminStatus') ?? false;
     } on PlatformException catch (error) {
       throw VoiceLockException(
-        error.message ?? 'Could not read screen-lock permission status.');
+          error.message ?? 'Could not read screen-lock permission status.');
     } on MissingPluginException {
       throw const VoiceLockException(
-        'Android screen-lock integration is not available.');
+          'Android screen-lock integration is not available.');
     }
   }
 
@@ -21,7 +21,7 @@ class VoiceLockService {
       await _channel.invokeMethod<void>('requestLockAdminActivation');
     } on PlatformException catch (error) {
       throw VoiceLockException(
-        error.message ?? 'Could not request screen-lock permission.');
+          error.message ?? 'Could not request screen-lock permission.');
     }
   }
 
@@ -29,11 +29,11 @@ class VoiceLockService {
     try {
       final locked = await _channel.invokeMethod<bool>('lockDeviceNow');
       if (locked != true) {
-        throw const VoiceLockException('Android did not confirm the lock action.');
+        throw const VoiceLockException(
+            'Android did not confirm the lock action.');
       }
     } on PlatformException catch (error) {
-      throw VoiceLockException(
-        error.message ?? 'Could not lock this device.');
+      throw VoiceLockException(error.message ?? 'Could not lock this device.');
     }
   }
 }

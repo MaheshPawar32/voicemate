@@ -47,8 +47,7 @@ class FinderMonitoringEvent {
         totalBytes: (map['total_bytes'] as num?)?.toInt() ?? 0,
         clapCount: (map['clap_count'] as num?)?.toInt() ?? 0,
         whistleCount: (map['whistle_count'] as num?)?.toInt() ?? 0,
-        whistleFrequencyHz:
-            (map['whistle_frequency_hz'] as num?)?.toInt() ?? 0,
+        whistleFrequencyHz: (map['whistle_frequency_hz'] as num?)?.toInt() ?? 0,
         rms: (map['rms'] as num?)?.toDouble() ?? 0,
         peak: (map['peak'] as num?)?.toDouble() ?? 0,
         timestamp: (map['timestamp'] as num?)?.toInt(),
@@ -57,71 +56,71 @@ class FinderMonitoringEvent {
 
 class FinderMonitoringService {
   static const MethodChannel _methods =
-      MethodChannel('com.dev.voicemate/monitoring/methods');
+      MethodChannel('com.dev.vokey/monitoring/methods');
   static const MethodChannel _permissionMethods =
-      MethodChannel('com.dev.voicemate/audio_test/methods');
+      MethodChannel('com.dev.vokey/audio_test/methods');
   static const EventChannel _events =
-      EventChannel('com.dev.voicemate/monitoring/events');
+      EventChannel('com.dev.vokey/monitoring/events');
 
   static final Stream<FinderMonitoringEvent> _sharedEvents = _events
       .receiveBroadcastStream()
-      .map((value) => FinderMonitoringEvent.fromMap(
-          value as Map<dynamic, dynamic>))
+      .map((value) =>
+          FinderMonitoringEvent.fromMap(value as Map<dynamic, dynamic>))
       .asBroadcastStream();
 
   Stream<FinderMonitoringEvent> get events => _sharedEvents;
 
   Future<bool> requestMicrophonePermission() async {
     try {
-      return await _permissionMethods.invokeMethod<bool>(
-            'requestMicrophonePermission') ??
+      return await _permissionMethods
+              .invokeMethod<bool>('requestMicrophonePermission') ??
           false;
     } on PlatformException catch (error) {
       throw FinderMonitoringException(
-        error.message ?? 'Could not request microphone permission.');
+          error.message ?? 'Could not request microphone permission.');
     } on MissingPluginException {
       throw const FinderMonitoringException(
-        'Android microphone integration is not available.');
+          'Android microphone integration is not available.');
     }
   }
 
   Future<bool> requestCameraPermission() async {
     try {
-      return await _methods.invokeMethod<bool>(
-            'requestCameraPermission') ??
+      return await _methods.invokeMethod<bool>('requestCameraPermission') ??
           false;
     } on PlatformException catch (error) {
       throw FinderMonitoringException(
-        error.message ?? 'Could not request camera permission.');
+          error.message ?? 'Could not request camera permission.');
     } on MissingPluginException {
       throw const FinderMonitoringException(
-        'Android flashlight permission integration is not available.');
+          'Android flashlight permission integration is not available.');
     }
   }
 
   Future<bool> requestNotificationPermission() async {
     try {
-      return await _methods.invokeMethod<bool>(
-            'requestNotificationPermission') ??
+      return await _methods
+              .invokeMethod<bool>('requestNotificationPermission') ??
           false;
     } on PlatformException catch (error) {
       throw FinderMonitoringException(
-        error.message ?? 'Could not request notification permission.');
+          error.message ?? 'Could not request notification permission.');
     } on MissingPluginException {
       throw const FinderMonitoringException(
-        'Android notification permission integration is not available.');
+          'Android notification permission integration is not available.');
     }
   }
 
   Future<bool> isVoiceModelInstalled() async {
     try {
-      return await _methods.invokeMethod<bool>('isVoiceModelInstalled') ?? false;
+      return await _methods.invokeMethod<bool>('isVoiceModelInstalled') ??
+          false;
     } on PlatformException catch (error) {
       throw FinderMonitoringException(
-        error.message ?? 'Could not check the offline voice model.');
+          error.message ?? 'Could not check the offline voice model.');
     } on MissingPluginException {
       throw const FinderMonitoringException(
-        'Android voice model integration is not available.');
+          'Android voice model integration is not available.');
     }
   }
 
@@ -130,10 +129,10 @@ class FinderMonitoringService {
       await _methods.invokeMethod<String>('installVoiceModel');
     } on PlatformException catch (error) {
       throw FinderMonitoringException(
-        error.message ?? 'Could not install the offline voice model.');
+          error.message ?? 'Could not install the offline voice model.');
     } on MissingPluginException {
       throw const FinderMonitoringException(
-        'Android voice model integration is not available.');
+          'Android voice model integration is not available.');
     }
   }
 
@@ -152,10 +151,10 @@ class FinderMonitoringService {
       });
     } on PlatformException catch (error) {
       throw FinderMonitoringException(
-        error.message ?? 'Could not start phone finder monitoring.');
+          error.message ?? 'Could not start phone finder monitoring.');
     } on MissingPluginException {
       throw const FinderMonitoringException(
-        'Android monitoring service is not available.');
+          'Android monitoring service is not available.');
     }
   }
 
@@ -164,24 +163,30 @@ class FinderMonitoringService {
       await _methods.invokeMethod<void>('stopMonitoring');
     } on PlatformException catch (error) {
       throw FinderMonitoringException(
-        error.message ?? 'Could not stop phone finder monitoring.');
+          error.message ?? 'Could not stop phone finder monitoring.');
     } on MissingPluginException {
       throw const FinderMonitoringException(
-        'Android monitoring service is not available.');
+          'Android monitoring service is not available.');
     }
   }
 
-  Future<bool> isActive() async {
+  /// Full native status snapshot (schema_version 1). Older builds returned a
+  /// bare bool, which is still accepted.
+  Future<Map<String, dynamic>> status() async {
     try {
-      return await _methods.invokeMethod<bool>('getMonitoringStatus') ?? false;
+      final raw = await _methods.invokeMethod<Object?>('getMonitoringStatus');
+      if (raw is Map) return Map<String, dynamic>.from(raw);
+      return {'active': raw == true};
     } on PlatformException catch (error) {
       throw FinderMonitoringException(
-        error.message ?? 'Could not read monitoring status.');
+          error.message ?? 'Could not read monitoring status.');
     } on MissingPluginException {
       throw const FinderMonitoringException(
-        'Android monitoring service is not available.');
+          'Android monitoring service is not available.');
     }
   }
+
+  Future<bool> isActive() async => (await status())['active'] == true;
 }
 
 class FinderMonitoringException implements Exception {

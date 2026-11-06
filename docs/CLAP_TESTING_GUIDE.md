@@ -9,7 +9,7 @@ chmod +x bootstrap_android.sh
 ./bootstrap_android.sh
 ```
 
-This uses Flutter's generator to create the Android Gradle project and wrapper, then restores the VoiceMate Kotlin sources and adds the microphone permission.
+This uses Flutter's generator to create the Android Gradle project and wrapper, then restores the Vokey Kotlin sources and adds the microphone permission.
 
 ## 2. Run static checks
 
@@ -19,7 +19,7 @@ flutter test
 flutter run
 ```
 
-The Android application ID should be `com.dev.voicemate`.
+The Android application ID should be `com.dev.vokey`.
 
 ## 3. Start the diagnostic test
 

@@ -1,7 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
-import '../../app/voicemate_app.dart';
+import '../../app/vokey_splash.dart';
+import '../../core/widgets/gradient_button.dart';
 
+/// Three-slide introduction (reference: assets/branding/reference).
+/// No permission is requested here; permissions follow in-context education.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key, required this.onComplete});
 
@@ -11,146 +16,259 @@ class OnboardingScreen extends StatefulWidget {
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends State<OnboardingScreen>
+    with SingleTickerProviderStateMixin {
+  final _pages = PageController();
+  late final AnimationController _glow = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2400),
+  )..repeat();
   int _page = 0;
 
   static const _items = [
     _OnboardingItem(
-      icon: Icons.hearing_rounded,
-      title: 'Find your phone with sound',
+      icon: Icons.phonelink_ring_rounded,
+      title: 'Find Your Phone\nwith Sound',
       description:
-          'Start the finder while VoiceMate is open, then use a clap or a steady whistle-like tone to trigger your selected alert. A persistent Android notification keeps Stop within reach.',
-      label: 'SMART PHONE FINDER',
+          'Clap, whistle or use a supported voice command to make your phone ring, vibrate or flash — while monitoring is on and its notification is visible.',
     ),
     _OnboardingItem(
-      icon: Icons.record_voice_over_rounded,
-      title: 'Use optional offline voice commands',
+      icon: Icons.mic_rounded,
+      title: 'Voice Commands\nthat Work Offline',
       description:
-          'Install the English (US) speech model once. After setup, supported commands are recognised on this phone without a cloud speech service.',
-      label: 'ON-DEVICE VOICE',
+          'After a one-time download of the English speech model, phrases like “find my phone” are recognised on your device — no cloud speech service.',
     ),
     _OnboardingItem(
-      icon: Icons.shield_outlined,
-      title: 'Your controls stay in your hands',
+      icon: Icons.lock_rounded,
+      title: 'Private & Secure',
       description:
-          'Microphone access starts only after a clear disclosure and your action. Audio is processed locally; settings and event history stay on this device. You can stop monitoring at any time.',
-      label: 'PRIVACY & CONTROL',
+          'Audio is processed on your device only. Vokey never saves recordings or uploads microphone audio. Stop monitoring any time.',
     ),
   ];
 
+  bool get _isLast => _page == _items.length - 1;
+
   @override
-  Widget build(BuildContext context) {
-    final item = _items[_page];
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
+  void dispose() {
+    _pages.dispose();
+    _glow.dispose();
+    super.dispose();
+  }
+
+  void _next() {
+    if (_isLast) {
+      widget.onComplete();
+    } else {
+      _pages.nextPage(
+        duration: const Duration(milliseconds: 380),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: VokeyColors.background,
+        body: SafeArea(
           child: Column(
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.graphic_eq_rounded,
-                    color: VoiceMateApp.cyan),
-                  const SizedBox(width: 8),
-                  const Text('VoiceMate', style: TextStyle(
-                    fontWeight: FontWeight.w800, fontSize: 18)),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: widget.onComplete,
-                    child: const Text('Skip'),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 280),
-                child: Container(
-                  key: ValueKey(item.label),
-                  width: 190,
-                  height: 190,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: VoiceMateApp.cyan.withValues(alpha: .07),
-                    border: Border.all(
-                      color: VoiceMateApp.cyan.withValues(alpha: .22)),
-                  ),
-                  child: Icon(item.icon,
-                    size: 88, color: VoiceMateApp.cyan),
-                ),
-              ),
-              const SizedBox(height: 38),
-              Text(item.label, style: const TextStyle(
-                color: VoiceMateApp.cyan,
-                letterSpacing: 2,
-                fontSize: 11,
-                fontWeight: FontWeight.w800)),
-              const SizedBox(height: 13),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                child: Text(
-                  item.title,
-                  key: ValueKey(item.title),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 29, fontWeight: FontWeight.w800),
-                ),
-              ),
-              const SizedBox(height: 13),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                child: Text(
-                  item.description,
-                  key: ValueKey(item.description),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: VoiceMateApp.muted,
-                    fontSize: 15,
-                    height: 1.55,
+              Expanded(
+                child: PageView.builder(
+                  controller: _pages,
+                  itemCount: _items.length,
+                  onPageChanged: (i) => setState(() => _page = i),
+                  itemBuilder: (_, i) => _OnboardingPage(
+                    item: _items[i],
+                    glow: _glow,
                   ),
                 ),
               ),
-              const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _items.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: index == _page ? 24 : 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      color: index == _page
-                          ? VoiceMateApp.cyan
-                          : VoiceMateApp.muted.withValues(alpha: .35),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
+              _Dots(count: _items.length, index: _page),
               const SizedBox(height: 22),
-              FilledButton(
-                onPressed: () {
-                  if (_page == _items.length - 1) {
-                    widget.onComplete();
-                  } else {
-                    setState(() => _page++);
-                  }
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: VoiceMateApp.cyan,
-                  foregroundColor: const Color(0xFF06111D),
-                  minimumSize: const Size.fromHeight(54),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 240),
+                  child: _isLast
+                      ? GradientButton(
+                          key: const ValueKey('start'),
+                          label: 'Get Started',
+                          onPressed: _next,
+                        )
+                      : Row(
+                          key: const ValueKey('nav'),
+                          children: [
+                            TextButton(
+                              onPressed: widget.onComplete,
+                              child: const Text(
+                                'Skip',
+                                style: TextStyle(color: VokeyColors.muted),
+                              ),
+                            ),
+                            const Spacer(),
+                            SizedBox(
+                              width: 140,
+                              child: GradientButton(
+                                label: 'Next',
+                                onPressed: _next,
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
-                child: Text(
-                  _page == _items.length - 1 ? 'Get started' : 'Continue'),
               ),
             ],
           ),
         ),
-      ),
-    );
+      );
+}
+
+class _OnboardingPage extends StatelessWidget {
+  const _OnboardingPage({required this.item, required this.glow});
+
+  final _OnboardingItem item;
+  final Animation<double> glow;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, c) => SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: c.maxHeight),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _HeroArt(icon: item.icon, glow: glow),
+                const SizedBox(height: 40),
+                Text(
+                  item.title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: VokeyColors.text,
+                    fontSize: 28,
+                    height: 1.2,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  item.description,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: VokeyColors.muted,
+                    fontSize: 15,
+                    height: 1.55,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+}
+
+/// Neon disc with expanding sound rings behind the slide icon.
+class _HeroArt extends StatelessWidget {
+  const _HeroArt({required this.icon, required this.glow});
+
+  final IconData icon;
+  final Animation<double> glow;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        width: 230,
+        height: 230,
+        child: AnimatedBuilder(
+          animation: glow,
+          builder: (_, __) => CustomPaint(
+            painter: _RingsPainter(glow.value),
+            child: Center(
+              child: Container(
+                width: 132,
+                height: 132,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1B2A6B), Color(0xFF3A1F7A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: VokeyColors.cyan.withValues(alpha: .55),
+                    width: 1.6,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: VokeyColors.violet.withValues(
+                        alpha: .30 + .20 * math.sin(glow.value * 2 * math.pi),
+                      ),
+                      blurRadius: 40,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+                child: ShaderMask(
+                  shaderCallback: (r) =>
+                      VokeyColors.brandGradient.createShader(r),
+                  child: Icon(icon, size: 66, color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+}
+
+class _RingsPainter extends CustomPainter {
+  _RingsPainter(this.t);
+  final double t;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    for (var i = 0; i < 3; i++) {
+      final p = (t + i / 3) % 1;
+      final radius = 66 + p * (size.width / 2 - 66);
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6
+          ..color = Color.lerp(VokeyColors.cyan, VokeyColors.magenta, p)!
+              .withValues(alpha: (1 - p) * .55),
+      );
+    }
   }
+
+  @override
+  bool shouldRepaint(_RingsPainter old) => old.t != t;
+}
+
+class _Dots extends StatelessWidget {
+  const _Dots({required this.count, required this.index});
+  final int count;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(
+          count,
+          (i) => AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            width: i == index ? 24 : 7,
+            height: 7,
+            decoration: BoxDecoration(
+              gradient: i == index ? VokeyColors.brandGradient : null,
+              color:
+                  i == index ? null : VokeyColors.muted.withValues(alpha: .35),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+      );
 }
 
 class _OnboardingItem {
@@ -158,11 +276,9 @@ class _OnboardingItem {
     required this.icon,
     required this.title,
     required this.description,
-    required this.label,
   });
 
   final IconData icon;
   final String title;
   final String description;
-  final String label;
 }

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../app/voicemate_app.dart';
+import '../../app/vokey_app.dart';
 import '../../services/finder_monitoring_service.dart';
 import '../../services/voice_lock_service.dart';
 import '../../services/voice_settings_repository.dart';
@@ -36,15 +36,15 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _settings = VoiceSettingsRepository(
-      Hive.box<dynamic>('voicemate_settings'),
+      Hive.box<dynamic>('vokey_settings'),
     );
     final saved = _settings.read();
     _voiceEnabled = saved.enabled;
     _lockCommandEnabled = saved.lockCommandEnabled;
-    _eventSubscription = _finder.events.listen(_handleEvent,
-      onError: (Object error) {
-        if (mounted) setState(() => _error = error.toString());
-      });
+    _eventSubscription =
+        _finder.events.listen(_handleEvent, onError: (Object error) {
+      if (mounted) setState(() => _error = error.toString());
+    });
     unawaited(_refresh());
   }
 
@@ -122,7 +122,7 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
       builder: (dialogContext) => AlertDialog(
         title: const Text('Download offline English model?'),
         content: const Text(
-          'VoiceMate needs a one-time download of about 40 MB. The model is stored in this app’s private storage and used on this phone. After setup, voice commands work without internet. VoiceMate verifies the downloaded model before installation.',
+          'Vokey needs a one-time download of about 40 MB. The model is stored in this app’s private storage and used on this phone. After setup, voice commands work without internet. Vokey verifies the downloaded model before installation.',
           style: TextStyle(height: 1.45),
         ),
         actions: [
@@ -194,205 +194,211 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Offline Voice Commands')),
-    body: _loading
-        ? const Center(child: CircularProgressIndicator())
-        : ListView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF19335A), Color(0xFF111D32)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: VoiceMateApp.cyan.withValues(alpha: .22),
-                  ),
-                ),
-                child: const Column(
-                  children: [
-                    Icon(Icons.graphic_eq_rounded,
-                      size: 54, color: VoiceMateApp.cyan),
-                    SizedBox(height: 13),
-                    Text('On-device voice recognition',
-                      style: TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.w800)),
-                    SizedBox(height: 7),
-                    Text(
-                      'Speech is recognised on your phone using a local model. No cloud speech service or transcript upload is used.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: VoiceMateApp.muted, height: 1.5),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 22),
-              const Text('VOICE MODEL', style: TextStyle(
-                color: VoiceMateApp.cyan,
-                fontSize: 11,
-                letterSpacing: 1.4,
-                fontWeight: FontWeight.w800,
-              )),
-              const SizedBox(height: 10),
-              Card(
-                child: ListTile(
-                  leading: Icon(
-                    _modelInstalled
-                        ? Icons.check_circle_rounded
-                        : Icons.cloud_download_outlined,
-                    color: _modelInstalled
-                        ? const Color(0xFF38D99A)
-                        : VoiceMateApp.cyan,
-                  ),
-                  title: const Text('English (US) · Small model'),
-                  subtitle: Text(_modelInstalled
-                      ? 'Installed · Works offline'
-                      : 'Not installed · One-time download ~40 MB'),
-                  trailing: _modelInstalled
-                      ? const Text('READY',
-                          style: TextStyle(
-                            color: Color(0xFF38D99A),
-                            fontWeight: FontWeight.w800,
-                            fontSize: 11,
-                          ))
-                      : null,
-                ),
-              ),
-              if (_installing) ...[
-                const SizedBox(height: 12),
-                Text(_progressText(),
-                    style: const TextStyle(color: VoiceMateApp.muted)),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(value: _downloadProgress),
-              ] else if (!_modelInstalled) ...[
-                const SizedBox(height: 10),
-                FilledButton.icon(
-                  onPressed: _downloadModel,
-                  icon: const Icon(Icons.download_rounded),
-                  label: const Text('Download offline model'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: VoiceMateApp.cyan,
-                    foregroundColor: const Color(0xFF06111D),
-                    minimumSize: const Size.fromHeight(50),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 22),
-              const Text('VOICE CONTROL', style: TextStyle(
-                color: VoiceMateApp.cyan,
-                fontSize: 11,
-                letterSpacing: 1.4,
-                fontWeight: FontWeight.w800,
-              )),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Enable offline voice commands'),
-                subtitle: Text(_modelInstalled
-                    ? 'Commands are recognised while finder monitoring is active.'
-                    : 'Install the voice model before enabling this feature.'),
-                value: _voiceEnabled && _modelInstalled,
-                activeThumbColor: VoiceMateApp.cyan,
-                onChanged: !_modelInstalled || _installing
-                    ? null
-                    : _setVoiceEnabled,
-              ),
-              const SizedBox(height: 12),
-              const Text('SUPPORTED COMMANDS', style: TextStyle(
-                color: VoiceMateApp.muted,
-                fontSize: 10,
-                letterSpacing: 1.3,
-                fontWeight: FontWeight.w800,
-              )),
-              const SizedBox(height: 8),
-              const _CommandTile(
-                phrase: '“Find my phone”',
-                action: 'Plays your selected finder alert',
-              ),
-              const _CommandTile(
-                phrase: '“Where are you?”',
-                action: 'Plays your selected finder alert',
-              ),
-              const _CommandTile(
-                phrase: '“Hello VoiceMate”',
-                action: 'Plays your selected finder alert',
-              ),
-              const _CommandTile(
-                phrase: '“Stop listening”',
-                action: 'Stops background monitoring',
-              ),
-              const SizedBox(height: 18),
-              const Text('OPTIONAL LOCK COMMAND', style: TextStyle(
-                color: VoiceMateApp.cyan,
-                fontSize: 11,
-                letterSpacing: 1.4,
-                fontWeight: FontWeight.w800,
-              )),
-              Card(
-                child: Column(
-                  children: [
-                    SwitchListTile(
-                      title: const Text('Allow voice to lock this phone'),
-                      subtitle: Text(_deviceAdminActive
-                          ? '“Lock my phone” uses Android Device Admin.'
-                          : 'Activate the lock-only Device Admin permission first.'),
-                      value: _lockCommandEnabled && _deviceAdminActive,
-                      activeThumbColor: VoiceMateApp.cyan,
-                      onChanged: !_deviceAdminActive || !_voiceEnabled
-                          ? null
-                          : _setLockCommand,
-                    ),
-                    if (!_deviceAdminActive)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: OutlinedButton(
-                            onPressed: _openLockSetup,
-                            child: const Text('Set up screen lock'),
-                          ),
-                        ),
+        appBar: AppBar(title: const Text('Offline Voice Commands')),
+        body: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF19335A), Color(0xFF111D32)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                    if (_lockCommandEnabled && _deviceAdminActive)
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(16, 0, 16, 14),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Supported phrase: “Lock my phone”. This command only locks the screen and requires Device Admin activation.',
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(
+                        color: VokeyApp.cyan.withValues(alpha: .22),
+                      ),
+                    ),
+                    child: const Column(
+                      children: [
+                        Icon(Icons.graphic_eq_rounded,
+                            size: 54, color: VokeyApp.cyan),
+                        SizedBox(height: 13),
+                        Text('On-device voice recognition',
                             style: TextStyle(
-                              color: VoiceMateApp.muted, fontSize: 12, height: 1.4),
-                          ),
+                                fontSize: 20, fontWeight: FontWeight.w800)),
+                        SizedBox(height: 7),
+                        Text(
+                          'Speech is recognised on your phone using a local model. No cloud speech service or transcript upload is used.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: VokeyApp.muted, height: 1.5),
                         ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  const Text('VOICE MODEL',
+                      style: TextStyle(
+                        color: VokeyApp.cyan,
+                        fontSize: 11,
+                        letterSpacing: 1.4,
+                        fontWeight: FontWeight.w800,
+                      )),
+                  const SizedBox(height: 10),
+                  Card(
+                    child: ListTile(
+                      leading: Icon(
+                        _modelInstalled
+                            ? Icons.check_circle_rounded
+                            : Icons.cloud_download_outlined,
+                        color: _modelInstalled
+                            ? const Color(0xFF38D99A)
+                            : VokeyApp.cyan,
                       ),
+                      title: const Text('English (US) · Small model'),
+                      subtitle: Text(_modelInstalled
+                          ? 'Installed · Works offline'
+                          : 'Not installed · One-time download ~40 MB'),
+                      trailing: _modelInstalled
+                          ? const Text('READY',
+                              style: TextStyle(
+                                color: Color(0xFF38D99A),
+                                fontWeight: FontWeight.w800,
+                                fontSize: 11,
+                              ))
+                          : null,
+                    ),
+                  ),
+                  if (_installing) ...[
+                    const SizedBox(height: 12),
+                    Text(_progressText(),
+                        style: const TextStyle(color: VokeyApp.muted)),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(value: _downloadProgress),
+                  ] else if (!_modelInstalled) ...[
+                    const SizedBox(height: 10),
+                    FilledButton.icon(
+                      onPressed: _downloadModel,
+                      icon: const Icon(Icons.download_rounded),
+                      label: const Text('Download offline model'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: VokeyApp.cyan,
+                        foregroundColor: const Color(0xFF06111D),
+                        minimumSize: const Size.fromHeight(50),
+                      ),
+                    ),
                   ],
-                ),
+                  const SizedBox(height: 22),
+                  const Text('VOICE CONTROL',
+                      style: TextStyle(
+                        color: VokeyApp.cyan,
+                        fontSize: 11,
+                        letterSpacing: 1.4,
+                        fontWeight: FontWeight.w800,
+                      )),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Enable offline voice commands'),
+                    subtitle: Text(_modelInstalled
+                        ? 'Commands are recognised while finder monitoring is active.'
+                        : 'Install the voice model before enabling this feature.'),
+                    value: _voiceEnabled && _modelInstalled,
+                    activeThumbColor: VokeyApp.cyan,
+                    onChanged: !_modelInstalled || _installing
+                        ? null
+                        : _setVoiceEnabled,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('SUPPORTED COMMANDS',
+                      style: TextStyle(
+                        color: VokeyApp.muted,
+                        fontSize: 10,
+                        letterSpacing: 1.3,
+                        fontWeight: FontWeight.w800,
+                      )),
+                  const SizedBox(height: 8),
+                  const _CommandTile(
+                    phrase: '“Find my phone”',
+                    action: 'Plays your selected finder alert',
+                  ),
+                  const _CommandTile(
+                    phrase: '“Where are you?”',
+                    action: 'Plays your selected finder alert',
+                  ),
+                  const _CommandTile(
+                    phrase: '“Hello Vokey”',
+                    action: 'Plays your selected finder alert',
+                  ),
+                  const _CommandTile(
+                    phrase: '“Stop listening”',
+                    action: 'Stops background monitoring',
+                  ),
+                  const SizedBox(height: 18),
+                  const Text('OPTIONAL LOCK COMMAND',
+                      style: TextStyle(
+                        color: VokeyApp.cyan,
+                        fontSize: 11,
+                        letterSpacing: 1.4,
+                        fontWeight: FontWeight.w800,
+                      )),
+                  Card(
+                    child: Column(
+                      children: [
+                        SwitchListTile(
+                          title: const Text('Allow voice to lock this phone'),
+                          subtitle: Text(_deviceAdminActive
+                              ? '“Lock my phone” uses Android Device Admin.'
+                              : 'Activate the lock-only Device Admin permission first.'),
+                          value: _lockCommandEnabled && _deviceAdminActive,
+                          activeThumbColor: VokeyApp.cyan,
+                          onChanged: !_deviceAdminActive || !_voiceEnabled
+                              ? null
+                              : _setLockCommand,
+                        ),
+                        if (!_deviceAdminActive)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: OutlinedButton(
+                                onPressed: _openLockSetup,
+                                child: const Text('Set up screen lock'),
+                              ),
+                            ),
+                          ),
+                        if (_lockCommandEnabled && _deviceAdminActive)
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(16, 0, 16, 14),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Supported phrase: “Lock my phone”. This command only locks the screen and requires Device Admin activation.',
+                                style: TextStyle(
+                                    color: VokeyApp.muted,
+                                    fontSize: 12,
+                                    height: 1.4),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      color: VokeyApp.surface,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Text(
+                      'Voice commands listen only when you explicitly start finder monitoring and enable voice commands. The microphone runs under the visible Android foreground-service notification. Voice lock can only lock the screen; it cannot unlock the phone or bypass your PIN, password or biometrics.',
+                      style: TextStyle(
+                          color: VokeyApp.muted, height: 1.5, fontSize: 12),
+                    ),
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 14),
+                    Text(_error!,
+                        style: const TextStyle(
+                            color: Color(0xFFFFA7B2), height: 1.4)),
+                  ],
+                ],
               ),
-              const SizedBox(height: 14),
-              Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: VoiceMateApp.surface,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Text(
-                  'Voice commands listen only when you explicitly start finder monitoring and enable voice commands. The microphone runs under the visible Android foreground-service notification. Voice lock can only lock the screen; it cannot unlock the phone or bypass your PIN, password or biometrics.',
-                  style: TextStyle(
-                    color: VoiceMateApp.muted, height: 1.5, fontSize: 12),
-                ),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 14),
-                Text(_error!, style: const TextStyle(
-                  color: Color(0xFFFFA7B2), height: 1.4)),
-              ],
-            ],
-          ),
-  );
+      );
 }
 
 class _CommandTile extends StatelessWidget {
@@ -402,13 +408,11 @@ class _CommandTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: ListTile(
-      leading: const Icon(Icons.mic_none_rounded,
-        color: VoiceMateApp.cyan),
-      title: Text(phrase,
-        style: const TextStyle(fontWeight: FontWeight.w700)),
-      subtitle: Text(action,
-        style: const TextStyle(color: VoiceMateApp.muted)),
-    ),
-  );
+        child: ListTile(
+          leading: const Icon(Icons.mic_none_rounded, color: VokeyApp.cyan),
+          title:
+              Text(phrase, style: const TextStyle(fontWeight: FontWeight.w700)),
+          subtitle: Text(action, style: const TextStyle(color: VokeyApp.muted)),
+        ),
+      );
 }

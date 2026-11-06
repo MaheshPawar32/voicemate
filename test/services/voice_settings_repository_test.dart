@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-import 'package:voicemate/services/voice_settings_repository.dart';
+import 'package:vokey/services/voice_settings_repository.dart';
 
 void main() {
   late Directory tempDirectory;
@@ -10,7 +10,7 @@ void main() {
   late VoiceSettingsRepository repository;
 
   setUp(() async {
-    tempDirectory = await Directory.systemTemp.createTemp('voicemate_voice_');
+    tempDirectory = await Directory.systemTemp.createTemp('vokey_voice_');
     Hive.init(tempDirectory.path);
     box = await Hive.openBox<dynamic>('voice_preferences_test');
     repository = VoiceSettingsRepository(box);

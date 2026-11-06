@@ -27,8 +27,7 @@ class AdMobService extends ChangeNotifier {
   bool get canRequestAds => _canRequestAds && _mobileAdsInitialized;
   bool get privacyOptionsRequired => _privacyOptionsRequired;
 
-  Future<void> initialize() =>
-      _initialization ??= _initialize();
+  Future<void> initialize() => _initialization ??= _initialize();
 
   Future<void> _initialize() async {
     if (_initializing) return;
@@ -51,7 +50,7 @@ class AdMobService extends ChangeNotifier {
             ConsentForm.loadAndShowConsentFormIfRequired((formError) {
               if (formError != null) {
                 debugPrint(
-                  'VoiceMate UMP form: ${formError.errorCode} ${formError.message}',
+                  'Vokey UMP form: ${formError.errorCode} ${formError.message}',
                 );
               }
               if (!formFlow.isCompleted) formFlow.complete();
@@ -60,16 +59,17 @@ class AdMobService extends ChangeNotifier {
             await formFlow.future.timeout(_consentFlowTimeout);
           } on TimeoutException {
             consentFlowTimedOut = true;
-            debugPrint('VoiceMate UMP consent form timed out; ads remain disabled.');
+            debugPrint(
+                'Vokey UMP consent form timed out; ads remain disabled.');
           } catch (error) {
-            debugPrint('VoiceMate UMP form failed: $error');
+            debugPrint('Vokey UMP form failed: $error');
           } finally {
             finishConsentFlow();
           }
         },
         (formError) {
           debugPrint(
-            'VoiceMate consent update: ${formError.errorCode} ${formError.message}',
+            'Vokey consent update: ${formError.errorCode} ${formError.message}',
           );
           // UMP may retain a valid prior-session consent state after a
           // reported network error. Check it after the callback, not before.
@@ -92,11 +92,11 @@ class AdMobService extends ChangeNotifier {
         await _initializeMobileAds();
       }
     } on TimeoutException {
-      debugPrint('VoiceMate UMP refresh timed out; ads remain disabled.');
+      debugPrint('Vokey UMP refresh timed out; ads remain disabled.');
       _canRequestAds = false;
       _privacyOptionsRequired = false;
     } catch (error) {
-      debugPrint('VoiceMate ads initialization failed: $error');
+      debugPrint('Vokey ads initialization failed: $error');
       _canRequestAds = false;
     } finally {
       _initialized = true;
@@ -107,9 +107,9 @@ class AdMobService extends ChangeNotifier {
 
   Future<void> _refreshConsentStatus() async {
     _canRequestAds = await ConsentInformation.instance.canRequestAds();
-    _privacyOptionsRequired =
-        await ConsentInformation.instance.getPrivacyOptionsRequirementStatus() ==
-            PrivacyOptionsRequirementStatus.required;
+    _privacyOptionsRequired = await ConsentInformation.instance
+            .getPrivacyOptionsRequirementStatus() ==
+        PrivacyOptionsRequirementStatus.required;
   }
 
   Future<void> _initializeMobileAds() async {
@@ -140,7 +140,7 @@ class AdMobService extends ChangeNotifier {
     await ConsentForm.showPrivacyOptionsForm((formError) {
       if (formError != null) {
         debugPrint(
-          'VoiceMate privacy options: ${formError.errorCode} ${formError.message}',
+          'Vokey privacy options: ${formError.errorCode} ${formError.message}',
         );
       }
     });
@@ -150,7 +150,7 @@ class AdMobService extends ChangeNotifier {
       try {
         await _initializeMobileAds();
       } catch (error) {
-        debugPrint('VoiceMate ad SDK init after consent failed: $error');
+        debugPrint('Vokey ad SDK init after consent failed: $error');
         _canRequestAds = false;
       }
     }

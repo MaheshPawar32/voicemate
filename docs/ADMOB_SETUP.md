@@ -1,43 +1,25 @@
-# VoiceMate AdMob and UMP setup
+# AdMob setup
 
-VoiceMate uses Google Mobile Ads Flutter plugin 9.2.0 with the User Messaging Platform (UMP) consent flow. Android builds use the Google Mobile Ads Next-Gen SDK.
+Vokey's AdMob IDs are configured in code (they are public — every APK contains them):
 
-## AdMob console setup
+| Item | ID |
+|---|---|
+| App ID | `ca-app-pub-3548177810801627~3283313382` |
+| Banner | `ca-app-pub-3548177810801627/1046006167` |
+| Interstitial | `ca-app-pub-3548177810801627/4331691239` |
+| Native | `ca-app-pub-3548177810801627/9471291092` |
 
-1. Create the Android VoiceMate app in AdMob with package ID `com.dev.voicemate`.
-2. Copy the AdMob App ID (format `ca-app-pub-...~...`).
-3. Create one Banner ad unit and copy the Banner unit ID (format `ca-app-pub-.../...`).
-4. In AdMob Privacy & messaging, publish the consent messages needed for the regions where the app will be distributed. Configure privacy options when required.
-5. Complete the Google Play Data safety declaration against the exact SDK versions and configuration in the release.
+## Which IDs a build uses
+- **Release** builds: production IDs (App ID via `android/app/build.gradle.kts` release `manifestPlaceholders`, unit IDs via `lib/core/ads/ad_ids.dart`).
+- **Debug / profile** builds and `flutter test`: Google's public test IDs. Never load live ads during development — AdMob treats it as invalid traffic.
+- **Debug-signed release for QA** (CI's release-test APK): built with `--dart-define=ADMOB_USE_TEST_IDS=true`. Note the App ID in that APK is still production; that is allowed with test *units*.
+- Overrides: `-PadmobAppId=...` (Gradle) and `--dart-define=ADMOB_BANNER_ID / ADMOB_INTERSTITIAL_ID / ADMOB_NATIVE_ID`.
 
-## Production build
+## Current placements
+- Banner: Home, only while monitoring is off and nothing is busy.
+- Interstitial and Native: unit IDs configured, **no placements implemented yet**. Rules from the product spec apply: never during monitoring, alerts, onboarding, permission flows or Finder Test.
 
-Pass your real AdMob App ID as a Gradle project property and the real Banner unit ID as a Dart compile-time value:
-
-```bash
-ORG_GRADLE_PROJECT_admobAppId='ca-app-pub-APP~APPID' \
-flutter build appbundle --release \
-  --dart-define=USE_NEXT_GEN_SDK=true \
-  --dart-define=ADMOB_BANNER_ID=ca-app-pub-APP/BANNER
-```
-
-The Android App ID is injected into AndroidManifest.xml by `bootstrap_android.sh`. The banner widget does not fall back to a Google test unit in release builds. When no production banner ID is supplied, it shows no ad.
-
-## Development and CI
-
-Debug builds use Google's official test App ID and Banner unit ID. CI builds Android with `USE_NEXT_GEN_SDK=true`, minimum Android API 24 and compile/target API 36.
-
-Never publish a build that still uses Google test ad identifiers.
-
-## App behavior
-
-- UMP refreshes consent information at app startup.
-- Any consent form required by UMP is presented before ads are requested.
-- Ad requests are gated by UMP's `canRequestAds()` result.
-- The only placement is a Home banner while finder monitoring is idle.
-- Banners are hidden during finder monitoring and start/stop transitions, and are not shown on the microphone test, onboarding, alert preview, permission or other feature screens.
-- Ad failures do not block the finder or local features.
-- Settings exposes the UMP privacy options form when UMP indicates that it is required.
-- Do not place ads in the microphone service or in the alert/permission flows.
-
-Before release, verify the real AdMob App ID and Banner unit ID in a signed internal-test build. Update the external privacy policy and Google Play Data safety form to reflect the exact SDK configuration shipped.
+## Before release
+- Add `app-ads.txt` on the developer website listed in Play Console.
+- Complete UMP/consent messages in AdMob (GDPR/US states) — the app already runs the UMP flow before any ad request.
+- Update the Play Data safety form for the Google Mobile Ads SDK.

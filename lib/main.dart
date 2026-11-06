@@ -1,11 +1,25 @@
-import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'dart:ui';
 
-import 'app/voicemate_app.dart';
+import 'package:flutter/material.dart';
+
+import 'app/vokey_app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
-  await Hive.openBox<dynamic>('voicemate_settings');
-  runApp(const VoiceMateApp());
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint(
+      'Vokey flutter error: context=${details.context ?? 'n/a'} '
+      'exception=${details.exceptionAsString()}',
+    );
+  };
+
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    debugPrint('Vokey uncaught error: $error');
+    debugPrint('Vokey stack trace: $stack');
+    return true;
+  };
+
+  runApp(const VokeyApp());
 }

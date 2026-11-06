@@ -1,9 +1,9 @@
-# VoiceMate Roadmap
+# Vokey Roadmap (formerly VoiceMate)
 
 ## Phase 0 – Repository setup
 - [x] Dedicated repository and product/UI/architecture/privacy documentation.
-- [ ] Generate/validate Android Flutter project using `bootstrap_android.sh`.
-- [ ] Verify application ID `com.dev.voicemate`.
+- [x] Android Gradle project committed (bootstrap regeneration retired, 2026-11-06).
+- [x] Application ID `com.dev.vokey` verified in built APK (CI also checks it).
 
 ## Phase 1 – Flutter foundation
 - [x] Premium dark theme and design tokens (starter theme committed).
@@ -12,7 +12,7 @@
 - [x] Settings screen with Hive-persisted alert preferences.
 - [ ] Typed Hive models/adapters and migration strategy.
 - [ ] Permission education screens; no microphone service yet.
-- [ ] Generate Android platform scaffold and verify application ID.
+- [x] Android platform project committed; application ID verified.
 - [ ] Run format, analyze, widget tests and a physical-device smoke test.
 
 Exit: navigation works, preferences persist, tests and analysis pass.
@@ -62,6 +62,47 @@ Exit: navigation works, preferences persist, tests and analysis pass.
 - [ ] Test Samsung, Xiaomi/Redmi, Realme, OnePlus and Motorola where available.
 - [ ] Review merged manifest, Play declarations, Data safety and privacy.
 - [ ] Signed AAB and internal/closed testing.
+
+
+## Master implementation plan — status (updated 2026-11-06)
+
+Evidence key: **E** = emulator (API 36 arm64), **U** = unit/widget test, **P** = physical device. Nothing below is marked done without the listed evidence.
+
+### Stage 1 — Audit and startup crash ✅ (E, U)
+- [x] Root cause found: R8 full mode stripped `WorkDatabase_Impl.<init>()` (WorkManager pulled in by play-services-ads) → crash in `InitializationProvider` before Flutter. Fixed in `android/app/proguard-rules.pro`. Details: `docs/STARTUP_CRASH_2026-11.md`.
+- [x] Safe Hive startup, recovery screen, reset-by-name, typed-value fallbacks.
+- [x] Launch tests: fresh install, upgrade with settings, corrupt box, wrong types, init failure, reset.
+- [x] Kotlin unit tests wired into Gradle (18 tests).
+- [x] CI: format check, R8 regression guard, package-ID check, emulator launch smoke test.
+- [ ] Physical-device first-launch check (P).
+
+### Rebrand to Vokey ✅ (E, U)
+- [x] Launcher label, in-app copy, notification text, privacy policy → "Vokey". Application ID changed to `com.dev.vokey`; Kotlin package, Dart package (`vokey`), channel names and Hive box (`vokey_settings`) renamed to match. Safe only because the app was never published — old test installs are a separate app.
+- [x] Text-free icon: adaptive launcher icon + 512×512 RGBA Play icon (`assets/branding/`).
+- [x] Dark native launch window + Android 12 splash; animated Flutter splash; restyled 3-slide onboarding per `assets/branding/reference/vokey_ui_reference.png`.
+- [ ] Wake phrases stay "find my phone / where are you / hello voice mate": "Vokey" is not in the Vosk small-model vocabulary, so "Start/Stop Vokey" from the reference board is **not** implemented.
+
+### Stage 2 — Core monitoring reliability ⏭ NEXT (continuation point)
+- [ ] Single AudioRecord owner shared by service + Finder Test (today MainActivity and the service each create an `AudioCaptureManager`, mutually guarded but not unified).
+- [ ] Emergency Stop All (mic, service, alert, torch, vibration) from Home, Monitoring Centre, notification; instrumentation test with app backgrounded.
+- [ ] Authoritative native state store (for tile/widget/Flutter resync after process death).
+- [ ] Typed, versioned channel payloads (`schema_version`).
+- [ ] Notification tap → open app; Stop action verified with UI not visible.
+
+### Stage 3 — Detection & alerts — not started
+Clap patterns (single/double/triple), whistle range/duration config, volume ramp (stream volume only, never global), Flashlight SOS duration, pocket mode, headphone route policy, Alert screen with Stop/Snooze.
+
+### Stage 4 — Finder usability — partial (existing screens)
+Finder Test Mode (extend clap diagnostic), Permission Health (extend Permission Centre: Bluetooth, sensor, FGS), battery thresholds/auto-stop, custom sounds via SAF, Alert Studio presets.
+
+### Stage 5 — Quick Settings tile, home widget, analytics — not started
+### Stage 6 — Bluetooth remote, Wear OS — not started (needs a defined BLE protocol / accessory and a Wear build target)
+### Stage 7 — Full UI redesign of remaining screens per reference board — not started (splash + onboarding done)
+### Stage 8 — Instrumentation tests, physical devices, signed AAB, Play review — not started
+
+### Open questions for the product owner
+- VelocityX/VxStore is a dependency but unused; existing screens use `setState`. Migrate (Stage 7) or drop the requirement?
+- Offline voice downloads a 40 MB model on first use (Vosk small en-US, Apache-2.0). Bundle it in the AAB instead (≈+40 MB install) to be offline from first launch?
 
 ## Definition of done
 All controls work; finder is offline; supported voice works in airplane mode; monitoring follows Android service rules with visible Stop; no raw audio is stored/uploaded; preferences/history persist; ads never gate utility; critical physical-device tests pass; store copy describes only verified behavior.

@@ -44,8 +44,8 @@ class HistoryRepository {
           : <String, dynamic>{};
       events.add(event);
     }
-    events.sort((a, b) =>
-        (b['timestamp'] as int).compareTo(a['timestamp'] as int));
+    events.sort(
+        (a, b) => (b['timestamp'] as int).compareTo(a['timestamp'] as int));
     return events;
   }
 

@@ -1,4 +1,4 @@
-name: voicemate
+name: vokey
 description: Offline-first Android voice control and phone finder.
 publish_to: "none"
 version: 0.1.0+1
@@ -24,8 +24,12 @@ flutter:
   uses-material-design: true
   assets:
     - privacy_policy.html
+    - assets/branding/vokey_icon_1024.png
 
 flutter_launcher_icons:
   android: true
-  image_path: assets/branding/voicemate_icon_512.png
-  min_sdk_android: 21
+  image_path: assets/branding/vokey_icon_1024.png
+  min_sdk_android: 24
+  adaptive_icon_background: "#070A1E"
+  adaptive_icon_foreground: assets/branding/vokey_icon_1024.png
+  adaptive_icon_foreground_inset: 10

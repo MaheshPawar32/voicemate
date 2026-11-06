@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-import 'package:voicemate/services/history_repository.dart';
+import 'package:vokey/services/history_repository.dart';
 
 void main() {
   late Directory tempDirectory;
@@ -10,7 +10,7 @@ void main() {
   late HistoryRepository repository;
 
   setUp(() async {
-    tempDirectory = await Directory.systemTemp.createTemp('voicemate_history_');
+    tempDirectory = await Directory.systemTemp.createTemp('vokey_history_');
     Hive.init(tempDirectory.path);
     box = await Hive.openBox<dynamic>('history_test');
     repository = HistoryRepository(box);
@@ -45,7 +45,7 @@ void main() {
     final events = repository.readAll();
     expect(events, hasLength(HistoryRepository.maxEvents));
     expect(events.first['metadata']['clap_count'],
-      HistoryRepository.maxEvents + 3);
+        HistoryRepository.maxEvents + 3);
     expect(events.last['metadata']['clap_count'], 4);
   });
 

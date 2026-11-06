@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:voicemate/services/device_info_service.dart';
+import 'package:vokey/services/device_info_service.dart';
 
 void main() {
   test('parses a complete battery snapshot', () {

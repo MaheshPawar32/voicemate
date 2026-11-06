@@ -1,6 +1,6 @@
-# VoiceMate – Google Play Store preparation pack
+# Vokey – Google Play Store preparation pack
 
-**Package:** `com.dev.voicemate`  
+**Package:** `com.dev.vokey`  
 **Platform:** Android  
 **Proposed category:** Tools  
 **Current repository status:** early prototype; not ready for public release.
@@ -10,21 +10,21 @@
 ## Store listing fields
 
 ### App name for the current prototype (24/30 characters)
-`VoiceMate: Clap Detection`
+`Vokey: Clap Detection`
 
-Once the complete finder engine is implemented and validated, the product name can be changed to `VoiceMate: Phone Finder`.
+Once the complete finder engine is implemented and validated, the product name can be changed to `Vokey: Phone Finder`.
 
 ### Short description for the current prototype
 `Test on-device clap detection with a simple, privacy-conscious interface.`
 
 ### Full description – current prototype
 
-VoiceMate is an early clap-detection prototype for Android.
+Vokey is an early clap-detection prototype for Android.
 
 - Start a microphone test only when you tap Start.
 - View live microphone signal levels and the experimental clap count.
 - Stop the test at any time. Capture also stops when the app leaves the active screen.
-- Audio is analysed on your device and is not saved as a recording by VoiceMate.
+- Audio is analysed on your device and is not saved as a recording by Vokey.
 - No account or sign-up is required.
 
 This is a foreground diagnostic, not yet a background phone finder. Whistle detection, offline voice commands, finder alert playback, and persistent background monitoring are not available in this version. Detection accuracy is experimental and depends on your phone and surroundings.
@@ -41,16 +41,16 @@ Do not use the planned full-product description until each advertised feature is
 - Phone: optional; only add a monitored number.
 
 ### Store graphic assets
-- App icon: `assets/branding/voicemate_icon_512.png` (512×512 PNG, alpha, under 1 MB).
-- Feature graphic: `assets/branding/voicemate_feature_graphic_1024x500.png` (1024×500 RGB PNG, no alpha).
+- App icon: `assets/branding/vokey_icon_512.png` (512×512 PNG, alpha, under 1 MB).
+- Feature graphic: `assets/branding/vokey_feature_graphic_1024x500.png` (1024×500 RGB PNG, no alpha).
 - Images in `store_previews/` are **design mockups only**, not captured app screenshots. Do not upload them as real experience screenshots. Capture at least 2 genuine phone screenshots from the release build; aim for 4 portrait screenshots at 1080×1920 for stronger store presentation.
 - Suggested screenshot order once captured: Home, Clap Detection, Whistle/Voice features, Settings/Privacy.
 - No preview video is required for the initial listing.
 
 Suggested alt text:
-1. `VoiceMate home screen showing finder status and quick tools.`
+1. `Vokey home screen showing finder status and quick tools.`
 2. `Clap detection test screen showing the microphone level and detection count.`
-3. `VoiceMate settings screen showing sound, vibration, flashlight and privacy options.`
+3. `Vokey settings screen showing sound, vibration, flashlight and privacy options.`
 
 ## App content declarations
 
@@ -67,8 +67,8 @@ Suggested alt text:
 
 ## Data safety – AdMob notes
 
-### VoiceMate's own on-device processing
-- Microphone samples processed only in memory and never sent off-device by VoiceMate: do not declare this as data collected solely because it is accessed locally. Re-check if later code uploads, records, or logs audio.
+### Vokey's own on-device processing
+- Microphone samples processed only in memory and never sent off-device by Vokey: do not declare this as data collected solely because it is accessed locally. Re-check if later code uploads, records, or logs audio.
 - On-device settings and event metadata that never leave the device: check current Play Data safety guidance for on-device-only processing.
 - No account, contacts, SMS, call log or precise-location feature is planned.
 
@@ -87,7 +87,7 @@ Official reference: https://developers.google.com/admob/android/privacy/play-dat
 
 ## Technical release requirements
 - New apps submitted from **31 August 2026** must target **Android 16 / API level 36 or higher**. Verify the Gradle configuration and built AAB.
-- Application ID: `com.dev.voicemate`.
+- Application ID: `com.dev.vokey`.
 - Current starter version: `0.1.0+1`; increment versionCode for every Play release.
 - Upload an Android App Bundle (`.aab`), not a debug APK.
 - Test internal/closed tracks before production.
@@ -98,7 +98,7 @@ Official reference: https://developers.google.com/admob/android/privacy/play-dat
 
 For a build in which the foreground clap test is available:
 
-`No account or sign-in is required. Launch VoiceMate, complete the short onboarding flow, open the Home tab, choose Clap Detection Lab, tap Start clap test, and grant microphone permission. The test runs only while the screen is open. Tap Stop test to end microphone capture.`
+`No account or sign-in is required. Launch Vokey, complete the short onboarding flow, open the Home tab, choose Clap Detection Lab, tap Start clap test, and grant microphone permission. The test runs only while the screen is open. Tap Stop test to end microphone capture.`
 
 If a feature is not present in the submitted build, remove it from the listing and reviewer instructions.
 

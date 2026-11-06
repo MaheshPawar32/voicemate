@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="14dp">
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:contentDescription="@null"
+        android:src="@mipmap/ic_launcher" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/widget_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Not listening"
+            android:textColor="#F4F7FF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_modes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:text="Tap Open to start the finder"
+            android:textColor="#9BA9BE"
+            android:textSize="12sp" />
+
+        <Chronometer
+            android:id="@+id/widget_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#38D99A"
+            android:textSize="12sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/widget_stop"
+        android:layout_width="wrap_content"
+        android:layout_height="38dp"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/widget_stop_button"
+        android:paddingHorizontal="12dp"
+        android:text="Stop"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/widget_open"
+        android:layout_width="wrap_content"
+        android:layout_height="38dp"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/widget_open_button"
+        android:paddingHorizontal="12dp"
+        android:text="Open"
+        android:textAllCaps="false"
+        android:textColor="#06111D" />
+</LinearLayout>

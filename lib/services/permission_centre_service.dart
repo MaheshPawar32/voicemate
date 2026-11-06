@@ -31,9 +31,9 @@ class PermissionStatusSnapshot {
 
 class PermissionCentreService {
   static const MethodChannel _methods =
-      MethodChannel('com.dev.voicemate/monitoring/methods');
+      MethodChannel('com.dev.vokey/monitoring/methods');
   static const MethodChannel _microphoneMethods =
-      MethodChannel('com.dev.voicemate/audio_test/methods');
+      MethodChannel('com.dev.vokey/audio_test/methods');
 
   Future<PermissionStatusSnapshot> readStatus() async {
     try {

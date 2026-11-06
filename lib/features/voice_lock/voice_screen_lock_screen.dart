@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../app/voicemate_app.dart';
+import '../../app/vokey_app.dart';
 import '../../services/voice_lock_service.dart';
 
 class VoiceScreenLockScreen extends StatefulWidget {
@@ -71,7 +71,7 @@ class _VoiceScreenLockScreenState extends State<VoiceScreenLockScreen>
       builder: (dialogContext) => AlertDialog(
         title: const Text('Lock this phone now?'),
         content: const Text(
-          'VoiceMate will ask Android to turn off the screen and lock the device. Unlocking still requires your normal PIN, pattern, password or biometrics.',
+          'Vokey will ask Android to turn off the screen and lock the device. Unlocking still requires your normal PIN, pattern, password or biometrics.',
         ),
         actions: [
           TextButton(
@@ -101,98 +101,98 @@ class _VoiceScreenLockScreenState extends State<VoiceScreenLockScreen>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Voice Screen Lock')),
-    body: ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF19335A), Color(0xFF111D32)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: VoiceMateApp.cyan.withValues(alpha: .22)),
-          ),
-          child: const Column(
-            children: [
-              Icon(Icons.phonelink_lock_rounded,
-                size: 58, color: VoiceMateApp.cyan),
-              SizedBox(height: 15),
-              Text('Lock only. Never unlock.',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-              SizedBox(height: 8),
-              Text(
-                'This optional shortcut uses Android Device Admin with the force-lock policy. VoiceMate cannot unlock the phone, read your PIN or bypass biometrics.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: VoiceMateApp.muted, height: 1.5),
+        appBar: AppBar(title: const Text('Voice Screen Lock')),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF19335A), Color(0xFF111D32)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: VokeyApp.cyan.withValues(alpha: .22)),
               ),
+              child: const Column(
+                children: [
+                  Icon(Icons.phonelink_lock_rounded,
+                      size: 58, color: VokeyApp.cyan),
+                  SizedBox(height: 15),
+                  Text('Lock only. Never unlock.',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                  SizedBox(height: 8),
+                  Text(
+                    'This optional shortcut uses Android Device Admin with the force-lock policy. Vokey cannot unlock the phone, read your PIN or bypass biometrics.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: VokeyApp.muted, height: 1.5),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 22),
+            Card(
+              child: ListTile(
+                leading: Icon(
+                  _adminActive == true
+                      ? Icons.verified_user_rounded
+                      : Icons.admin_panel_settings_outlined,
+                  color: _adminActive == true
+                      ? const Color(0xFF38D99A)
+                      : const Color(0xFFFFBE55),
+                ),
+                title: const Text('Device Admin permission'),
+                subtitle: Text(_adminActive == true
+                    ? 'Activated on this device'
+                    : (_adminActive == false
+                        ? 'Not activated'
+                        : 'Checking permission status…')),
+                trailing: IconButton(
+                  tooltip: 'Refresh status',
+                  onPressed: _busy ? null : _refresh,
+                  icon: const Icon(Icons.refresh_rounded),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            if (_adminActive == true)
+              FilledButton.icon(
+                onPressed: _busy ? null : _lock,
+                icon: const Icon(Icons.lock_rounded),
+                label: const Text('Lock phone now'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: VokeyApp.cyan,
+                  foregroundColor: const Color(0xFF06111D),
+                  minimumSize: const Size.fromHeight(54),
+                ),
+              )
+            else
+              OutlinedButton.icon(
+                onPressed: _busy || _adminActive == null ? null : _activate,
+                icon: const Icon(Icons.admin_panel_settings_rounded),
+                label: const Text('Activate lock permission'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(54),
+                ),
+              ),
+            const SizedBox(height: 14),
+            const Text(
+              'You can remove this permission at any time in Android Settings → Security → Device admin apps. Vokey does not use Accessibility services or any unlock automation.',
+              style:
+                  TextStyle(color: VokeyApp.muted, height: 1.5, fontSize: 12),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(_error!, style: const TextStyle(color: Color(0xFFFFA7B2))),
             ],
-          ),
+            if (_busy) ...[
+              const SizedBox(height: 12),
+              const LinearProgressIndicator(),
+            ],
+          ],
         ),
-        const SizedBox(height: 22),
-        Card(
-          child: ListTile(
-            leading: Icon(
-              _adminActive == true
-                ? Icons.verified_user_rounded
-                : Icons.admin_panel_settings_outlined,
-              color: _adminActive == true
-                ? const Color(0xFF38D99A)
-                : const Color(0xFFFFBE55),
-            ),
-            title: const Text('Device Admin permission'),
-            subtitle: Text(_adminActive == true
-              ? 'Activated on this device'
-              : (_adminActive == false
-                  ? 'Not activated'
-                  : 'Checking permission status…')),
-            trailing: IconButton(
-              tooltip: 'Refresh status',
-              onPressed: _busy ? null : _refresh,
-              icon: const Icon(Icons.refresh_rounded),
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        if (_adminActive == true)
-          FilledButton.icon(
-            onPressed: _busy ? null : _lock,
-            icon: const Icon(Icons.lock_rounded),
-            label: const Text('Lock phone now'),
-            style: FilledButton.styleFrom(
-              backgroundColor: VoiceMateApp.cyan,
-              foregroundColor: const Color(0xFF06111D),
-              minimumSize: const Size.fromHeight(54),
-            ),
-          )
-        else
-          OutlinedButton.icon(
-            onPressed: _busy || _adminActive == null ? null : _activate,
-            icon: const Icon(Icons.admin_panel_settings_rounded),
-            label: const Text('Activate lock permission'),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(54),
-            ),
-          ),
-        const SizedBox(height: 14),
-        const Text(
-          'You can remove this permission at any time in Android Settings → Security → Device admin apps. VoiceMate does not use Accessibility services or any unlock automation.',
-          style: TextStyle(color: VoiceMateApp.muted, height: 1.5, fontSize: 12),
-        ),
-        if (_error != null) ...[
-          const SizedBox(height: 12),
-          Text(_error!, style: const TextStyle(
-            color: Color(0xFFFFA7B2))),
-        ],
-        if (_busy) ...[
-          const SizedBox(height: 12),
-          const LinearProgressIndicator(),
-        ],
-      ],
-    ),
-  );
+      );
 }

@@ -1,0 +1,12 @@
+# The Gradle wrapper (gradlew, gradlew.bat, gradle/wrapper/*) IS committed so
+# CI and developers build the same project. Only machine-local output is ignored.
+/.gradle
+/captures/
+/local.properties
+GeneratedPluginRegistrant.java
+.cxx/
+
+# Never commit signing material.
+key.properties
+**/*.keystore
+**/*.jks

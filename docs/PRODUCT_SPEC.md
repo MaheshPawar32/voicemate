@@ -1,15 +1,15 @@
-# VoiceMate Product Specification
+# Vokey Product Specification
 
 ## Identity
-- Product: VoiceMate – Voice Control & Phone Finder
+- Product: Vokey – Voice Control & Phone Finder
 - Tagline: Your phone listens. Your phone responds.
-- Android application ID: `com.dev.voicemate`
+- Android application ID: `com.dev.vokey`
 - Stack: Flutter + Kotlin
 - Monetization: AdMob only; no subscription or IAP
 - Offline-first; no account or backend
 
 ## Product promise
-When the user explicitly enables monitoring, VoiceMate is intended to detect configured clap/whistle patterns and play a selected alert to help locate a misplaced phone. Supported voice commands will use an on-device model. Android background microphone restrictions and device/OEM limitations must be clearly explained.
+When the user explicitly enables monitoring, Vokey is intended to detect configured clap/whistle patterns and play a selected alert to help locate a misplaced phone. Supported voice commands will use an on-device model. Android background microphone restrictions and device/OEM limitations must be clearly explained.
 
 ## Modules
 1. **Smart Phone Finder:** explicit start/stop; clap, whistle and supported voice triggers; sound, vibration and optional flashlight.
