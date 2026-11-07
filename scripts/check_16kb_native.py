@@ -26,6 +26,21 @@ def parse_load_segments(output: str) -> list[tuple[int, int, int]]:
     return segments
 
 
+# 16 KB page sizes exist only on 64-bit Android devices; Google Play's
+# requirement covers 64-bit native libraries. 32-bit libraries always run
+# with 4 KB pages, so they are reported but not counted as failures.
+SIXTY_FOUR_BIT_ABIS = {"arm64-v8a", "x86_64"}
+
+
+def abi_of(filename: str) -> str:
+    parts = filename.split("/")
+    if "lib" in parts:
+        index = parts.index("lib")
+        if index + 1 < len(parts):
+            return parts[index + 1]
+    return "unknown"
+
+
 def verify_archive(archive_path: str, readelf: str, min_alignment: int) -> int:
     errors = 0
     checked = 0
@@ -80,7 +95,12 @@ def verify_archive(archive_path: str, readelf: str, min_alignment: int) -> int:
                         "p_offset and p_vaddr are not congruent modulo 16 KB"
                     )
 
-            if failures:
+            if failures and abi_of(info.filename) not in SIXTY_FOUR_BIT_ABIS:
+                print(
+                    f"INFO (32-bit, 16 KB not required): {info.filename}: "
+                    f"{'; '.join(failures)}"
+                )
+            elif failures:
                 print(f"FAIL: {info.filename}: {'; '.join(failures)}")
                 errors += 1
             else:
@@ -88,7 +108,7 @@ def verify_archive(archive_path: str, readelf: str, min_alignment: int) -> int:
 
     print(
         f"Checked {checked} native libraries in {archive_path}; "
-        f"{errors} library/libraries failed 16 KB alignment."
+        f"{errors} 64-bit library/libraries failed 16 KB alignment."
     )
     return errors
 

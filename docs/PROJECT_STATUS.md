@@ -166,7 +166,7 @@ Reference: `assets/branding/reference/vokey_ui_reference.png`
 
 - [x] Release build and launch check under `com.dev.vokey` (emulator, 2026-11-07).
 - [ ] Physical-device testing: Samsung, Xiaomi/Redmi, OnePlus, Motorola, Pixel.
-- [ ] Production signing (`android/key.properties` + keystore, or CI secrets).
+- [x] Production signing set up locally (2026-11-07): `android/app/vokey-keystore.jks` + `android/key.properties` (both gitignored), alias `key`, certificate SHA-256 `FF:AE:11:AE:43:20:37:3D:F8:02:07:2F:35:B9:DF:D5:19:57:B5:0C:97:8B:08:73:70:A7:A7:95:3A:1C:64:63`. Signed AAB built and verified. **Back up the keystore and password**; CI secrets not yet added.
 - [ ] Privacy policy hosted at `https://maheshpawar32.github.io/vokey/privacy_policy.html`. Turn on GitHub Pages and replace `REPLACE_WITH_SUPPORT_EMAIL`.
 - [ ] `app-ads.txt` on the developer website.
 - [ ] AdMob consent messages (GDPR / US states).
