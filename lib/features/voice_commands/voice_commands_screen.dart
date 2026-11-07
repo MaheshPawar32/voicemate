@@ -302,7 +302,7 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
                         ? null
                         : _setVoiceEnabled,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 20),
                   const Text('SUPPORTED COMMANDS',
                       style: TextStyle(
                         color: VokeyApp.muted,
@@ -310,7 +310,7 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
                         letterSpacing: 1.3,
                         fontWeight: FontWeight.w800,
                       )),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   const _CommandTile(
                     phrase: '“Find my phone”',
                     action: 'Plays your selected finder alert',
@@ -320,14 +320,10 @@ class _VoiceCommandsScreenState extends State<VoiceCommandsScreen>
                     action: 'Plays your selected finder alert',
                   ),
                   const _CommandTile(
-                    phrase: '“Hello Vokey”',
-                    action: 'Plays your selected finder alert',
-                  ),
-                  const _CommandTile(
                     phrase: '“Stop listening”',
                     action: 'Stops background monitoring',
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 24),
                   const Text('OPTIONAL LOCK COMMAND',
                       style: TextStyle(
                         color: VokeyApp.cyan,
@@ -407,12 +403,30 @@ class _CommandTile extends StatelessWidget {
   final String action;
 
   @override
-  Widget build(BuildContext context) => Card(
-        child: ListTile(
-          leading: const Icon(Icons.mic_none_rounded, color: VokeyApp.cyan),
-          title:
-              Text(phrase, style: const TextStyle(fontWeight: FontWeight.w700)),
-          subtitle: Text(action, style: const TextStyle(color: VokeyApp.muted)),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Card(
+          margin: EdgeInsets.zero,
+          child: ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: VokeyApp.cyan.withValues(alpha: .12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.mic_none_rounded, color: VokeyApp.cyan),
+            ),
+            title: Text(phrase,
+                style: const TextStyle(fontWeight: FontWeight.w700)),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child:
+                  Text(action, style: const TextStyle(color: VokeyApp.muted)),
+            ),
+          ),
         ),
       );
 }

@@ -15,7 +15,6 @@ internal class OfflineCommandEngine(modelDirectory: File) : AutoCloseable {
         private const val GRAMMAR = """[
             "find my phone",
             "where are you",
-            "hello voice mate",
             "lock my phone",
             "lock this phone",
             "stop listening",
@@ -29,7 +28,7 @@ internal class OfflineCommandEngine(modelDirectory: File) : AutoCloseable {
                 .trim()
                 .replace(Regex("\\s+"), " ")
             return when (text) {
-                "find my phone", "where are you", "hello voice mate" -> "find_phone"
+                "find my phone", "where are you" -> "find_phone"
                 "lock my phone", "lock this phone" -> "lock_phone"
                 "stop listening", "stop monitoring" -> "stop_monitoring"
                 else -> null

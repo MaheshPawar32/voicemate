@@ -9,7 +9,6 @@ class OfflineCommandEngineTest {
     fun findPhonePhrasesMapToFinderIntent() {
         assertEquals("find_phone", OfflineCommandEngine.intentForTranscript("find my phone"))
         assertEquals("find_phone", OfflineCommandEngine.intentForTranscript("Where are you?"))
-        assertEquals("find_phone", OfflineCommandEngine.intentForTranscript("HELLO VOICE MATE"))
     }
 
     @Test
@@ -29,5 +28,7 @@ class OfflineCommandEngineTest {
         assertNull(OfflineCommandEngine.intentForTranscript(""))
         assertNull(OfflineCommandEngine.intentForTranscript("unlock my phone"))
         assertNull(OfflineCommandEngine.intentForTranscript("open my messages"))
+        // Old-brand wake phrase was removed with the Vokey rename.
+        assertNull(OfflineCommandEngine.intentForTranscript("hello voice mate"))
     }
 }

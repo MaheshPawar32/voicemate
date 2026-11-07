@@ -60,7 +60,8 @@ class VokeyTheme {
       cardTheme: CardThemeData(
         color: VokeyTokens.card,
         elevation: 0,
-        margin: EdgeInsets.zero,
+        // Older screens stack Cards in lists and rely on this gap.
+        margin: const EdgeInsets.symmetric(vertical: 6),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(VokeyTokens.radius),
           side: const BorderSide(color: VokeyTokens.cardBorder),

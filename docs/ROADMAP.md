@@ -80,7 +80,7 @@ Evidence key: **E** = emulator (API 36 arm64), **U** = unit/widget test, **P** =
 - [x] Launcher label, in-app copy, notification text, privacy policy → "Vokey". Application ID changed to `com.dev.vokey`; Kotlin package, Dart package (`vokey`), channel names and Hive box (`vokey_settings`) renamed to match. Safe only because the app was never published — old test installs are a separate app.
 - [x] Text-free icon: adaptive launcher icon + 512×512 RGBA Play icon (`assets/branding/`).
 - [x] Dark native launch window + Android 12 splash; animated Flutter splash; restyled 3-slide onboarding per `assets/branding/reference/vokey_ui_reference.png`.
-- [ ] Wake phrases stay "find my phone / where are you / hello voice mate": "Vokey" is not in the Vosk small-model vocabulary, so "Start/Stop Vokey" from the reference board is **not** implemented.
+- [ ] Supported phrases: "find my phone", "where are you", "stop listening", "lock my phone" (the old-brand "hello voice mate" was removed): "Vokey" is not in the Vosk small-model vocabulary, so "Start/Stop Vokey" from the reference board is **not** implemented.
 
 ### Stage 2 — Core monitoring reliability ⏭ NEXT (continuation point)
 - [ ] Single AudioRecord owner shared by service + Finder Test (today MainActivity and the service each create an `AudioCaptureManager`, mutually guarded but not unified).

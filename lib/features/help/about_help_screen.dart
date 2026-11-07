@@ -49,7 +49,7 @@ class AboutHelpScreen extends StatelessWidget {
             const _HelpSection(
               title: 'Use offline voice commands',
               body:
-                  'Open Settings → Offline Voice Commands and download the English (US) model. This needs an internet connection once; afterwards, supported voice recognition runs on the phone. Enable voice commands and start finder monitoring. Say “Find my phone”, “Where are you?”, or “Hello Vokey” to play the finder alert. Say “Stop listening” to stop monitoring.',
+                  'Open Settings → Offline Voice Commands and download the English (US) model. This needs an internet connection once; afterwards, supported voice recognition runs on the phone. Enable voice commands and start finder monitoring. Say “Find my phone” or “Where are you?” to play the finder alert. Say “Stop listening” to stop monitoring.',
             ),
             const _HelpSection(
               title: 'Voice screen lock',
