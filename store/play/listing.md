@@ -79,4 +79,19 @@ Vokey is supported by ads. Ads never appear while Vokey is listening or ringing.
 
 ## Release notes (first release)
 
-First release of Vokey: clap, whistle and offline voice phone finder with rising-volume alerts, custom sounds, flashlight and vibration, Quick Settings tile and home-screen widget.
+Release name: `0.1.0 (1) – First release`
+
+```
+<en-US>
+Welcome to Vokey — the first release!
+
+• Clap or whistle to find your phone (single, double or triple clap)
+• Offline voice commands: "Find my phone", "Where are you?"
+• Alerts that grow louder, with your own sounds, vibration and flashlight
+• Stop, snooze or mark a false alarm in one tap
+• Quick Settings tile and home-screen widget
+• Private: audio never leaves your phone
+
+Tell us how it works for you!
+</en-US>
+```
