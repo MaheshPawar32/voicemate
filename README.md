@@ -10,7 +10,7 @@ Vokey is an Android-only, offline-first phone utility built with Flutter and Kot
 - Android application ID: `com.dev.vokey`
 - Flutter UI + Kotlin Android services.
 - Hive for local settings. VelocityX/VxStore integration remains planned; the current screens use Flutter Material 3.
-- No login, backend, cloud database, or analytics.
+- No login, backend or cloud database. Firebase Analytics (allow-listed, metadata-only events) and Crashlytics, both user-switchable in Settings.
 - Audio processing stays on-device; raw microphone recordings are never persisted.
 - Background microphone monitoring starts only after explicit user action and uses a visible foreground-service notification.
 - AdMob only; ads never interrupt monitoring, alerts, onboarding, or permission flows.
@@ -24,7 +24,7 @@ Vokey is an Android-only, offline-first phone utility built with Flutter and Kot
 - `docs/PRIVACY_AND_PLAY_COMPLIANCE.md` – privacy and release checklist
 - `docs/CLAP_TESTING_GUIDE.md` – test the foreground clap prototype
 - `docs/PLAY_STORE_LISTING.md` – Play listing copy and release checklist
-- `privacy_policy.html` – privacy policy draft; replace the contact placeholder before publishing
+- `vokey_privacy_policy.html` – privacy policy draft; replace the contact placeholder before publishing
 - `assets/branding/` – Play icon and feature graphic (from the artwork pack)
 
 ## Setup
@@ -48,7 +48,7 @@ Launcher icons are generated from `assets/branding/vokey_icon_1024.png` with `da
 
 The repository includes a privacy policy draft and Play Store metadata checklist. The privacy policy is not yet hosted at a public HTTPS URL. To publish it, enable GitHub Pages for this repository (deploy from the main branch root); then verify the public page at:
 
-`https://maheshpawar32.github.io/vokey/privacy_policy.html`
+`https://maheshpawar32.github.io/vokey/vokey_privacy_policy.html`
 
 Replace `REPLACE_WITH_SUPPORT_EMAIL` before publishing. Add the final policy URL inside the app and in Play Console. The artwork pack's screen images are design mockups, not genuine app screenshots; capture screenshots from the built app for Play submission.
 

@@ -6,6 +6,7 @@ import '../../app/vokey_app.dart';
 import '../../services/clap_test_service.dart';
 import '../../services/monitoring_controller.dart';
 import '../../services/history_repository.dart';
+import '../../services/telemetry_service.dart';
 
 class ClapTestScreen extends StatefulWidget {
   const ClapTestScreen({super.key});
@@ -80,6 +81,7 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
         });
       });
       if (mounted) setState(() => _isRunning = true);
+      TelemetryService.instance.log('finder_test_started');
       await _service.start(
         settings: MonitoringController.instance.finderPreferences
             .read()

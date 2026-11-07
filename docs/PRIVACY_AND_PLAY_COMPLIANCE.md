@@ -32,6 +32,14 @@ Avoid contacts, location, SMS, call logs, broad storage, Accessibility, overlay,
 ## Audio and local data
 Audio stays local; buffers are transient. Do not write raw audio/transcripts to files, logs, analytics or crash reports. Persist settings and event metadata only. Provide history deletion. No cloud speech or audio upload.
 
+## Firebase Analytics and Crashlytics
+- Integration: `lib/services/telemetry_service.dart`. Only events in `TelemetryService.allowedEvents` are sent; parameters are sanitised to numbers/booleans and short lowercase enum strings (free text is dropped).
+- Never sent: audio, recordings, transcripts, sound/file names, user-typed text, exact durations (bucketed).
+- Opt-out: Settings → Privacy & data (“Share usage analytics”, “Send crash reports”). Debug builds never upload crashes.
+- Firebase never blocks or crashes startup: initialised inside the protected startup path with an 8 s timeout; all calls are no-ops on failure.
+- Play Data safety must declare (collected, not sold): App activity (app interactions), App info and performance (crash logs, diagnostics), Device or other IDs (Firebase app-instance ID). Purposes: analytics, app functionality/diagnostics.
+- EU/UK: decide whether analytics needs prior consent (UMP form purposes or a first-run prompt) before release in those regions.
+
 ## Ads and consent
 Use official Google Mobile Ads Flutter SDK and test units in development. Integrate UMP/consent choices as required. Publish accurate privacy policy and Data safety disclosures, including SDK behavior. Ads never block offline utility or appear during monitoring, alert playback, permission requests, onboarding or service start/stop. Label native ads and cap interstitial frequency conservatively.
 

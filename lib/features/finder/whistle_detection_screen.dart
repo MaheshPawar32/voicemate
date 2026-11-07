@@ -6,6 +6,7 @@ import '../../core/widgets/vokey_widgets.dart';
 import '../../services/finder_preferences_repository.dart';
 import '../../services/monitoring_controller.dart';
 import 'finder_settings_common.dart';
+import '../../services/telemetry_service.dart';
 
 class WhistleDetectionScreen extends StatefulWidget {
   const WhistleDetectionScreen({super.key});
@@ -22,6 +23,12 @@ class _WhistleDetectionScreenState extends State<WhistleDetectionScreen> {
 
   Future<void> _save() async {
     await _c.finderPreferences.save(_draft);
+    TelemetryService.instance.log('detection_settings_saved', {
+      'detector': 'whistle',
+      'sensitivity': _draft.whistleSensitivityPct,
+      'min_hz': _draft.whistleMinHz,
+      'max_hz': _draft.whistleMaxHz,
+    });
     if (mounted) showSavedSnack(context, _c.active);
   }
 

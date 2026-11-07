@@ -14,6 +14,7 @@ import '../voice_commands/voice_commands_screen.dart';
 import '../privacy/privacy_policy_screen.dart';
 import '../help/help_and_support_screen.dart';
 import '../help/about_help_screen.dart';
+import '../../services/telemetry_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -165,6 +166,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              const _TelemetryToggles(),
               AnimatedBuilder(
                 animation: AdMobService.instance,
                 builder: (context, _) =>
@@ -304,4 +306,48 @@ class SettingsScreen extends StatelessWidget {
     );
     if (confirmed == true) await history.clear();
   }
+}
+
+/// Opt-out switches for Firebase Analytics and Crashlytics.
+class _TelemetryToggles extends StatefulWidget {
+  const _TelemetryToggles();
+
+  @override
+  State<_TelemetryToggles> createState() => _TelemetryTogglesState();
+}
+
+class _TelemetryTogglesState extends State<_TelemetryToggles> {
+  final _t = TelemetryService.instance;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        children: [
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            secondary:
+                const Icon(Icons.insights_outlined, color: VokeyApp.cyan),
+            title: const Text('Share usage analytics'),
+            subtitle: const Text(
+                'Anonymous app events (for example “finder started”) via Google Firebase. Never audio or what you say.'),
+            value: _t.analyticsEnabled,
+            onChanged: (v) async {
+              await _t.setAnalyticsEnabled(v);
+              if (mounted) setState(() {});
+            },
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            secondary:
+                const Icon(Icons.bug_report_outlined, color: VokeyApp.cyan),
+            title: const Text('Send crash reports'),
+            subtitle: const Text(
+                'Technical crash details via Firebase Crashlytics so we can fix problems.'),
+            value: _t.crashReportsEnabled,
+            onChanged: (v) async {
+              await _t.setCrashReportsEnabled(v);
+              if (mounted) setState(() {});
+            },
+          ),
+        ],
+      );
 }

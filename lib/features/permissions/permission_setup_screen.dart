@@ -8,6 +8,7 @@ import '../../services/monitoring_controller.dart';
 import '../../services/permission_centre_service.dart';
 import '../finder/finder_start_flow.dart';
 import '../voice_lock/voice_screen_lock_screen.dart';
+import '../../services/telemetry_service.dart';
 
 enum PermissionState { granted, notAsked, denied, blocked, unsupported }
 
@@ -154,6 +155,11 @@ class _PermissionSetupScreenState extends State<PermissionSetupScreen>
   }
 
   Future<void> _finish() async {
+    TelemetryService.instance.log('permission_setup_completed', {
+      'microphone': _mic == PermissionState.granted,
+      'notifications': _notif == PermissionState.granted,
+      'camera': _camera == PermissionState.granted,
+    });
     await _box.put(PermissionSetupScreen.doneKey, true);
     widget.onDone();
   }

@@ -5,6 +5,7 @@ import '../../core/theme/vokey_theme.dart';
 import '../../core/widgets/vokey_widgets.dart';
 import '../../services/history_repository.dart';
 import '../../services/monitoring_controller.dart';
+import '../../services/telemetry_service.dart';
 
 /// "Phone Found!" (reference board). Shown in-app when a detection arrives
 /// while Vokey is in the foreground; in the background the native
@@ -42,6 +43,10 @@ class _PhoneFoundScreenState extends State<PhoneFoundScreen>
   }
 
   Future<void> _feedback(String value) async {
+    if (value == HistoryRepository.feedbackFalseAlarm) {
+      TelemetryService.instance
+          .log('false_alarm_reported', {'method': widget.detection.eventType});
+    }
     final id = widget.detection.historyId;
     if (id != null) await _c.history.setFeedback(id, value);
   }

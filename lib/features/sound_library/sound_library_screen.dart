@@ -11,6 +11,7 @@ import '../../services/alert_settings_repository.dart';
 import '../../services/custom_sounds_repository.dart';
 import '../../services/finder_monitoring_service.dart';
 import '../../services/monitoring_controller.dart';
+import '../../services/telemetry_service.dart';
 
 class _Entry {
   const _Entry(this.id, this.name, this.subtitle, {this.custom});
@@ -137,10 +138,15 @@ class _SoundLibraryScreenState extends State<SoundLibraryScreen> {
     try {
       final sound = await _custom.importFromDevice();
       if (sound != null) {
+        TelemetryService.instance.log('custom_sound_imported', {
+          'format': sound.fileName.split('.').last,
+          'duration_s': (sound.durationMs / 1000).round(),
+        });
         await _select(sound.id);
         _show('“${sound.name}” imported and selected.');
       }
     } on CustomSoundException catch (e) {
+      TelemetryService.instance.log('custom_sound_import_failed');
       _show(e.message, error: true);
     } finally {
       if (mounted) setState(() => _importing = false);

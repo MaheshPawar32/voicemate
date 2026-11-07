@@ -13,6 +13,9 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   google_mobile_ads: ^9.2.0
+  firebase_core: ^5.1.0
+  firebase_analytics: ^13.0.1
+  firebase_crashlytics: ^6.0.1
 
 dev_dependencies:
   flutter_test:
@@ -23,7 +26,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - privacy_policy.html
+    - vokey_privacy_policy.html
     - assets/branding/vokey_icon_1024.png
 
 flutter_launcher_icons:

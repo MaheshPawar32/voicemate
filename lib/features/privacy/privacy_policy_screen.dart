@@ -16,7 +16,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     ),
     _PolicySection(
       'Local settings and history',
-      'Your preferences and detection history are stored locally using app-private storage. History records event type, timestamp and limited numeric metadata such as a clap count or whistle frequency. It is capped at 250 events. You can clear it from Settings. Vokey does not have an account or cloud database.',
+      'Your preferences and detection history are stored locally using app-private storage. History records event type, timestamp and limited numeric metadata such as a clap count or whistle frequency. It keeps at most 500 events and, by default, 30 days (you can change this in History). You can clear it at any time. Sounds you import are copied into app-private storage and never uploaded. Vokey does not have an account or cloud database.',
     ),
     _PolicySection(
       'Flashlight',
@@ -32,11 +32,15 @@ class PrivacyPolicyScreen extends StatelessWidget {
     ),
     _PolicySection(
       'Advertising and third parties',
-      'Vokey integrates Google Mobile Ads and the Google User Messaging Platform (UMP). UMP refreshes consent information on app launch and presents any consent form required for the user. Banner requests are made only when UMP reports that ads may be requested. In the current layout, a banner can appear on Home while finder monitoring is off; it is hidden during monitoring and other feature screens. Debug builds use Google test ads. Release banners remain disabled until a real AdMob banner unit ID is configured. When an ad request is made, Google Mobile Ads may process network, device, advertising, app-interaction and diagnostic information under Google’s service terms. The optional voice-model download also sends a normal HTTPS request to the model host, which can see standard network metadata such as your IP address.',
+      'Vokey integrates Google Mobile Ads and the Google User Messaging Platform (UMP). UMP refreshes consent information on app launch and presents any consent form required for the user. Banner requests are made only when UMP reports that ads may be requested. In the current layout, a banner can appear on Home while finder monitoring is off; it is hidden during monitoring and other feature screens. Debug builds use Google test ads. When an ad request is made, Google Mobile Ads may process network, device, advertising, app-interaction and diagnostic information under Google’s service terms. The optional voice-model download also sends a normal HTTPS request to the model host, which can see standard network metadata such as your IP address.',
+    ),
+    _PolicySection(
+      'Analytics and crash reports',
+      'Vokey uses Google Firebase Analytics and Firebase Crashlytics. Analytics receives a small set of app events — for example that onboarding was completed, the finder was started or stopped (with a rough duration such as “10–30 minutes”), a phone was found by clap, whistle or voice, or an alert was snoozed — together with standard device and app information collected by the Firebase SDK (such as device model, OS version, app version, country derived from IP address and an app-instance identifier). Crashlytics receives technical crash and error details. Vokey never sends audio, recordings, transcripts, what you said, sound names or file names. You can turn off usage analytics and crash reports at any time in Settings → Privacy & data.',
     ),
     _PolicySection(
       'Your choices',
-      'You can stop finder monitoring in the app or from the ongoing notification, revoke microphone, camera and notification permissions in Android settings, deactivate Device Admin, and clear local history or all app storage. Clearing app storage also removes the downloaded voice model.',
+      'You can stop finder monitoring in the app or from the ongoing notification, revoke microphone, camera and notification permissions in Android settings, turn off Device Admin from the Screen Lock screen, turn off usage analytics and crash reports in Settings, and clear local history or all app storage. Clearing app storage also removes the downloaded voice model.',
     ),
   ];
 

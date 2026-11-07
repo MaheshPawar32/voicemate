@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "683570319789",
+    "project_id": "vokey-phone-finder",
+    "storage_bucket": "vokey-phone-finder.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:683570319789:android:2a202dff8bbcff3eacd124",
+        "android_client_info": {
+          "package_name": "com.dev.vokey"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNprigzSwITIM4KtQIhCD-bIHe-Ff3hcE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

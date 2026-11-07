@@ -6,6 +6,7 @@ import '../../core/widgets/vokey_widgets.dart';
 import '../../services/finder_preferences_repository.dart';
 import '../../services/monitoring_controller.dart';
 import 'finder_settings_common.dart';
+import '../../services/telemetry_service.dart';
 
 class ClapDetectionScreen extends StatefulWidget {
   const ClapDetectionScreen({super.key});
@@ -20,6 +21,11 @@ class _ClapDetectionScreenState extends State<ClapDetectionScreen> {
 
   Future<void> _save() async {
     await _c.finderPreferences.save(_draft);
+    TelemetryService.instance.log('detection_settings_saved', {
+      'detector': 'clap',
+      'clap_pattern': _draft.clapPattern,
+      'sensitivity': _draft.clapSensitivityPct,
+    });
     if (mounted) showSavedSnack(context, _c.active);
   }
 

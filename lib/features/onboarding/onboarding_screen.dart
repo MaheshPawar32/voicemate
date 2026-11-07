@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/vokey_splash.dart';
 import '../../core/widgets/gradient_button.dart';
+import '../../services/telemetry_service.dart';
 
 /// Three-slide introduction (reference: assets/branding/reference).
 /// No permission is requested here; permissions follow in-context education.
@@ -57,6 +58,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   void _next() {
     if (_isLast) {
+      TelemetryService.instance.log('onboarding_completed');
       widget.onComplete();
     } else {
       _pages.nextPage(
@@ -99,7 +101,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           key: const ValueKey('nav'),
                           children: [
                             TextButton(
-                              onPressed: widget.onComplete,
+                              onPressed: () {
+                                TelemetryService.instance.log(
+                                  'onboarding_skipped',
+                                  {'page': _page + 1},
+                                );
+                                widget.onComplete();
+                              },
                               child: const Text(
                                 'Skip',
                                 style: TextStyle(color: VokeyColors.muted),

@@ -11,6 +11,7 @@ import '../../services/alert_settings_repository.dart';
 import '../../services/finder_monitoring_service.dart';
 import '../../services/monitoring_controller.dart';
 import '../sound_library/sound_library_screen.dart';
+import '../../services/telemetry_service.dart';
 
 /// Alert Studio (reference board): Sound / Vibration / Flashlight tabs.
 class AlertStudioScreen extends StatefulWidget {
@@ -84,6 +85,12 @@ class _AlertStudioScreenState extends State<AlertStudioScreen> {
         );
       }
       await _repo.preview(_p);
+      TelemetryService.instance.log('alert_previewed', {
+        'output': _p.outputPolicy,
+        'ramp': _p.volumeRampEnabled,
+        'custom_sound': _p.soundId.startsWith('custom:'),
+        'flash': _p.flashlightEnabled,
+      });
       _previewTimer = Timer(Duration(seconds: _p.durationSeconds), () {
         if (mounted) setState(() => _previewing = false);
       });

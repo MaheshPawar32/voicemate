@@ -7,6 +7,7 @@ import 'alert_settings_repository.dart';
 import 'finder_monitoring_service.dart';
 import 'finder_preferences_repository.dart';
 import 'history_repository.dart';
+import 'telemetry_service.dart';
 import 'monitoring_settings_repository.dart';
 import 'voice_settings_repository.dart';
 
@@ -78,6 +79,7 @@ class MonitoringController extends ChangeNotifier {
   final Box<dynamic> _box;
   final FinderMonitoringService _service;
   final HistoryRepository history;
+  TelemetryService get _t => TelemetryService.instance;
   StreamSubscription<FinderMonitoringEvent>? _sub;
 
   bool active = false;
@@ -174,10 +176,30 @@ class MonitoringController extends ChangeNotifier {
         busy = false;
         notice = null;
         await refresh();
+        final prefs = finderPreferences.read();
+        _t.log('monitoring_started', {
+          'clap': clapActive,
+          'whistle': whistleActive,
+          'voice': voiceActive,
+          'clap_pattern': clapPattern,
+          'pocket_mode': prefs.pocketModeEnabled,
+          'battery_auto_stop': prefs.batteryStopPercent > 0,
+        });
+        _t.setCrashKey('monitoring_active', true);
         return;
       case 'service_stopped':
       case 'service_auto_stopped':
         await _recordSession(e);
+        _t.log('monitoring_stopped', {
+          'reason': e.reason ?? 'unknown',
+          'auto': e.type == 'service_auto_stopped',
+          'duration': TelemetryService.durationBucket(
+            Duration(
+                milliseconds:
+                    e.intField('duration_ms', elapsed.inMilliseconds)),
+          ),
+        });
+        _t.setCrashKey('monitoring_active', false);
         if (e.type == 'service_auto_stopped') {
           notice = switch (e.reason) {
             'battery_low' =>
@@ -190,6 +212,13 @@ class MonitoringController extends ChangeNotifier {
         _markStopped();
         return;
       case 'service_error':
+        // Non-fatal report: app-generated message only, no user data.
+        _t.recordError(
+          StateError(e.message ?? 'service_error'),
+          StackTrace.current,
+          reason: 'monitoring_service_error',
+        );
+        _t.setCrashKey('monitoring_active', false);
         busy = false;
         active = false;
         startedAt = null;
@@ -285,6 +314,11 @@ class MonitoringController extends ChangeNotifier {
     );
     lastDetection = info;
     alertActive = alertPlayed;
+    _t.log('phone_found', {
+      'method': type,
+      'alert_played': alertPlayed,
+      'suppressed': (reason == null || reason.isEmpty) ? 'none' : reason,
+    });
     clapProgress = 0;
     notifyListeners();
     _detections.add(info);
@@ -343,6 +377,9 @@ class MonitoringController extends ChangeNotifier {
       await refresh();
     } catch (error) {
       notice = error.toString();
+      _t.log('monitoring_start_failed', {
+        'error': error is FinderMonitoringException ? 'rejected' : 'unexpected',
+      });
     } finally {
       busy = false;
       notifyListeners();
@@ -352,15 +389,20 @@ class MonitoringController extends ChangeNotifier {
   Future<void> stop() => _guard(_service.stop);
 
   /// Stop All — also used by the in-app emergency control.
-  Future<void> emergencyStop() => _guard(_service.emergencyStop);
+  Future<void> emergencyStop() {
+    _t.log('emergency_stop');
+    return _guard(_service.emergencyStop);
+  }
 
   Future<void> stopAlert() async {
+    _t.log('alert_stopped');
     alertActive = false;
     notifyListeners();
     await _guard(_service.stopAlert, refreshAfter: false);
   }
 
   Future<void> snooze() async {
+    _t.log('alert_snoozed');
     alertActive = false;
     notifyListeners();
     await _guard(_service.snoozeAlert, refreshAfter: false);

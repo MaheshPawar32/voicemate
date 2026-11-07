@@ -13,6 +13,7 @@ import '../features/history/history_screen.dart';
 import '../features/monitoring/monitor_screen.dart';
 import '../features/tools/tools_screen.dart';
 import '../services/monitoring_controller.dart';
+import '../services/telemetry_service.dart';
 import '../features/home/home_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/permissions/permission_setup_screen.dart';
@@ -61,6 +62,10 @@ class AppStartupState {
       await (initHive ?? Hive.initFlutter)();
       stage = 'open_settings_box';
       final settingsBox = await Hive.openBox<dynamic>(settingsBoxName);
+      stage = 'telemetry_init';
+      // Never throws and times out after 8 s: Firebase can't block or crash
+      // startup (the app works fully offline without it).
+      await TelemetryService.instance.initialize(settingsBox);
       return AppStartupState.ready(settingsBox);
     } catch (error, stackTrace) {
       // Diagnostics: stage + exception type only. No settings values.
@@ -300,6 +305,7 @@ class VokeyShell extends StatefulWidget {
 
 class _VokeyShellState extends State<VokeyShell> with WidgetsBindingObserver {
   int _selectedIndex = 0;
+  static const _tabNames = ['home', 'monitor', 'tools', 'history', 'settings'];
   StreamSubscription<DetectionInfo>? _detections;
   bool _foundScreenOpen = false;
   bool _resumed = true;
@@ -361,8 +367,10 @@ class _VokeyShellState extends State<VokeyShell> with WidgetsBindingObserver {
       body: IndexedStack(index: _selectedIndex, children: pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) =>
-            setState(() => _selectedIndex = index),
+        onDestinationSelected: (index) {
+          setState(() => _selectedIndex = index);
+          TelemetryService.instance.screen(_tabNames[index]);
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),

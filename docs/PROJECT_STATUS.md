@@ -162,12 +162,18 @@ Reference: `assets/branding/reference/vokey_ui_reference.png`
 6. **Bluetooth remote and Wear OS** (need product decisions).
 7. **Release:** instrumentation tests, physical devices, signed AAB, Play Console.
 
+## Firebase (added 2026-11-07)
+- Project `vokey-phone-finder`, Android app `1:683570319789:android:2a202dff8bbcff3eacd124`.
+- Crashlytics + Analytics via `lib/services/telemetry_service.dart`: allow-listed events, sanitised params, opt-out switches in Settings, release-only crash upload, never blocks startup.
+- Verified on emulator (signed release): Firebase + Crashlytics initialise, settings fetched from server, R8 mapping ID present; events seen leaving the device (`permission_setup_completed`, `screen_view`).
+- **Action needed:** enable Google Analytics for the project in the Firebase console (Project settings → Integrations), or events are collected but not shown in reports.
+
 ## 6. Release blockers
 
 - [x] Release build and launch check under `com.dev.vokey` (emulator, 2026-11-07).
 - [ ] Physical-device testing: Samsung, Xiaomi/Redmi, OnePlus, Motorola, Pixel.
 - [x] Production signing set up locally (2026-11-07): `android/app/vokey-keystore.jks` + `android/key.properties` (both gitignored), alias `key`, certificate SHA-256 `FF:AE:11:AE:43:20:37:3D:F8:02:07:2F:35:B9:DF:D5:19:57:B5:0C:97:8B:08:73:70:A7:A7:95:3A:1C:64:63`. Signed AAB built and verified. **Back up the keystore and password**; CI secrets not yet added.
-- [ ] Privacy policy hosted at `https://maheshpawar32.github.io/vokey/privacy_policy.html`. Turn on GitHub Pages and replace `REPLACE_WITH_SUPPORT_EMAIL`.
+- [ ] Privacy policy hosted at `https://maheshpawar32.github.io/vokey/vokey_privacy_policy.html`. Turn on GitHub Pages and replace `REPLACE_WITH_SUPPORT_EMAIL`.
 - [ ] `app-ads.txt` on the developer website.
 - [ ] AdMob consent messages (GDPR / US states).
 - [ ] Play Data safety form, including the Google Mobile Ads SDK.
