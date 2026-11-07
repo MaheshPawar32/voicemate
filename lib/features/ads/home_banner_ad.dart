@@ -12,6 +12,9 @@ class HomeBannerAd extends StatefulWidget {
 }
 
 class _HomeBannerAdState extends State<HomeBannerAd> {
+  /// Store-screenshot builds (`--dart-define=VOKEY_SCREENSHOTS=true`) hide ads.
+  static const _screenshotMode = bool.fromEnvironment('VOKEY_SCREENSHOTS');
+
   BannerAd? _banner;
   bool _loading = false;
 
@@ -58,36 +61,38 @@ class _HomeBannerAdState extends State<HomeBannerAd> {
   }
 
   @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-        animation: AdMobService.instance,
-        builder: (context, _) {
-          final service = AdMobService.instance;
-          if (!service.initialized ||
-              !service.canRequestAds ||
-              _adUnitId.isEmpty) {
-            if (_banner != null) {
-              final previous = _banner;
-              _banner = null;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                previous?.dispose();
-              });
+  Widget build(BuildContext context) => _screenshotMode
+      ? const SizedBox.shrink()
+      : AnimatedBuilder(
+          animation: AdMobService.instance,
+          builder: (context, _) {
+            final service = AdMobService.instance;
+            if (!service.initialized ||
+                !service.canRequestAds ||
+                _adUnitId.isEmpty) {
+              if (_banner != null) {
+                final previous = _banner;
+                _banner = null;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  previous?.dispose();
+                });
+              }
+              return const SizedBox.shrink();
             }
-            return const SizedBox.shrink();
-          }
-          if (_banner == null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _loadBanner();
-            });
-            return const SizedBox.shrink();
-          }
-          return SafeArea(
-            top: false,
-            child: SizedBox(
-              width: double.infinity,
-              height: _banner!.size.height.toDouble(),
-              child: Center(child: AdWidget(ad: _banner!)),
-            ),
-          );
-        },
-      );
+            if (_banner == null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _loadBanner();
+              });
+              return const SizedBox.shrink();
+            }
+            return SafeArea(
+              top: false,
+              child: SizedBox(
+                width: double.infinity,
+                height: _banner!.size.height.toDouble(),
+                child: Center(child: AdWidget(ad: _banner!)),
+              ),
+            );
+          },
+        );
 }

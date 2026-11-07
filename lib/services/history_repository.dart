@@ -25,6 +25,8 @@ class HistoryRepository {
   static const voiceFindPhone = 'voice_find_phone';
   static const voiceLockPhone = 'voice_lock_phone';
   static const monitoringSession = 'monitoring_session';
+  static const clapTest = 'clap_test_detected';
+  static const whistleTest = 'whistle_test_detected';
 
   static const detectionTypes = {clapDetected, whistleDetected, voiceFindPhone};
 

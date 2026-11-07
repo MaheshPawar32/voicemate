@@ -121,7 +121,10 @@ void main() {
     await c.handleEvent(
         event({'type': 'clap_progress', 'count': 1, 'required': 3}));
     expect(c.clapProgress, 1);
+    // ~-20.8 dBFS on a -60..0 dB meter.
     await c.handleEvent(event({'type': 'level', 'rms': 3000.0}));
-    expect(c.level.value, closeTo(.5, .001));
+    expect(c.level.value, closeTo(.653, .01));
+    await c.handleEvent(event({'type': 'level', 'rms': 0.0}));
+    expect(c.level.value, 0);
   });
 }

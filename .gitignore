@@ -27,3 +27,6 @@ android/app/release
 *.keystore
 .env
 .env.*
+
+# Local signed release artifacts (upload manually; never commit)
+release/

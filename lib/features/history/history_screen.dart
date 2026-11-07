@@ -28,8 +28,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   bool _matches(Map<String, dynamic> e) {
     final t = e['event_type'];
     return switch (_filter) {
-      'clap' => t == HistoryRepository.clapDetected,
-      'whistle' => t == HistoryRepository.whistleDetected,
+      'clap' =>
+        t == HistoryRepository.clapDetected || t == HistoryRepository.clapTest,
+      'whistle' => t == HistoryRepository.whistleDetected ||
+          t == HistoryRepository.whistleTest,
       'voice' => t == HistoryRepository.voiceFindPhone ||
           t == HistoryRepository.voiceLockPhone,
       _ => true,
@@ -202,6 +204,16 @@ class _HistoryTile extends StatelessWidget {
           Icons.lock_rounded,
           'Voice: “Lock my phone”',
           VokeyTokens.violet
+        ),
+      HistoryRepository.clapTest => (
+          Icons.science_rounded,
+          'Clap · Finder Test',
+          VokeyTokens.muted
+        ),
+      HistoryRepository.whistleTest => (
+          Icons.science_rounded,
+          'Whistle · Finder Test',
+          VokeyTokens.muted
         ),
       HistoryRepository.monitoringSession => (
           Icons.timer_outlined,

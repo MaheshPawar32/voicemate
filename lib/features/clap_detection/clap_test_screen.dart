@@ -7,6 +7,7 @@ import '../../services/clap_test_service.dart';
 import '../../services/monitoring_controller.dart';
 import '../../services/history_repository.dart';
 import '../../services/telemetry_service.dart';
+import '../../core/storage/safe_read.dart';
 
 class ClapTestScreen extends StatefulWidget {
   const ClapTestScreen({super.key});
@@ -111,7 +112,7 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final level = (_latest.rms / 10000).clamp(0.0, 1.0).toDouble();
+    final level = meterLevel(_latest.rms);
     return Scaffold(
       appBar: AppBar(title: const Text('Clap detection lab')),
       body: SafeArea(

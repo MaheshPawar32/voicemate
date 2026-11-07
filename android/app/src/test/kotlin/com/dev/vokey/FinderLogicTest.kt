@@ -163,4 +163,24 @@ class FinderLogicTest {
         assertEquals(5, framesUntilDetected(short, 2_200))
         assertEquals(20, framesUntilDetected(long, 2_200))
     }
+
+    // --- Startup warm-up ----------------------------------------------------
+
+    @Test
+    fun detectionsAreIgnoredDuringWarmUp() {
+        val guard = StartupGuard(startedAtMs = 10_000)
+        assertFalse(guard.isArmed(10_000))
+        assertFalse(guard.isArmed(10_225)) // the observed false trigger time
+        assertFalse(guard.isArmed(11_499))
+        assertTrue(guard.isArmed(11_500))
+    }
+
+    @Test
+    fun ownAlertNeverTriggersADetection() {
+        assertTrue(SelfTriggerGuard.suppressed(alertPlaying = true, nowMs = 5_000, alertEndedAtMs = 0))
+        // Short tail after the alert stops (room echo, speaker ring-down).
+        assertTrue(SelfTriggerGuard.suppressed(false, nowMs = 10_500, alertEndedAtMs = 10_000))
+        assertFalse(SelfTriggerGuard.suppressed(false, nowMs = 11_000, alertEndedAtMs = 10_000))
+        assertFalse(SelfTriggerGuard.suppressed(false, nowMs = 5_000, alertEndedAtMs = 0))
+    }
 }

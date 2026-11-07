@@ -168,6 +168,11 @@ Reference: `assets/branding/reference/vokey_ui_reference.png`
 - Verified on emulator (signed release): Firebase + Crashlytics initialise, settings fetched from server, R8 mapping ID present; events seen leaving the device (`permission_setup_completed`, `screen_view`).
 - **Action needed:** enable Google Analytics for the project in the Firebase console (Project settings → Integrations), or events are collected but not shown in reports.
 
+## Store listing (2026-11-07)
+- `store/play/`: 512 icon, 1024×500 feature graphic, 8 framed screenshots (1080×1920) from real captures, `listing.md` (name, package, category, tags, short/full description, release notes).
+- Emulator end-to-end (host mic): real whistle → detection → "Phone found" notification + in-app screen → Stop alert. Quick Settings tile (open when idle / stop when running) and home-screen widget (live Listening timer, Stop) verified.
+- Fixed from that testing: false clap 225 ms after Start (1.5 s warm-up) and alert self-triggering (detections ignored while Vokey's own alert sounds).
+
 ## 6. Release blockers
 
 - [x] Release build and launch check under `com.dev.vokey` (emulator, 2026-11-07).

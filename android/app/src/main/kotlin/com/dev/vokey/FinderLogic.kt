@@ -66,6 +66,33 @@ internal class ClapPatternMatcher(
     }
 }
 
+/**
+ * Ignores detections for a short period after the microphone starts. The
+ * detectors keep processing (and learning the room's noise floor) but cannot
+ * trigger: a fresh AudioRecord's first frames and the tap on Start otherwise
+ * look like a clap (observed: false "Phone found" 225 ms after start).
+ */
+internal class StartupGuard(private val startedAtMs: Long, private val warmupMs: Long = WARMUP_MS) {
+    companion object {
+        const val WARMUP_MS = 1_500L
+    }
+
+    fun isArmed(nowMs: Long): Boolean = nowMs - startedAtMs >= warmupMs
+}
+
+/**
+ * Blocks detections while Vokey's own alert is sounding (plus a short tail).
+ * A phone's speaker is centimetres from its microphone; the built-in beep
+ * (1.76 kHz) is inside the whistle band, so without this the alert could
+ * re-trigger itself whenever the alert outlasts the cooldown.
+ */
+internal object SelfTriggerGuard {
+    const val TAIL_MS = 1_000L
+
+    fun suppressed(alertPlaying: Boolean, nowMs: Long, alertEndedAtMs: Long): Boolean =
+        alertPlaying || (alertEndedAtMs > 0 && nowMs - alertEndedAtMs < TAIL_MS)
+}
+
 /** Global cooldown between alerts, regardless of which detector fired. */
 internal class TriggerGate(cooldownSeconds: Int) {
     private val cooldownMs = cooldownSeconds.coerceIn(0, 120) * 1_000L

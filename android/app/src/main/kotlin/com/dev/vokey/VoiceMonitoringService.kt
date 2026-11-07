@@ -99,6 +99,8 @@ internal class VoiceMonitoringService : Service() {
     private var voiceLockCommandEnabled = false
     private var patternMatcher = ClapPatternMatcher(1)
     private var gate = TriggerGate(5)
+    private var startupGuard = StartupGuard(0L)
+    private var alertEndedAtMs = 0L
     private var batteryWarned = false
     private var batteryReceiverRegistered = false
     private var sensorManager: SensorManager? = null
@@ -263,6 +265,7 @@ internal class VoiceMonitoringService : Service() {
             lastDetectionType = null
             lastDetectionAtMs = 0L
 
+            startupGuard = StartupGuard(SystemClock.elapsedRealtime())
             val manager = AudioCaptureManager(clapDetector, whistleDetector)
             captureManager = manager
             manager.start(
@@ -317,6 +320,16 @@ internal class VoiceMonitoringService : Service() {
             ))
         }
         val now = SystemClock.elapsedRealtime()
+        if (!startupGuard.isArmed(now)) {
+            // Warm-up: detectors are learning the noise floor; never alert yet.
+            patternMatcher.reset()
+            return
+        }
+        if (SelfTriggerGuard.suppressed(alertManager?.isPlaying == true, now, alertEndedAtMs)) {
+            // Our own alert is audible: never detect it as a clap/whistle.
+            patternMatcher.reset()
+            return
+        }
         patternMatcher.expireIfStale(now)
         var eventType: String? = null
         if (metrics.isClap) {
@@ -402,6 +415,7 @@ internal class VoiceMonitoringService : Service() {
     private fun clearAlertState(emit: Boolean) {
         mainHandler.removeCallbacks(alertEndRunnable)
         val wasActive = alertActive
+        if (wasActive) alertEndedAtMs = SystemClock.elapsedRealtime()
         alertActive = false
         (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).cancel(ALERT_NOTIFICATION_ID)
         if (emit && wasActive) MonitoringEventBus.emit(mapOf("type" to "alert_stopped"))
@@ -409,7 +423,9 @@ internal class VoiceMonitoringService : Service() {
 
     private fun handleVoiceCommand(command: String) {
         when (command) {
-            "find_phone" -> onTrigger("voice", mapOf("command" to "find_phone"))
+            "find_phone" -> if (startupGuard.isArmed(SystemClock.elapsedRealtime())) {
+                onTrigger("voice", mapOf("command" to "find_phone"))
+            }
             "lock_phone" -> {
                 if (!voiceLockCommandEnabled) {
                     MonitoringEventBus.emit(mapOf(

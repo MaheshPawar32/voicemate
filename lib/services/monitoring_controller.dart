@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
+import '../core/storage/safe_read.dart';
 import 'alert_settings_repository.dart';
 import 'finder_monitoring_service.dart';
 import 'finder_preferences_repository.dart';
@@ -170,7 +171,7 @@ class MonitoringController extends ChangeNotifier {
       case 'level':
         // RMS of 16-bit PCM; ~6000 is a loud room. Log-ish scale for display.
         final rms = (e.raw['rms'] as num?)?.toDouble() ?? 0;
-        level.value = (rms / 6000).clamp(0.0, 1.0);
+        level.value = meterLevel(rms);
         return; // no rebuild of listeners for level ticks
       case 'service_started':
         busy = false;
