@@ -475,3 +475,36 @@ String formatDuration(Duration d) {
   final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
   return h > 0 ? '${h.toString().padLeft(2, '0')}:$m:$s' : '$m:$s';
 }
+
+/// Bottom sheet with a single-choice list; returns the picked value or null.
+Future<T?> showChoiceSheet<T>(
+  BuildContext context, {
+  required String title,
+  required Map<T, String> options,
+  required T current,
+}) =>
+    showModalBottomSheet<T>(
+      context: context,
+      backgroundColor: VokeyTokens.surface,
+      builder: (sheetContext) => SafeArea(
+        child: RadioGroup<T>(
+          groupValue: current,
+          onChanged: (v) => Navigator.pop(sheetContext, v),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w800, fontSize: 16),
+                ),
+              ),
+              for (final entry in options.entries)
+                RadioListTile<T>(value: entry.key, title: Text(entry.value)),
+            ],
+          ),
+        ),
+      ),
+    );

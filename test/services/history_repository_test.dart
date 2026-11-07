@@ -54,4 +54,33 @@ void main() {
     await repository.clear();
     expect(repository.readAll(), isEmpty);
   });
+
+  test('feedback is stored on the matching event only', () async {
+    final a =
+        await repository.record(eventType: HistoryRepository.clapDetected);
+    await repository.record(eventType: HistoryRepository.whistleDetected);
+    await repository.setFeedback(a, HistoryRepository.feedbackFalseAlarm);
+    final events = repository.readAll();
+    final marked = events.where((e) =>
+        (e['metadata'] as Map)['user_feedback'] ==
+        HistoryRepository.feedbackFalseAlarm);
+    expect(marked, hasLength(1));
+    expect(marked.single['id'], a);
+  });
+
+  test('retention removes events older than the chosen window', () async {
+    final old = DateTime.now().subtract(const Duration(days: 10));
+    await repository.record(eventType: HistoryRepository.clapDetected, at: old);
+    await repository.record(eventType: HistoryRepository.whistleDetected);
+    expect(repository.readAll(), hasLength(2), reason: 'default keeps 30 days');
+    await repository.setRetentionDays(7);
+    final events = repository.readAll();
+    expect(events, hasLength(1));
+    expect(events.single['event_type'], HistoryRepository.whistleDetected);
+  });
+
+  test('unknown retention values fall back to 30 days', () async {
+    await repository.setRetentionDays(12345);
+    expect(repository.retentionDays, 30);
+  });
 }

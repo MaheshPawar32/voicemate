@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../app/vokey_app.dart';
 import '../../services/clap_test_service.dart';
+import '../../services/monitoring_controller.dart';
 import '../../services/history_repository.dart';
 
 class ClapTestScreen extends StatefulWidget {
@@ -79,7 +80,11 @@ class _ClapTestScreenState extends State<ClapTestScreen> {
         });
       });
       if (mounted) setState(() => _isRunning = true);
-      await _service.start();
+      await _service.start(
+        settings: MonitoringController.instance.finderPreferences
+            .read()
+            .toPlatformMap(),
+      );
     } catch (error) {
       await _subscription?.cancel();
       _subscription = null;

@@ -1,17 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../app/vokey_app.dart';
+import '../../core/theme/vokey_theme.dart';
+import '../../core/widgets/gradient_button.dart';
+import '../../core/widgets/vokey_widgets.dart';
 import '../../services/finder_monitoring_service.dart';
-import '../../services/history_repository.dart';
-import '../../services/alert_settings_repository.dart';
-import '../../services/voice_settings_repository.dart';
+import '../../services/monitoring_controller.dart';
 import '../../services/monitoring_settings_repository.dart';
 import '../ads/home_banner_ad.dart';
+import '../alert_studio/alert_studio_screen.dart';
 import '../clap_detection/clap_test_screen.dart';
+import '../finder/finder_start_flow.dart';
+import '../voice_commands/voice_commands_screen.dart';
 
+/// Home dashboard: "Ready to Find" / "Listening…" (reference board).
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -20,413 +23,375 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final FinderMonitoringService _monitoring = FinderMonitoringService();
-  late final HistoryRepository _history;
-  late final AlertSettingsRepository _alertSettings;
-  late final VoiceSettingsRepository _voiceSettings;
-  late final MonitoringSettingsRepository _monitoringSettings;
-  late final Box<dynamic> _settingsBox;
-  StreamSubscription<FinderMonitoringEvent>? _subscription;
-  bool _isMonitoring = false;
-  bool _isBusy = false;
-  String? _error;
+  MonitoringController get _c => MonitoringController.instance;
+  bool? _voiceModelInstalled;
 
   @override
   void initState() {
     super.initState();
-    final settingsBox = Hive.box<dynamic>('vokey_settings');
-    _settingsBox = settingsBox;
-    _history = HistoryRepository(settingsBox);
-    _alertSettings = AlertSettingsRepository(settingsBox);
-    _voiceSettings = VoiceSettingsRepository(settingsBox);
-    _monitoringSettings = MonitoringSettingsRepository(settingsBox);
-    _subscription = _monitoring.events.listen(_handleMonitoringEvent,
-        onError: (Object error) {
-      if (!mounted) return;
-      setState(() {
-        _error = error.toString();
-        _isMonitoring = false;
-        _isBusy = false;
-      });
-    });
-    unawaited(_refreshStatus());
+    _checkVoiceModel();
+  }
+
+  Future<void> _checkVoiceModel() async {
+    try {
+      final installed = await FinderMonitoringService().isVoiceModelInstalled();
+      if (mounted) setState(() => _voiceModelInstalled = installed);
+    } catch (_) {
+      if (mounted) setState(() => _voiceModelInstalled = false);
+    }
+  }
+
+  Future<void> _setMethod(String method, bool value) async {
+    if (_c.active) return;
+    if (method == 'voice') {
+      if (value && _voiceModelInstalled != true) {
+        await Navigator.of(context).push(MaterialPageRoute<void>(
+          builder: (_) => const VoiceCommandsScreen(),
+        ));
+        await _checkVoiceModel();
+        if (mounted) setState(() {});
+        return;
+      }
+      await _c.voiceSettings.setEnabled(value);
+    } else {
+      final p = _c.monitoringSettings.read();
+      await _c.monitoringSettings.save(MonitoringPreferences(
+        clapEnabled: method == 'clap' ? value : p.clapEnabled,
+        whistleEnabled: method == 'whistle' ? value : p.whistleEnabled,
+        clapSensitivity: p.clapSensitivity,
+        whistleSensitivity: p.whistleSensitivity,
+        autoStopMinutes: p.autoStopMinutes,
+        quietHoursEnabled: p.quietHoursEnabled,
+        quietStart: p.quietStart,
+        quietEnd: p.quietEnd,
+      ));
+    }
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+        listenable: _c,
+        builder: (context, _) {
+          final active = _c.active;
+          final monitoring = _c.monitoringSettings.read();
+          final voiceOn = _c.voiceSettings.read().enabled;
+          final clapOn = active ? _c.clapActive : monitoring.clapEnabled;
+          final whistleOn =
+              active ? _c.whistleActive : monitoring.whistleEnabled;
+          final voiceShown = active ? _c.voiceActive : voiceOn;
+          return SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
+              children: [
+                Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(9),
+                      child: Image.asset(
+                        'assets/branding/vokey_icon_1024.png',
+                        width: 34,
+                        height: 34,
+                        cacheWidth: 102,
+                        semanticLabel: 'Vokey',
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const Text(
+                      'Vokey',
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                    ),
+                    const Spacer(),
+                    StatusPill(
+                      active ? 'LISTENING' : 'OFF',
+                      color: active ? VokeyTokens.success : VokeyTokens.warning,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 26),
+                Center(child: _FinderRing(active: active, level: _c.level)),
+                const SizedBox(height: 22),
+                Text(
+                  active ? 'Listening…' : 'Ready to Find',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    color: active ? VokeyTokens.success : VokeyTokens.text,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                if (active)
+                  Center(child: _ElapsedText(since: _c.startedAt))
+                else
+                  const Text(
+                    'Tap Start to begin listening\nfor claps, whistles or voice.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: VokeyTokens.muted, height: 1.45),
+                  ),
+                if (active && _c.clapActive && _c.clapPattern > 1) ...[
+                  const SizedBox(height: 10),
+                  Center(
+                    child: _ClapProgress(
+                      count: _c.clapProgress,
+                      required: _c.clapPattern,
+                    ),
+                  ),
+                ],
+                if (active &&
+                    _c.snoozedUntil != null &&
+                    _c.snoozedUntil!.isAfter(DateTime.now())) ...[
+                  const SizedBox(height: 10),
+                  const Center(
+                    child: StatusPill('Alerts snoozed',
+                        color: VokeyTokens.warning),
+                  ),
+                ],
+                const SizedBox(height: 22),
+                if (active)
+                  DangerButton(label: 'Stop Finder', onPressed: _c.stop)
+                else
+                  GradientButton(
+                    label: _c.busy ? 'Starting…' : 'Start Finder',
+                    icon: Icons.play_arrow_rounded,
+                    onPressed:
+                        _c.busy ? null : () => FinderStartFlow.start(context),
+                  ),
+                if (_c.notice != null) ...[
+                  const SizedBox(height: 14),
+                  NoticeBanner(
+                    message: _c.notice!,
+                    color: VokeyTokens.warning,
+                    onDismiss: _c.clearNotice,
+                  ),
+                ],
+                const SizedBox(height: 22),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _MethodTile(
+                        icon: Icons.back_hand_rounded,
+                        label: 'Clap',
+                        on: clapOn,
+                        locked: active,
+                        onTap: () => _setMethod('clap', !clapOn),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _MethodTile(
+                        icon: Icons.sports_rounded,
+                        label: 'Whistle',
+                        on: whistleOn,
+                        locked: active,
+                        onTap: () => _setMethod('whistle', !whistleOn),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _MethodTile(
+                        icon: Icons.mic_rounded,
+                        label: 'Voice',
+                        on: voiceShown,
+                        locked: active,
+                        onTap: () => _setMethod('voice', !voiceShown),
+                      ),
+                    ),
+                  ],
+                ),
+                if (active)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: Text(
+                      'Stop the finder to change detection methods.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: VokeyTokens.muted, fontSize: 12),
+                    ),
+                  ),
+                const SizedBox(height: 18),
+                SettingRow(
+                  icon: Icons.science_rounded,
+                  title: 'Finder Test',
+                  subtitle: active
+                      ? 'Stop the finder to run a test'
+                      : 'Check your clap and whistle on this phone',
+                  onTap: active
+                      ? null
+                      : () =>
+                          Navigator.of(context).push(MaterialPageRoute<void>(
+                            builder: (_) => const ClapTestScreen(),
+                          )),
+                ),
+                SettingRow(
+                  icon: Icons.notifications_active_rounded,
+                  iconColor: VokeyTokens.violet,
+                  title: 'Alert Studio',
+                  subtitle: 'Sound, vibration and flashlight',
+                  onTap: () =>
+                      Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (_) => const AlertStudioScreen(),
+                  )),
+                ),
+                // Ads never show while monitoring or starting (product rule).
+                if (!active && !_c.busy) ...[
+                  const SizedBox(height: 6),
+                  const Center(child: HomeBannerAd()),
+                ],
+              ],
+            ),
+          );
+        },
+      );
+}
+
+/// Gradient ring with live level bars; static when idle.
+class _FinderRing extends StatelessWidget {
+  const _FinderRing({required this.active, required this.level});
+  final bool active;
+  final ValueNotifier<double> level;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active ? VokeyTokens.success : VokeyTokens.cyan;
+    return Container(
+      width: 190,
+      height: 190,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [color.withValues(alpha: .16), VokeyTokens.background],
+        ),
+        border: Border.all(color: color.withValues(alpha: .8), width: 3),
+        boxShadow: [
+          BoxShadow(
+              color: color.withValues(alpha: .28),
+              blurRadius: 40,
+              spreadRadius: 2),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: active
+          ? ValueListenableBuilder<double>(
+              valueListenable: level,
+              builder: (_, value, __) =>
+                  LevelBars(level: value, bars: 15, height: 70),
+            )
+          : const Icon(Icons.graphic_eq_rounded,
+              size: 84, color: VokeyTokens.cyan),
+    );
+  }
+}
+
+class _ElapsedText extends StatefulWidget {
+  const _ElapsedText({required this.since});
+  final DateTime? since;
+
+  @override
+  State<_ElapsedText> createState() => _ElapsedTextState();
+}
+
+class _ElapsedTextState extends State<_ElapsedText> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
   }
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
-  Future<void> _refreshStatus() async {
-    try {
-      final active = await _monitoring.isActive();
-      if (mounted) setState(() => _isMonitoring = active);
-    } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
-    }
-  }
-
-  void _handleMonitoringEvent(FinderMonitoringEvent event) {
-    if (!mounted) return;
-    switch (event.type) {
-      case 'service_started':
-        setState(() {
-          _isMonitoring = true;
-          _isBusy = false;
-          _error = null;
-        });
-        break;
-      case 'service_stopped':
-        setState(() {
-          _isMonitoring = false;
-          _isBusy = false;
-        });
-        break;
-      case 'service_auto_stopped':
-        setState(() {
-          _isMonitoring = false;
-          _isBusy = false;
-          _error =
-              'Monitoring stopped automatically after the selected time limit.';
-        });
-        break;
-      case 'service_error':
-        setState(() {
-          _isMonitoring = false;
-          _isBusy = false;
-          _error = event.message ?? 'Monitoring stopped unexpectedly.';
-        });
-        break;
-      case 'flashlight_unavailable':
-        setState(() {
-          _error = event.message ??
-              'The flashlight is temporarily unavailable. Sound and vibration alerts remain active.';
-        });
-        break;
-      case 'voice_command_ignored':
-        setState(() {
-          _error = event.reason == 'device_admin_not_active'
-              ? 'Activate the lock-only Device Admin permission before using “Lock my phone”.'
-              : 'That voice action is disabled in Offline Voice Commands.';
-        });
-        break;
-      case 'voice_command':
-        if (event.command == 'find_phone' || event.command == 'lock_phone') {
-          unawaited(_history.record(
-            eventType: event.command == 'find_phone'
-                ? 'voice_find_phone'
-                : 'voice_lock_phone',
-          ));
-        } else if (event.command == 'stop_monitoring') {
-          setState(() => _isMonitoring = false);
-        }
-        break;
-      case 'detection':
-        if (event.eventType == 'clap' || event.eventType == 'whistle') {
-          unawaited(_history.record(
-            eventType: event.eventType == 'clap'
-                ? 'clap_monitor_detected'
-                : 'whistle_monitor_detected',
-            metadata: {
-              'clap_count': event.clapCount,
-              'whistle_count': event.whistleCount,
-              'whistle_frequency_hz': event.whistleFrequencyHz,
-              'rms': event.rms,
-              'peak': event.peak,
-              'quiet_hours': event.quietHours,
-            },
-          ));
-        }
-        break;
-    }
-  }
-
-  Future<bool> _confirmMicrophoneDisclosure() async {
-    if (_settingsBox.get('mic_disclosure_acknowledged', defaultValue: false) ==
-        true) {
-      return true;
-    }
-    final accepted = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Microphone access for phone finder'),
-        content: const SingleChildScrollView(
-          child: Text(
-            'Vokey uses the microphone to detect claps and sustained whistle-like tones while finder monitoring is active. Audio is analysed on this device in temporary memory. Vokey does not save recordings or upload microphone audio.\n\n'
-            'When you start monitoring, Android shows an ongoing notification with a Stop action. You can stop monitoring from the app or that notification.\n\n'
-            'Only continue when you understand and agree to this microphone use.',
-            style: TextStyle(height: 1.5),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Not now'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Continue'),
-          ),
-        ],
+  @override
+  Widget build(BuildContext context) {
+    final since = widget.since;
+    final d = since == null ? Duration.zero : DateTime.now().difference(since);
+    return Text(
+      formatDuration(d.isNegative ? Duration.zero : d),
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        fontFeatures: [FontFeature.tabularFigures()],
+        color: VokeyTokens.muted,
       ),
     );
-    if (accepted == true) {
-      await _settingsBox.put('mic_disclosure_acknowledged', true);
-      return true;
-    }
-    return false;
   }
+}
 
-  Future<void> _toggleMonitoring() async {
-    if (_isBusy) return;
-    setState(() {
-      _isBusy = true;
-      _error = null;
-    });
-    try {
-      if (_isMonitoring) {
-        await _monitoring.stop();
-        if (mounted) {
-          setState(() {
-            _isMonitoring = false;
-            _isBusy = false;
-          });
-        }
-      } else {
-        final disclosureAccepted = await _confirmMicrophoneDisclosure();
-        if (!disclosureAccepted) {
-          if (mounted) setState(() => _isBusy = false);
-          return;
-        }
-        final granted = await _monitoring.requestMicrophonePermission();
-        if (!granted) {
-          throw const FinderMonitoringException(
-              'Microphone permission is required. Enable it in Android settings to start monitoring.');
-        }
-        final notificationsGranted =
-            await _monitoring.requestNotificationPermission();
-        if (!notificationsGranted) {
-          throw const FinderMonitoringException(
-              'Notification permission is required so the active-monitoring notification and its Stop action remain visible. Enable notifications for Vokey in Android settings.');
-        }
-        final voice = _voiceSettings.read();
-        final alerts = _alertSettings.read();
-        final monitoringSettings = _monitoringSettings.read();
-        if (!monitoringSettings.clapEnabled &&
-            !monitoringSettings.whistleEnabled &&
-            !voice.enabled) {
-          throw const FinderMonitoringException(
-            'Enable clap detection, whistle detection or offline voice commands in Monitoring Centre before starting.',
-          );
-        }
-        if (alerts.flashlightEnabled) {
-          final cameraGranted = await _monitoring.requestCameraPermission();
-          if (!cameraGranted) {
-            throw const FinderMonitoringException(
-                'Camera permission is required for flashlight alerts. Turn flashlight pulses off in Alert Studio or allow camera access in Android settings.');
-          }
-        }
-        await _monitoring.start(
-          alertSettings: alerts.toPlatformMap(),
-          voiceEnabled: voice.enabled,
-          voiceLockCommandEnabled: voice.lockCommandEnabled,
-          monitoringSettings: monitoringSettings,
-        );
-        if (mounted) {
-          setState(() {
-            _isMonitoring = true;
-            _isBusy = false;
-          });
-        }
-      }
-    } catch (error) {
-      if (mounted) {
-        setState(() {
-          _error = error.toString();
-          _isBusy = false;
-          _isMonitoring = false;
-        });
-      }
-    }
-  }
-
-  void _openClapTest() {
-    if (_isMonitoring) return;
-    Navigator.of(context)
-        .push(MaterialPageRoute<void>(builder: (_) => const ClapTestScreen()));
-  }
+class _ClapProgress extends StatelessWidget {
+  const _ClapProgress({required this.count, required this.required});
+  final int count;
+  final int required;
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+  Widget build(BuildContext context) => Semantics(
+        label: '$count of $required claps',
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Vokey',
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 20),
-            Row(children: [
-              const Expanded(
-                  child: Text('Your phone,\nnever lost.',
-                      style: TextStyle(
-                          fontSize: 27,
-                          height: 1.15,
-                          fontWeight: FontWeight.w800))),
+            for (var i = 0; i < required; i++)
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: 10,
+                height: 10,
                 decoration: BoxDecoration(
-                    color: _isMonitoring
-                        ? const Color(0xFF17382F)
-                        : const Color(0xFF302A20),
-                    borderRadius: BorderRadius.circular(30)),
-                child: Row(children: [
-                  Icon(Icons.circle,
-                      size: 8,
-                      color: _isMonitoring
-                          ? const Color(0xFF38D99A)
-                          : const Color(0xFFFFBE55)),
-                  const SizedBox(width: 7),
-                  Text(_isMonitoring ? 'MONITORING ON' : 'MONITORING OFF',
-                      style: const TextStyle(
-                          fontSize: 11, fontWeight: FontWeight.w700)),
-                ]),
-              ),
-            ]),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(23),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    colors: [Color(0xFF18365A), Color(0xFF111D32)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight),
-                borderRadius: BorderRadius.circular(26),
-                border: Border.all(color: VokeyApp.cyan.withValues(alpha: .25)),
-              ),
-              child: Column(children: [
-                Container(
-                    width: 112,
-                    height: 112,
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: VokeyApp.cyan.withValues(alpha: .09),
-                        border: Border.all(
-                            color: VokeyApp.cyan.withValues(alpha: .35),
-                            width: 1.5)),
-                    child: Icon(
-                        _isMonitoring
-                            ? Icons.hearing_rounded
-                            : Icons.graphic_eq_rounded,
-                        size: 58,
-                        color: VokeyApp.cyan)),
-                const SizedBox(height: 17),
-                Text(
-                    _isMonitoring
-                        ? 'Clap & whistle finder is active'
-                        : 'Finder is paused',
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 7),
-                Text(
-                    _isMonitoring
-                        ? 'Vokey listens for clap and sustained whistle-like tones and plays your configured alert.'
-                        : 'Start monitoring to listen for clap and sustained whistle-like tones while the Android foreground notification is visible.',
-                    textAlign: TextAlign.center,
-                    style:
-                        const TextStyle(color: VokeyApp.muted, height: 1.45)),
-                const SizedBox(height: 18),
-                FilledButton.icon(
-                  onPressed: _isBusy ? null : _toggleMonitoring,
-                  icon: Icon(_isBusy
-                      ? Icons.hourglass_top_rounded
-                      : (_isMonitoring
-                          ? Icons.stop_rounded
-                          : Icons.hearing_rounded)),
-                  label: Text(_isBusy
-                      ? 'Please wait…'
-                      : (_isMonitoring
-                          ? 'Stop monitoring'
-                          : 'Start clap finder')),
-                  style: FilledButton.styleFrom(
-                      backgroundColor: _isMonitoring
-                          ? const Color(0xFFFF657A)
-                          : VokeyApp.cyan,
-                      foregroundColor: const Color(0xFF06111D),
-                      minimumSize: const Size.fromHeight(50)),
-                ),
-              ]),
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 14),
-              Container(
-                padding: const EdgeInsets.all(13),
-                decoration: BoxDecoration(
-                    color: const Color(0xFF3A202B),
-                    borderRadius: BorderRadius.circular(14)),
-                child: Text(_error!,
-                    style: const TextStyle(color: Color(0xFFFFA7B2))),
-              ),
-            ],
-            const SizedBox(height: 25),
-            const Text('Available tools',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 13),
-            Card(
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: _isMonitoring ? null : _openClapTest,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(children: [
-                    const Icon(Icons.back_hand_rounded,
-                        color: VokeyApp.cyan, size: 30),
-                    const SizedBox(width: 14),
-                    const Expanded(
-                        child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Clap Detection Diagnostic',
-                            style: TextStyle(fontWeight: FontWeight.w700)),
-                        SizedBox(height: 4),
-                        Text('Foreground microphone signal test',
-                            style:
-                                TextStyle(color: VokeyApp.muted, fontSize: 12)),
-                      ],
-                    )),
-                    Icon(
-                        _isMonitoring
-                            ? Icons.lock_outline_rounded
-                            : Icons.chevron_right_rounded,
-                        color: VokeyApp.muted),
-                  ]),
+                  shape: BoxShape.circle,
+                  color: i < count ? VokeyTokens.cyan : VokeyTokens.cardBorder,
                 ),
               ),
-            ),
-            if (!_isMonitoring && !_isBusy) ...[
-              const SizedBox(height: 14),
-              const Center(child: HomeBannerAd()),
-            ],
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                  color: VokeyApp.surface,
-                  borderRadius: BorderRadius.circular(18)),
-              child: const Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.shield_outlined, color: VokeyApp.cyan),
-                  SizedBox(width: 12),
-                  Expanded(
-                      child: Text(
-                          'Privacy first\nMicrophone monitoring starts only after you tap Start and grant permission. Audio is processed on this device; Vokey does not save recordings.',
-                          style: TextStyle(height: 1.45))),
-                ],
-              ),
+            const SizedBox(width: 8),
+            Text(
+              required == 2 ? 'Double clap' : 'Triple clap',
+              style: const TextStyle(color: VokeyTokens.muted, fontSize: 12),
             ),
           ],
+        ),
+      );
+}
+
+class _MethodTile extends StatelessWidget {
+  const _MethodTile({
+    required this.icon,
+    required this.label,
+    required this.on,
+    required this.locked,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool on;
+  final bool locked;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        toggled: on,
+        button: true,
+        label: '$label detection',
+        child: NeonCard(
+          glow: on ? VokeyTokens.cyan : null,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          onTap: locked ? null : onTap,
+          child: Column(
+            children: [
+              Icon(icon, color: on ? VokeyTokens.cyan : VokeyTokens.muted),
+              const SizedBox(height: 6),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 2),
+              Text(
+                on ? 'On' : 'Off',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: on ? VokeyTokens.success : VokeyTokens.muted,
+                ),
+              ),
+            ],
+          ),
         ),
       );
 }

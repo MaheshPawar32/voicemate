@@ -7,7 +7,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../services/admob_service.dart';
 import 'vokey_splash.dart';
 
+import '../core/theme/vokey_theme.dart';
+import '../features/finder/phone_found_screen.dart';
 import '../features/history/history_screen.dart';
+import '../features/monitoring/monitor_screen.dart';
+import '../features/tools/tools_screen.dart';
+import '../services/monitoring_controller.dart';
 import '../features/home/home_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/settings/settings_screen.dart';
@@ -77,12 +82,13 @@ class VokeyApp extends StatefulWidget {
 
   final AppStartupState? startupOverride;
 
-  static const background = Color(0xFF0B1020);
-  static const surface = Color(0xFF131B2E);
-  static const card = Color(0xFF19243A);
-  static const cyan = Color(0xFF26D9E8);
-  static const violet = Color(0xFF7777FF);
-  static const muted = Color(0xFF9BA9BE);
+  // Aliases kept for older screens; values come from the Vokey tokens.
+  static const background = VokeyTokens.background;
+  static const surface = VokeyTokens.surface;
+  static const card = VokeyTokens.card;
+  static const cyan = VokeyTokens.cyan;
+  static const violet = VokeyTokens.violet;
+  static const muted = VokeyTokens.muted;
 
   @override
   State<VokeyApp> createState() => _VokeyAppState();
@@ -155,38 +161,7 @@ class _VokeyAppState extends State<VokeyApp> {
     return MaterialApp(
       title: 'Vokey',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: VokeyApp.background,
-        colorScheme: const ColorScheme.dark(
-          primary: VokeyApp.cyan,
-          secondary: VokeyApp.violet,
-          surface: VokeyApp.surface,
-          error: Color(0xFFFF657A),
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: VokeyApp.background,
-          foregroundColor: Color(0xFFF4F7FF),
-          elevation: 0,
-          centerTitle: false,
-        ),
-        cardTheme: CardThemeData(
-          color: VokeyApp.card,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: VokeyApp.surface,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
+      theme: VokeyTheme.dark(),
       home: _AppEntry(settingsBox: _startup.settingsBox!),
     );
   }
@@ -293,6 +268,7 @@ class _AppEntryState extends State<_AppEntry> {
   void initState() {
     super.initState();
     _settings = widget.settingsBox;
+    MonitoringController.init(_settings);
   }
 
   Future<void> _completeOnboarding() async {
@@ -316,27 +292,68 @@ class VokeyShell extends StatefulWidget {
   State<VokeyShell> createState() => _VokeyShellState();
 }
 
-class _VokeyShellState extends State<VokeyShell> {
+class _VokeyShellState extends State<VokeyShell> with WidgetsBindingObserver {
   int _selectedIndex = 0;
+  StreamSubscription<DetectionInfo>? _detections;
+  bool _foundScreenOpen = false;
+  bool _resumed = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _detections =
+        MonitoringController.instance.detections.listen(_showPhoneFound);
     unawaited(AdMobService.instance.initialize());
   }
 
   @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _detections?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _resumed = state == AppLifecycleState.resumed;
+    // The service may have stopped from the notification, tile or widget
+    // while we were away: resync with the native source of truth.
+    if (_resumed) unawaited(MonitoringController.instance.refresh());
+  }
+
+  Future<void> _showPhoneFound(DetectionInfo info) async {
+    // In the background the native notification handles Stop/Snooze.
+    if (!_resumed || _foundScreenOpen || !mounted) return;
+    _foundScreenOpen = true;
+    await Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        transitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (_, __, ___) => PhoneFoundScreen(detection: info),
+        transitionsBuilder: (_, animation, __, child) => FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween(begin: .96, end: 1.0).animate(animation),
+            child: child,
+          ),
+        ),
+      ),
+    );
+    _foundScreenOpen = false;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final pages = <Widget>[
-      const HomeScreen(),
-      const HistoryScreen(),
-      const SettingsScreen(),
+    const pages = <Widget>[
+      HomeScreen(),
+      MonitorScreen(),
+      ToolsScreen(),
+      HistoryScreen(),
+      SettingsScreen(),
     ];
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: pages),
       bottomNavigationBar: NavigationBar(
-        backgroundColor: VokeyApp.surface,
-        indicatorColor: VokeyApp.cyan.withValues(alpha: .14),
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) =>
             setState(() => _selectedIndex = index),
@@ -345,6 +362,16 @@ class _VokeyShellState extends State<VokeyShell> {
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home_rounded),
             label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.monitor_heart_outlined),
+            selectedIcon: Icon(Icons.monitor_heart_rounded),
+            label: 'Monitor',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.grid_view_outlined),
+            selectedIcon: Icon(Icons.grid_view_rounded),
+            label: 'Tools',
           ),
           NavigationDestination(
             icon: Icon(Icons.history_rounded),

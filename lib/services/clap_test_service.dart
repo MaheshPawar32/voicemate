@@ -72,9 +72,11 @@ class ClapTestService {
     }
   }
 
-  Future<void> start() async {
+  /// [settings] are the saved finder preferences (sensitivity, whistle band
+  /// and duration) so the test matches background monitoring.
+  Future<void> start({Map<String, Object> settings = const {}}) async {
     try {
-      await _methods.invokeMethod<void>('startClapTest');
+      await _methods.invokeMethod<void>('startClapTest', settings);
     } on PlatformException catch (error) {
       throw ClapTestException(
           error.message ?? 'Could not start the clap test.');

@@ -18,7 +18,18 @@ class FinderMonitoringEvent {
     this.rms = 0,
     this.peak = 0,
     this.timestamp,
+    this.raw = const {},
   });
+
+  /// Complete metadata-only payload (schema documented in VoiceMonitoringService).
+  final Map<String, dynamic> raw;
+
+  int intField(String key, [int fallback = 0]) {
+    final v = raw[key];
+    return v is num ? v.toInt() : fallback;
+  }
+
+  bool boolField(String key) => raw[key] == true;
 
   final String type;
   final String? eventType;
@@ -51,6 +62,7 @@ class FinderMonitoringEvent {
         rms: (map['rms'] as num?)?.toDouble() ?? 0,
         peak: (map['peak'] as num?)?.toDouble() ?? 0,
         timestamp: (map['timestamp'] as num?)?.toInt(),
+        raw: Map<String, dynamic>.from(map),
       );
 }
 
@@ -141,13 +153,16 @@ class FinderMonitoringService {
     bool voiceEnabled = false,
     bool voiceLockCommandEnabled = false,
     MonitoringPreferences monitoringSettings = const MonitoringPreferences(),
+    Map<String, Object?> finderSettings = const {},
   }) async {
     try {
       await _methods.invokeMethod<void>('startMonitoring', {
+        'schema_version': 1,
         ...alertSettings,
         'voice_enabled': voiceEnabled,
         'voice_lock_command_enabled': voiceLockCommandEnabled,
         ...monitoringSettings.toPlatformMap(),
+        ...finderSettings,
       });
     } on PlatformException catch (error) {
       throw FinderMonitoringException(
@@ -167,6 +182,39 @@ class FinderMonitoringService {
     } on MissingPluginException {
       throw const FinderMonitoringException(
           'Android monitoring service is not available.');
+    }
+  }
+
+  Future<void> _invoke(String method, String failure) async {
+    try {
+      await _methods.invokeMethod<void>(method);
+    } on PlatformException catch (error) {
+      throw FinderMonitoringException(error.message ?? failure);
+    } on MissingPluginException {
+      throw const FinderMonitoringException(
+          'Android monitoring service is not available.');
+    }
+  }
+
+  /// Stops the ringing alert but keeps listening.
+  Future<void> stopAlert() => _invoke('stopAlert', 'Could not stop the alert.');
+
+  /// Stops the alert and ignores detections for 30 seconds.
+  Future<void> snoozeAlert() =>
+      _invoke('snoozeAlert', 'Could not snooze the alert.');
+
+  /// Stop All: microphone, monitoring, alert, flashlight, vibration, tests.
+  Future<void> emergencyStop() =>
+      _invoke('emergencyStop', 'Could not stop Vokey.');
+
+  Future<Map<String, dynamic>> capabilities() async {
+    try {
+      final raw = await _methods.invokeMethod<Object?>('getCapabilities');
+      return raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
+    } on PlatformException {
+      return <String, dynamic>{};
+    } on MissingPluginException {
+      return <String, dynamic>{};
     }
   }
 
