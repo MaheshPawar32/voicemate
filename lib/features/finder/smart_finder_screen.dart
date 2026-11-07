@@ -4,7 +4,6 @@ import '../../core/theme/vokey_theme.dart';
 import '../../core/widgets/vokey_widgets.dart';
 import '../../services/finder_preferences_repository.dart';
 import '../../services/monitoring_controller.dart';
-import '../../services/monitoring_settings_repository.dart';
 import '../voice_commands/voice_commands_screen.dart';
 import 'clap_detection_screen.dart';
 import 'finder_start_flow.dart';
@@ -22,15 +21,9 @@ class _SmartFinderScreenState extends State<SmartFinderScreen> {
 
   Future<void> _setMethod({bool? clap, bool? whistle}) async {
     final p = _c.monitoringSettings.read();
-    await _c.monitoringSettings.save(MonitoringPreferences(
+    await _c.monitoringSettings.save(p.copyWith(
       clapEnabled: clap ?? p.clapEnabled,
       whistleEnabled: whistle ?? p.whistleEnabled,
-      clapSensitivity: p.clapSensitivity,
-      whistleSensitivity: p.whistleSensitivity,
-      autoStopMinutes: p.autoStopMinutes,
-      quietHoursEnabled: p.quietHoursEnabled,
-      quietStart: p.quietStart,
-      quietEnd: p.quietEnd,
     ));
     setState(() {});
   }

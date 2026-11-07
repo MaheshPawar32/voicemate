@@ -29,6 +29,7 @@ class MainActivity : FlutterActivity() {
         private const val REQUEST_MICROPHONE = 7401
         private const val REQUEST_NOTIFICATIONS = 7402
         private const val REQUEST_CAMERA = 7403
+        private const val REQUEST_PICK_SOUND = 7404
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -37,6 +38,7 @@ class MainActivity : FlutterActivity() {
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var pendingNotificationResult: MethodChannel.Result? = null
     private var pendingCameraPermissionResult: MethodChannel.Result? = null
+    private var pendingSoundImport: MethodChannel.Result? = null
     private var captureManager: AudioCaptureManager? = null
     private var alertPreview: FinderAlertManager? = null
     private var flashlightPreview: FlashlightManager? = null
@@ -83,6 +85,13 @@ class MainActivity : FlutterActivity() {
                 )
                 "requestLockAdminActivation" -> requestLockAdminActivation(result)
                 "lockDeviceNow" -> lockDeviceNow(result)
+                "deactivateLockAdmin" -> {
+                    try {
+                        result.success(DeviceLockManager(this).deactivate())
+                    } catch (error: Exception) {
+                        result.error("device_admin_deactivate_failed", "Android could not remove the permission.", null)
+                    }
+                }
                 "installVoiceModel" -> installVoiceModel(result)
                 "isVoiceModelInstalled" -> result.success(
                     VoiceModelInstaller.isInstalled(this),
@@ -114,6 +123,13 @@ class MainActivity : FlutterActivity() {
                 }
                 "getMonitoringStatus" -> result.success(VoiceMonitoringService.statusMap())
                 "getCapabilities" -> result.success(DeviceCapabilities.snapshot(this))
+                "importCustomSound" -> importCustomSound(result)
+                "deleteCustomSound" -> result.success(
+                    CustomSoundImporter.delete(this, (call.arguments as? Map<*, *>)?.get("file_name") as? String),
+                )
+                "customSoundExists" -> result.success(
+                    CustomSoundImporter.exists(this, (call.arguments as? Map<*, *>)?.get("file_name") as? String),
+                )
                 else -> result.notImplemented()
             }
         }
@@ -278,6 +294,14 @@ class MainActivity : FlutterActivity() {
             "notifications_enabled" to notificationsEnabled,
             "camera_granted" to cameraGranted,
             "api_level" to Build.VERSION.SDK_INT,
+            // false after a "Don't ask again" denial (or before the first ask);
+            // Flutter combines this with its own "asked" flag.
+            "microphone_rationale" to shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO),
+            "notification_rationale" to (Build.VERSION.SDK_INT >= 33 &&
+                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)),
+            "camera_rationale" to shouldShowRequestPermissionRationale(Manifest.permission.CAMERA),
+            "device_admin_active" to DeviceLockManager(this).isAdminActive(),
+            "has_flash" to packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH),
         )
     }
 
@@ -475,17 +499,15 @@ class MainActivity : FlutterActivity() {
             alertPreview?.release()
             flashlightPreview?.stop()
             flashlightPreview = null
-            val bundle = Bundle().apply {
-                putBoolean("sound_enabled", arguments?.get("sound_enabled") as? Boolean ?: true)
-                putBoolean("vibration_enabled", arguments?.get("vibration_enabled") as? Boolean ?: true)
-                putString("sound_id", arguments?.get("sound_id") as? String ?: "classic_beep")
-                putInt("alert_volume", (arguments?.get("alert_volume") as? Number)?.toInt() ?: 80)
-                putInt("alert_duration_seconds", (arguments?.get("alert_duration_seconds") as? Number)?.toInt() ?: 3)
-                putBoolean("repeat_enabled", arguments?.get("repeat_enabled") as? Boolean ?: false)
-                putBoolean("flashlight_enabled", arguments?.get("flashlight_enabled") as? Boolean ?: false)
-                putString("flash_pattern", arguments?.get("flash_pattern") as? String ?: "single")
+            val bundle = configBundle(arguments).apply {
+                // Previews default to a short, single play unless overridden.
+                if (arguments?.containsKey("alert_duration_seconds") != true) {
+                    putInt("alert_duration_seconds", 3)
+                }
             }
-            alertPreview = FinderAlertManager(this, FinderAlertConfig.fromExtras(bundle))
+            alertPreview = FinderAlertManager(this, FinderAlertConfig.fromExtras(bundle)) { reason ->
+                MonitoringEventBus.emit(mapOf("type" to "alert_sound_unavailable", "reason" to reason))
+            }
             alertPreview?.play()
             if (bundle.getBoolean("flashlight_enabled", false)) {
                 try {
@@ -599,6 +621,68 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    /** Typed pass-through of the snake_case config map into a Bundle. */
+    private fun configBundle(arguments: Map<*, *>?): Bundle = Bundle().apply {
+        arguments?.forEach { (key, value) ->
+            if (key !is String) return@forEach
+            when (value) {
+                is Boolean -> putBoolean(key, value)
+                is Int -> putInt(key, value)
+                is Long -> putInt(key, value.toInt())
+                is Double -> putInt(key, value.toInt())
+                is String -> putString(key, value)
+            }
+        }
+    }
+
+    /** Storage Access Framework picker: no storage permission needed. */
+    private fun importCustomSound(result: MethodChannel.Result) {
+        if (pendingSoundImport != null) {
+            result.error("import_in_progress", "A sound import is already open.", null)
+            return
+        }
+        pendingSoundImport = result
+        try {
+            @Suppress("DEPRECATION")
+            startActivityForResult(
+                Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "audio/*"
+                },
+                REQUEST_PICK_SOUND,
+            )
+        } catch (error: Exception) {
+            pendingSoundImport = null
+            result.error("picker_unavailable", "No file picker is available on this device.", null)
+        }
+    }
+
+    @Deprecated("FlutterActivity is not a ComponentActivity; uses the platform result API.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != REQUEST_PICK_SOUND) return
+        val result = pendingSoundImport ?: return
+        pendingSoundImport = null
+        val uri = data?.data
+        if (resultCode != RESULT_OK || uri == null) {
+            result.success(null) // user cancelled
+            return
+        }
+        Thread({
+            try {
+                val meta = CustomSoundImporter.import(applicationContext, uri)
+                mainHandler.post { result.success(meta) }
+            } catch (error: CustomSoundImporter.ImportException) {
+                mainHandler.post { result.error("invalid_sound", error.message, null) }
+            } catch (error: Exception) {
+                mainHandler.post {
+                    result.error("import_failed", "Vokey could not import that sound.", null)
+                }
+            }
+        }, "VokeySoundImport").start()
+    }
+
     private fun sendServiceAction(action: String) {
         if (!VoiceMonitoringService.isActive) {
             VokeyStateBroadcaster.publish(this)
@@ -658,6 +742,8 @@ class MainActivity : FlutterActivity() {
             null,
         )
         pendingCameraPermissionResult = null
+        pendingSoundImport?.error("activity_destroyed", "The app closed before the import finished.", null)
+        pendingSoundImport = null
         super.onDestroy()
     }
 }

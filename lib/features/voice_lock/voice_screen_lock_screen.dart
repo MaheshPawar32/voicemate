@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../app/vokey_app.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
 import '../../services/voice_lock_service.dart';
+import '../../services/voice_settings_repository.dart';
 
 class VoiceScreenLockScreen extends StatefulWidget {
   const VoiceScreenLockScreen({super.key});
@@ -62,6 +65,44 @@ class _VoiceScreenLockScreenState extends State<VoiceScreenLockScreen>
       if (mounted) setState(() => _error = error.toString());
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _deactivate() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (d) => AlertDialog(
+        title: const Text('Turn off screen-lock permission?'),
+        content: const Text(
+          'The “Lock my phone” shortcut and voice lock stop working until you activate it again. Turn this off before uninstalling Vokey.',
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(d, false),
+              child: const Text('Cancel')),
+          FilledButton(
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+            onPressed: () => Navigator.pop(d, true),
+            child: const Text('Turn off'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await _service.deactivate();
+      await VoiceSettingsRepository(
+              Hive.box<dynamic>(AppStartupState.settingsBoxName))
+          .setLockCommandEnabled(false);
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
+      await _refresh();
     }
   }
 
@@ -178,9 +219,20 @@ class _VoiceScreenLockScreenState extends State<VoiceScreenLockScreen>
                   minimumSize: const Size.fromHeight(54),
                 ),
               ),
+            if (_adminActive == true) ...[
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _busy ? null : _deactivate,
+                icon: const Icon(Icons.remove_moderator_outlined),
+                label: const Text('Turn off screen-lock permission'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                ),
+              ),
+            ],
             const SizedBox(height: 14),
             const Text(
-              'You can remove this permission at any time in Android Settings → Security → Device admin apps. Vokey does not use Accessibility services or any unlock automation.',
+              'Turn this permission off here (or in Android Settings → Security → Device admin apps) before uninstalling Vokey. Vokey does not use Accessibility services or any unlock automation.',
               style:
                   TextStyle(color: VokeyApp.muted, height: 1.5, fontSize: 12),
             ),

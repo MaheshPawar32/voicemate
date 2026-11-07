@@ -51,7 +51,7 @@ class SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(4, 18, 4, 8),
+        padding: const EdgeInsets.fromLTRB(4, 22, 4, 12),
         child: Text(
           text,
           style: const TextStyle(
@@ -85,10 +85,10 @@ class SettingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.only(bottom: 14),
         child: NeonCard(
           onTap: onTap,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Row(
             children: [
               IconBadge(icon: icon, color: iconColor),

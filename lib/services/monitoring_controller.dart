@@ -10,6 +10,17 @@ import 'history_repository.dart';
 import 'monitoring_settings_repository.dart';
 import 'voice_settings_repository.dart';
 
+/// User-facing reason when the alert sound could not play.
+String soundUnavailableMessage(String? reason) => switch (reason) {
+      'no_headphones' =>
+        'Sound skipped: output is set to Headphones only and none are connected. Vibration and flashlight still work.',
+      'custom_sound_missing' =>
+        'Your custom sound is missing, so the default tone was used. Choose a sound again in Sound Library.',
+      'audio_focus_denied' =>
+        'Android did not allow the alert sound right now (for example during a call).',
+      _ => 'The alert sound could not play on this phone.',
+    };
+
 /// Latest detection shown on the "Phone found" screen.
 class DetectionInfo {
   const DetectionInfo({
@@ -217,6 +228,10 @@ class MonitoringController extends ChangeNotifier {
       case 'battery_low_warning':
         notice =
             'Battery is at ${e.intField('battery_percent')}%. Monitoring keeps running; charge soon or stop it to save power.';
+        notifyListeners();
+        return;
+      case 'alert_sound_unavailable':
+        notice = soundUnavailableMessage(e.reason);
         notifyListeners();
         return;
       case 'flashlight_unavailable':

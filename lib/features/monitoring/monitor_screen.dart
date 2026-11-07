@@ -175,7 +175,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
                     ),
                   ),
                   if (_c.notice != null) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     NoticeBanner(
                         message: _c.notice!,
                         color: VokeyTokens.warning,
@@ -237,7 +237,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
                     subtitle: 'If monitoring stops in the background',
                     onTap: () => _open(const HelpAndSupportScreen()),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 22),
                   if (active)
                     DangerButton(label: 'Stop Monitoring', onPressed: _c.stop)
                   else
@@ -247,7 +247,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
                       onPressed:
                           _c.busy ? null : () => FinderStartFlow.start(context),
                     ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 14),
                   TextButton.icon(
                     onPressed: _confirmStopAll,
                     style: TextButton.styleFrom(

@@ -15,6 +15,7 @@ import '../features/tools/tools_screen.dart';
 import '../services/monitoring_controller.dart';
 import '../features/home/home_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
+import '../features/permissions/permission_setup_screen.dart';
 import '../features/settings/settings_screen.dart';
 
 class AppStartupState {
@@ -278,11 +279,16 @@ class _AppEntryState extends State<_AppEntry> {
 
   @override
   Widget build(BuildContext context) {
-    final complete =
+    final onboarded =
         _settings.get('onboarding_complete', defaultValue: false) == true;
-    return complete
-        ? const VokeyShell()
-        : OnboardingScreen(onComplete: _completeOnboarding);
+    if (!onboarded) return OnboardingScreen(onComplete: _completeOnboarding);
+    final permissionsDone =
+        _settings.get(PermissionSetupScreen.doneKey, defaultValue: false) ==
+            true;
+    if (!permissionsDone) {
+      return PermissionSetupScreen(onDone: () => setState(() {}));
+    }
+    return const VokeyShell();
   }
 }
 

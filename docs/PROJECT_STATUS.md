@@ -1,6 +1,6 @@
 # Vokey — Project Status
 
-_Last updated: 2026-11-07 · Branch: `vokey-rebrand` · Repo: [MaheshPawar32/vokey](https://github.com/MaheshPawar32/vokey)_
+_Last updated: 2026-11-07 (evening) · Branch: `vokey-rebrand` · Repo: [MaheshPawar32/vokey](https://github.com/MaheshPawar32/vokey)_
 
 **Vokey** (Voice Control & Phone Finder) is an Android-only, offline-first Flutter + Kotlin app.
 App ID `com.dev.vokey` · Dart package `vokey` · Target/compile SDK 36 · Min SDK 24 · Monetization: AdMob only.
@@ -58,8 +58,8 @@ App ID `com.dev.vokey` · Dart package `vokey` · Target/compile SDK 36 · Min S
 | Suite | Result |
 |---|---|
 | Dart analysis / format | Clean |
-| Flutter unit and widget tests | 53 / 53 pass |
-| Kotlin unit tests | 33 / 33 pass |
+| Flutter unit and widget tests | 68 / 68 pass |
+| Kotlin unit tests | 45 / 45 pass |
 
 ---
 
@@ -85,7 +85,7 @@ Reference: `assets/branding/reference/vokey_ui_reference.png`
 |---|---|---|
 | Splash | ✅ | Animated |
 | Onboarding 1–3 | ✅ | Swipe, Skip/Next, Get Started |
-| Permission Setup | ❌ | Microphone, notifications, device admin (optional) |
+| Permission Setup | ✅ | After onboarding; disclosure first; granted / denied / blocked → Settings; verified on emulator |
 | Home dashboard ("Ready to Find") | ✅ | New design, method toggles, banner ad only when idle |
 | Monitoring active ("Listening…" + timer) | ✅ | Live timer, level bars, clap-pattern progress; verified on emulator |
 | Detection alert ("Phone Found!") | ✅ | In-app screen (Stop Alert, Snooze 30s, false alarm, Stop listening) + notification; not yet triggered by a real clap |
@@ -94,19 +94,19 @@ Reference: `assets/branding/reference/vokey_ui_reference.png`
 | Clap Detection (pattern, sensitivity) | ✅ | |
 | Whistle Detection (sensitivity, range, duration) | ✅ | |
 | Voice Commands | 🟡 | Existing screen: model download, enable, lock command. Old design |
-| Alert Studio (Sound / Vibration / Flashlight tabs) | 🟡 | Existing: tone, volume, duration, repeat, vibration, flash pattern, preview. Old design |
-| Sound Library (search, categories, import) | 🟡 | Existing: 4 built-in tones with preview. No search, categories or import |
+| Alert Studio (Sound / Vibration / Flashlight tabs) | ✅ | Tabs, rising volume, output, preview / stop |
+| Sound Library (search, categories, import) | ✅ | Search, All / Built-in / My sounds, import, rename, delete, restore default |
 | Finder Test Mode | 🟡 | Uses saved settings now. Still needs alert/flash/vibration tests and new design |
 | Permission Health | 🟡 | Existing: microphone, notifications, camera, open settings. Missing: sensor, Bluetooth, foreground service |
-| Monitoring Centre | ✅ | Duration, methods, service, battery, output route, pocket, schedule, Stop everything |
+| Monitoring Centre | ✅ | Duration, methods, service, battery, output route, pocket, schedule, Stop everything; spacing increased |
 | Battery Centre | ✅ | Level, charging, warning and auto-stop thresholds; device details screen kept |
-| Audio Output / Headphone policy | ❌ | Route detection done natively; output policy not implemented |
+| Audio Output / Headphone policy | ✅ | Auto / Speaker / Headphones (in Alert Studio); Headphones-only silence verified on emulator |
 | Pocket Mode | ✅ | Detects missing sensor |
 | Detection Analytics | ✅ | Overview / Daily / Weekly, false alarms, monitoring time |
 | History (filters, day groups) | ✅ | Filters, Today/Yesterday groups, retention, clear with confirmation |
 | Settings (grouped) | 🟡 | Existing; old design |
 | Privacy Policy / Help / About | ✅ | Existing screens |
-| Voice Screen Lock | ✅ | Existing; lock only, never unlock |
+| Voice Screen Lock | ✅ | Lock only; now has in-app “Turn off” (needed before uninstall) |
 | Quick Settings tile | ⚙️ | Built; not tested on a device |
 | Home-screen widget | ⚙️ | Built; not tested on a device |
 | Bluetooth remote | ❌ | |
@@ -123,7 +123,7 @@ Reference: `assets/branding/reference/vokey_ui_reference.png`
 | Clap detection | ✅ | Single/double/triple patterns |
 | Whistle detection | ✅ | Range and duration configurable |
 | Offline voice commands (Vosk, English) | 🟡 | Works after a one-time 40 MB model download. "Start/Stop Vokey" not possible: "Vokey" isn't in the model's vocabulary |
-| Sound alerts | ✅ | 4 built-in tones |
+| Sound alerts | ✅ | 4 built-in tones + imported sounds, rising volume, output choice |
 | Vibration alerts | ✅ | |
 | Flashlight alerts | ✅ | Single, double and SOS patterns |
 | Sensitivity | ✅ | 0–100 sliders |
@@ -136,13 +136,13 @@ Reference: `assets/branding/reference/vokey_ui_reference.png`
 | # | Feature | Priority | Status |
 |---|---|---|---|
 | 1 | Flashlight SOS | P0 | 🟡 Pattern done; configurable duration pending |
-| 2 | Increasing alert volume | P0 | ❌ Needs a new alert player (current tone player can't ramp) |
+| 2 | Increasing alert volume | P0 | ✅ New alarm-stream player; ramp verified on emulator (-12 → -6 dB); device volume never changed |
 | 3 | Pocket mode | P0 | ✅ (sensor behaviour untested on real phones) |
 | 4 | Finder Test Mode | P0 | 🟡 |
-| 5 | Permission Health Check | P0 | 🟡 |
-| 6 | Custom sounds (import, rename, delete) | P0 | ❌ |
+| 5 | Permission Health Check | P0 | 🟡 Permission Setup done; Permission Health screen still old |
+| 6 | Custom sounds (import, rename, delete) | P0 | ✅ Android file picker, no storage permission; import + playback verified on emulator |
 | 7 | Battery-aware monitoring | P0 | ✅ |
-| 8 | Headphone detection / output policy | P0 | 🟡 Route detection only |
+| 8 | Headphone detection / output policy | P0 | ✅ Auto / Speaker / Headphones-only, re-checked when headphones change (real headphones not yet tested) |
 | 9 | Emergency Stop All | P0 | ✅ Notification Stop verified with app in background; in-app Stop everything added |
 | 10 | Quick Settings tile | P1 | ⚙️ |
 | 11 | Home-screen widget | P1 | ⚙️ |
@@ -154,18 +154,13 @@ Reference: `assets/branding/reference/vokey_ui_reference.png`
 
 ## 5. Pending, in order
 
-1. **Test a real detection on a physical phone:** clap, whistle and voice → Phone Found → Stop / Snooze. Check the Quick Settings tile and widget.
-2. **Permission Setup screen** after onboarding; extend Permission Health (proximity sensor, foreground service, Bluetooth).
+1. **Test on a physical phone:** real clap / whistle / voice detection → Phone Found → Stop / Snooze; Quick Settings tile; widget; real wired/Bluetooth headphones with each output setting.
+2. **Permission Health redesign** (proximity sensor, foreground service, Bluetooth rows).
 3. **Finder Test redesign** with alert, flashlight and vibration tests.
-4. **Alerts:**
-   - Increasing volume (alarm stream only).
-   - Headphone output policy.
-   - Custom sound import (Android file picker, no broad storage permission).
-   - Alert Studio and Sound Library redesign (tabs, search, categories).
-5. **Restyle the remaining old screens:** Settings groups, Voice Commands, Privacy/Help.
-6. **Ads:** interstitial at natural transitions only; native ad on an informational screen.
-7. **Bluetooth remote and Wear OS** (need product decisions).
-8. **Release:** instrumentation tests, physical devices, signed AAB, Play Console.
+4. **Restyle the remaining old screens:** Settings groups, Voice Commands header, Privacy/Help.
+5. **Ads:** interstitial at natural transitions only; native ad on an informational screen.
+6. **Bluetooth remote and Wear OS** (need product decisions).
+7. **Release:** instrumentation tests, physical devices, signed AAB, Play Console.
 
 ## 6. Release blockers
 

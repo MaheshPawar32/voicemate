@@ -7,7 +7,18 @@ class PermissionStatusSnapshot {
     required this.notificationsEnabled,
     required this.cameraGranted,
     required this.apiLevel,
+    this.microphoneRationale = false,
+    this.notificationRationale = false,
+    this.cameraRationale = false,
+    this.deviceAdminActive = false,
+    this.hasFlash = true,
   });
+
+  final bool microphoneRationale;
+  final bool notificationRationale;
+  final bool cameraRationale;
+  final bool deviceAdminActive;
+  final bool hasFlash;
 
   final bool microphoneGranted;
   final bool notificationPermissionGranted;
@@ -26,6 +37,11 @@ class PermissionStatusSnapshot {
         notificationsEnabled: map['notifications_enabled'] == true,
         cameraGranted: map['camera_granted'] == true,
         apiLevel: (map['api_level'] as num?)?.toInt() ?? 0,
+        microphoneRationale: map['microphone_rationale'] == true,
+        notificationRationale: map['notification_rationale'] == true,
+        cameraRationale: map['camera_rationale'] == true,
+        deviceAdminActive: map['device_admin_active'] == true,
+        hasFlash: map['has_flash'] != false,
       );
 }
 

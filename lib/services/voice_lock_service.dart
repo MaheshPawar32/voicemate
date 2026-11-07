@@ -25,6 +25,16 @@ class VoiceLockService {
     }
   }
 
+  /// Removes Vokey's device-admin permission (needed before uninstalling).
+  Future<void> deactivate() async {
+    try {
+      await _channel.invokeMethod<bool>('deactivateLockAdmin');
+    } on PlatformException catch (error) {
+      throw VoiceLockException(
+          error.message ?? 'Could not remove the screen-lock permission.');
+    }
+  }
+
   Future<void> lockNow() async {
     try {
       final locked = await _channel.invokeMethod<bool>('lockDeviceNow');

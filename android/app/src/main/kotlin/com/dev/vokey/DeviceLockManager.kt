@@ -28,6 +28,13 @@ internal class DeviceLockManager(private val context: Context) {
         activity.startActivity(intent)
     }
 
+    /** An app may always remove its own admin; required before uninstalling. */
+    fun deactivate(): Boolean {
+        if (!isAdminActive()) return true
+        devicePolicyManager.removeActiveAdmin(adminComponent)
+        return true
+    }
+
     fun lockNow(): Boolean {
         if (!isAdminActive()) return false
         devicePolicyManager.lockNow()

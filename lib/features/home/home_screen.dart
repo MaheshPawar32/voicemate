@@ -7,7 +7,6 @@ import '../../core/widgets/gradient_button.dart';
 import '../../core/widgets/vokey_widgets.dart';
 import '../../services/finder_monitoring_service.dart';
 import '../../services/monitoring_controller.dart';
-import '../../services/monitoring_settings_repository.dart';
 import '../ads/home_banner_ad.dart';
 import '../alert_studio/alert_studio_screen.dart';
 import '../clap_detection/clap_test_screen.dart';
@@ -55,15 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
       await _c.voiceSettings.setEnabled(value);
     } else {
       final p = _c.monitoringSettings.read();
-      await _c.monitoringSettings.save(MonitoringPreferences(
+      await _c.monitoringSettings.save(p.copyWith(
         clapEnabled: method == 'clap' ? value : p.clapEnabled,
         whistleEnabled: method == 'whistle' ? value : p.whistleEnabled,
-        clapSensitivity: p.clapSensitivity,
-        whistleSensitivity: p.whistleSensitivity,
-        autoStopMinutes: p.autoStopMinutes,
-        quietHoursEnabled: p.quietHoursEnabled,
-        quietStart: p.quietStart,
-        quietEnd: p.quietEnd,
       ));
     }
     if (mounted) setState(() {});

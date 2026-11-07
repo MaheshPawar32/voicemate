@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../app/vokey_app.dart';
-import '../../services/finder_monitoring_service.dart';
+import '../../core/theme/vokey_theme.dart';
+import '../../core/widgets/vokey_widgets.dart';
+import '../../services/monitoring_controller.dart';
 import '../../services/monitoring_settings_repository.dart';
 
+/// Schedule & quiet hours (opened from Monitoring Centre and Settings).
+/// Detection methods and sensitivity live in Smart Finder / Clap / Whistle.
 class MonitoringCentreScreen extends StatefulWidget {
   const MonitoringCentreScreen({super.key});
 
@@ -13,309 +15,137 @@ class MonitoringCentreScreen extends StatefulWidget {
 }
 
 class _MonitoringCentreScreenState extends State<MonitoringCentreScreen> {
-  final FinderMonitoringService _service = FinderMonitoringService();
-  late final MonitoringSettingsRepository _repository;
-  late MonitoringPreferences _preferences;
-  bool _monitoringActive = false;
-  bool _loading = true;
+  final _c = MonitoringController.instance;
+  late MonitoringPreferences _p = _c.monitoringSettings.read();
   String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _repository = MonitoringSettingsRepository(
-      Hive.box<dynamic>('vokey_settings'),
-    );
-    _preferences = _repository.read();
-    _refreshStatus();
-  }
-
-  Future<void> _refreshStatus() async {
-    try {
-      final active = await _service.isActive();
-      if (!mounted) return;
-      setState(() {
-        _monitoringActive = active;
-        _loading = false;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = error.toString();
-      });
-    }
-  }
 
   Future<void> _save(MonitoringPreferences next) async {
     setState(() {
-      _preferences = next;
+      _p = next;
       _error = null;
     });
     try {
-      await _repository.save(next);
-    } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+      await _c.monitoringSettings.save(next);
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
     }
   }
 
-  Future<void> _setTime({required bool start}) async {
-    final current = start ? _preferences.quietStart : _preferences.quietEnd;
-    final parts = current.split(':');
-    final initial = TimeOfDay(
-      hour: int.tryParse(parts.first) ?? (start ? 22 : 7),
-      minute: int.tryParse(parts.last) ?? 0,
-    );
-    final selected = await showTimePicker(
+  Future<void> _pickTime({required bool start}) async {
+    final parts = (start ? _p.quietStart : _p.quietEnd).split(':');
+    final picked = await showTimePicker(
       context: context,
-      initialTime: initial,
+      initialTime: TimeOfDay(
+        hour: int.tryParse(parts.first) ?? (start ? 22 : 7),
+        minute: int.tryParse(parts.last) ?? 0,
+      ),
     );
-    if (selected == null || !mounted) return;
-    final value = _formatTime(selected);
-    final next = MonitoringPreferences(
-      clapEnabled: _preferences.clapEnabled,
-      whistleEnabled: _preferences.whistleEnabled,
-      clapSensitivity: _preferences.clapSensitivity,
-      whistleSensitivity: _preferences.whistleSensitivity,
-      autoStopMinutes: _preferences.autoStopMinutes,
-      quietHoursEnabled: _preferences.quietHoursEnabled,
-      quietStart: start ? value : _preferences.quietStart,
-      quietEnd: start ? _preferences.quietEnd : value,
-    );
-    await _save(next);
+    if (picked == null || !mounted) return;
+    final value =
+        '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+    await _save(
+        start ? _p.copyWith(quietStart: value) : _p.copyWith(quietEnd: value));
   }
 
-  String _formatTime(TimeOfDay time) =>
-      '${time.hour.toString().padLeft(2, '0')}:'
-      '${time.minute.toString().padLeft(2, '0')}';
-
-  MonitoringPreferences _copy({
-    bool? clapEnabled,
-    bool? whistleEnabled,
-    String? clapSensitivity,
-    String? whistleSensitivity,
-    int? autoStopMinutes,
-    bool? quietHoursEnabled,
-  }) =>
-      MonitoringPreferences(
-        clapEnabled: clapEnabled ?? _preferences.clapEnabled,
-        whistleEnabled: whistleEnabled ?? _preferences.whistleEnabled,
-        clapSensitivity: clapSensitivity ?? _preferences.clapSensitivity,
-        whistleSensitivity:
-            whistleSensitivity ?? _preferences.whistleSensitivity,
-        autoStopMinutes: autoStopMinutes ?? _preferences.autoStopMinutes,
-        quietHoursEnabled: quietHoursEnabled ?? _preferences.quietHoursEnabled,
-        quietStart: _preferences.quietStart,
-        quietEnd: _preferences.quietEnd,
-      );
+  Future<void> _pickAutoStop() async {
+    final picked = await showChoiceSheet<int>(
+      context,
+      title: 'Stop monitoring automatically after',
+      options: MonitoringPreferences.autoStopOptions,
+      current: _p.autoStopMinutes,
+    );
+    if (picked != null) await _save(_p.copyWith(autoStopMinutes: picked));
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Monitoring Centre'),
-          actions: [
-            IconButton(
-              tooltip: 'Refresh monitoring status',
-              onPressed: _loading ? null : _refreshStatus,
-              icon: const Icon(Icons.refresh_rounded),
+        appBar: AppBar(title: const Text('Schedule & quiet hours')),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          children: [
+            if (_c.active) ...[
+              const NoticeBanner(
+                color: VokeyTokens.warning,
+                message:
+                    'Monitoring is running. Changes apply the next time you start the finder.',
+              ),
+              const SizedBox(height: 8),
+            ],
+            const SectionLabel('Auto-stop'),
+            SettingRow(
+              icon: Icons.timer_outlined,
+              title: 'Stop monitoring after',
+              subtitle: 'Limits how long the microphone stays on',
+              trailing: Text(
+                MonitoringPreferences.autoStopOptions[_p.autoStopMinutes] ??
+                    'Never',
+                style: const TextStyle(color: VokeyTokens.muted),
+              ),
+              onTap: _pickAutoStop,
+            ),
+            const SizedBox(height: 10),
+            const SectionLabel('Quiet hours'),
+            ToggleRow(
+              icon: Icons.bedtime_outlined,
+              title: 'Mute alerts during quiet hours',
+              subtitle: 'Detections are still logged in History',
+              value: _p.quietHoursEnabled,
+              onChanged: (v) => _save(_p.copyWith(quietHoursEnabled: v)),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              child: _p.quietHoursEnabled
+                  ? Column(
+                      children: [
+                        SettingRow(
+                          icon: Icons.nightlight_round,
+                          iconColor: VokeyTokens.violet,
+                          title: 'Starts',
+                          trailing: _TimeChip(_p.quietStart),
+                          onTap: () => _pickTime(start: true),
+                        ),
+                        SettingRow(
+                          icon: Icons.wb_sunny_outlined,
+                          iconColor: VokeyTokens.warning,
+                          title: 'Ends',
+                          trailing: _TimeChip(_p.quietEnd),
+                          onTap: () => _pickTime(start: false),
+                        ),
+                      ],
+                    )
+                  : const SizedBox(width: double.infinity),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              NoticeBanner(
+                  message: _error!,
+                  onDismiss: () => setState(() => _error = null)),
+            ],
+            const SizedBox(height: 18),
+            const Text(
+              'Quiet hours can cross midnight (for example 22:00–07:00). Monitoring never restarts by '
+              'itself after you stop it, the phone restarts, or Android closes Vokey.',
+              style: TextStyle(
+                  color: VokeyTokens.muted, fontSize: 12.5, height: 1.5),
             ),
           ],
         ),
-        body: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : ListView(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(17),
-                    decoration: BoxDecoration(
-                      color: VokeyApp.surface,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: (_monitoringActive
-                                ? const Color(0xFF38D99A)
-                                : VokeyApp.cyan)
-                            .withValues(alpha: .22),
-                      ),
-                    ),
-                    child: Row(children: [
-                      Icon(
-                        _monitoringActive
-                            ? Icons.hearing_rounded
-                            : Icons.pause_circle_outline_rounded,
-                        color: _monitoringActive
-                            ? const Color(0xFF38D99A)
-                            : VokeyApp.cyan,
-                        size: 30,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                          child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _monitoringActive
-                                ? 'Finder is running'
-                                : 'Finder is stopped',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w800, fontSize: 16),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Settings below apply the next time monitoring starts.',
-                            style:
-                                TextStyle(color: VokeyApp.muted, fontSize: 12),
-                          ),
-                        ],
-                      )),
-                    ]),
-                  ),
-                  const SizedBox(height: 22),
-                  const Text('DETECTORS',
-                      style: TextStyle(
-                        color: VokeyApp.cyan,
-                        fontSize: 11,
-                        letterSpacing: 1.4,
-                        fontWeight: FontWeight.w800,
-                      )),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Clap detection'),
-                    subtitle: const Text('Detect short, sharp clap sounds'),
-                    value: _preferences.clapEnabled,
-                    activeThumbColor: VokeyApp.cyan,
-                    onChanged: (value) => _save(_copy(clapEnabled: value)),
-                  ),
-                  if (_preferences.clapEnabled)
-                    _SensitivityDropdown(
-                      label: 'Clap sensitivity',
-                      value: _preferences.clapSensitivity,
-                      onChanged: (value) =>
-                          _save(_copy(clapSensitivity: value)),
-                    ),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Whistle detection'),
-                    subtitle: const Text('Detect sustained whistle-like tones'),
-                    value: _preferences.whistleEnabled,
-                    activeThumbColor: VokeyApp.cyan,
-                    onChanged: (value) => _save(_copy(whistleEnabled: value)),
-                  ),
-                  if (_preferences.whistleEnabled)
-                    _SensitivityDropdown(
-                      label: 'Whistle sensitivity',
-                      value: _preferences.whistleSensitivity,
-                      onChanged: (value) =>
-                          _save(_copy(whistleSensitivity: value)),
-                    ),
-                  const SizedBox(height: 22),
-                  const Text('MONITORING DURATION',
-                      style: TextStyle(
-                        color: VokeyApp.cyan,
-                        fontSize: 11,
-                        letterSpacing: 1.4,
-                        fontWeight: FontWeight.w800,
-                      )),
-                  DropdownButtonFormField<int>(
-                    initialValue: _preferences.autoStopMinutes,
-                    decoration: const InputDecoration(
-                      labelText: 'Automatically stop finder after',
-                    ),
-                    items: MonitoringPreferences.autoStopOptions.entries
-                        .map((entry) => DropdownMenuItem<int>(
-                              value: entry.key,
-                              child: Text(entry.value),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        _save(_copy(autoStopMinutes: value));
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 22),
-                  const Text('QUIET HOURS',
-                      style: TextStyle(
-                        color: VokeyApp.cyan,
-                        fontSize: 11,
-                        letterSpacing: 1.4,
-                        fontWeight: FontWeight.w800,
-                      )),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Mute finder alerts during quiet hours'),
-                    subtitle: const Text(
-                      'Detection continues and is saved to history, but sound, vibration and flashlight are suppressed.',
-                    ),
-                    value: _preferences.quietHoursEnabled,
-                    activeThumbColor: VokeyApp.cyan,
-                    onChanged: (value) =>
-                        _save(_copy(quietHoursEnabled: value)),
-                  ),
-                  if (_preferences.quietHoursEnabled) ...[
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.nights_stay_outlined,
-                            color: VokeyApp.cyan),
-                        title: const Text('Quiet hours start'),
-                        trailing: Text(_preferences.quietStart),
-                        onTap: () => _setTime(start: true),
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.wb_sunny_outlined,
-                            color: VokeyApp.cyan),
-                        title: const Text('Quiet hours end'),
-                        trailing: Text(_preferences.quietEnd),
-                        onTap: () => _setTime(start: false),
-                      ),
-                    ),
-                  ],
-                  if (!_preferences.clapEnabled &&
-                      !_preferences.whistleEnabled) ...[
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Both sound detectors are disabled. Enable at least one detector or turn on offline voice commands before starting the finder.',
-                      style: TextStyle(color: Color(0xFFFFBE55), height: 1.45),
-                    ),
-                  ],
-                  if (_error != null) ...[
-                    const SizedBox(height: 14),
-                    Text(_error!,
-                        style: const TextStyle(color: Color(0xFFFFA7B2))),
-                  ],
-                ],
-              ),
       );
 }
 
-class _SensitivityDropdown extends StatelessWidget {
-  const _SensitivityDropdown({
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final String label;
-  final String value;
-  final ValueChanged<String> onChanged;
+class _TimeChip extends StatelessWidget {
+  const _TimeChip(this.time);
+  final String time;
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: DropdownButtonFormField<String>(
-          initialValue: value,
-          decoration: InputDecoration(labelText: label),
-          items: MonitoringPreferences.sensitivityOptions.entries
-              .map((entry) => DropdownMenuItem<String>(
-                    value: entry.key,
-                    child: Text(entry.value),
-                  ))
-              .toList(),
-          onChanged: (next) {
-            if (next != null) onChanged(next);
-          },
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: VokeyTokens.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: VokeyTokens.cardBorder),
         ),
+        child: Text(time,
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
       );
 }

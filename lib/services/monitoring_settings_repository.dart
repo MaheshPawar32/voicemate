@@ -39,6 +39,25 @@ class MonitoringPreferences {
     360: '6 hours',
   };
 
+  MonitoringPreferences copyWith({
+    bool? clapEnabled,
+    bool? whistleEnabled,
+    int? autoStopMinutes,
+    bool? quietHoursEnabled,
+    String? quietStart,
+    String? quietEnd,
+  }) =>
+      MonitoringPreferences(
+        clapEnabled: clapEnabled ?? this.clapEnabled,
+        whistleEnabled: whistleEnabled ?? this.whistleEnabled,
+        clapSensitivity: clapSensitivity,
+        whistleSensitivity: whistleSensitivity,
+        autoStopMinutes: autoStopMinutes ?? this.autoStopMinutes,
+        quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
+        quietStart: quietStart ?? this.quietStart,
+        quietEnd: quietEnd ?? this.quietEnd,
+      );
+
   Map<String, Object> toMap() => {
         'clap_enabled': clapEnabled,
         'whistle_enabled': whistleEnabled,
